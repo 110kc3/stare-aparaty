@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5938409029165277"
+     crossorigin="anonymous"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stare Aparaty - Vintage Cameras</title>
@@ -10,11 +12,49 @@
             width: 100%;
             height: 200px; /* Set a fixed height */
             object-fit: cover; /* Crop the image to fit */
+            cursor: pointer; /* Change cursor to pointer on hover */
         }
         .image-reference {
             text-align: right;
             font-size: small;
             margin-top: -10px;
+        }
+        /* Lightbox styles */
+        .lightbox {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 999; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.8); /* Black with opacity */
+        }
+        .lightbox-content {
+            position: relative;
+            margin: auto;
+            padding: 0;
+            width: 80%;
+            max-width: 800px;
+        }
+        .lightbox-image {
+            width: 100%;
+        }
+        .close-lightbox {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #fff;
+            font-size: 40px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .close-lightbox:hover,
+        .close-lightbox:focus {
+            color: #bbb;
+            text-decoration: none;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -23,12 +63,29 @@
         <h1>Stare Aparaty - Vintage Cameras</h1>
         <p>Odkryj piękno klasycznej fotografii z naszą kolekcją aparatów vintage i filmów!</p>
 
+        <!-- Lightbox container -->
+        <div id="lightbox" class="lightbox" onclick="closeLightbox()">
+            <span class="close-lightbox" onclick="closeLightbox()">&times;</span>
+            <div class="lightbox-content" onclick="event.stopPropagation();">
+                <img id="lightbox-img" class="lightbox-image" src="" alt="">
+                <div id="lightbox-reference" class="image-reference">
+                    <!-- Source link will be inserted here -->
+                </div>
+            </div>
+        </div>
+
         <div class="product-section">
             <h2>Filmy Czarnobiałe</h2>
             <div class="product-row three-column">
+                <!-- Fujifilm Acros 100 -->
                 <div class="product">
                     <h3>Fujifilm Acros 100 - Nowoczesny film czarno-biały</h3>
-                    <img src="https://cdn.assets.lomography.com/dd/f51b3673d0fa0cbfd908fd46629c13e7522619/1216x784x1.jpg?auth=e13347014bbcd5062aa02e9a91036bc174cf4197" alt="Przykładowe zdjęcie z filmu Fujifilm Acros 100">
+                    <img src="https://cdn.assets.lomography.com/dd/f51b3673d0fa0cbfd908fd46629c13e7522619/1216x784x1.jpg?auth=e13347014bbcd5062aa02e9a91036bc174cf4197"
+                         alt="Przykładowe zdjęcie z filmu Fujifilm Acros 100"
+                         onclick="openLightbox(
+                             'https://cdn.assets.lomography.com/dd/f51b3673d0fa0cbfd908fd46629c13e7522619/1216x784x1.jpg?auth=e13347014bbcd5062aa02e9a91036bc174cf4197',
+                             'Przykładowe zdjęcie z filmu Fujifilm Acros 100',
+                             'https://www.lomography.com/search/photos/20930435?query=Fujifilm+Acros+100')">
                     <div class="image-reference">
                         <a href="https://www.lomography.com/search/photos/20930435?query=Fujifilm+Acros+100">Źródło obrazu</a>
                     </div>
@@ -36,9 +93,15 @@
                     <a href="https://www.amazon.pl/s?k=Fujifilm+Acros+100&tag=blueprintkc08-21" class="cta-button">Kup teraz</a>
                 </div>
 
+                <!-- Ilford HP5 Plus -->
                 <div class="product">
                     <h3>Ilford HP5 Plus - Klasyczny film o wysokim kontraście</h3>
-                    <img src="https://cdn.assets.lomography.com/03/a56a5e97b14330c50ef0ee2745743273443f12/1216x823x2.jpg?auth=832a066ca04fa5b879be49113cc8ae5e927a075e" alt="Przykładowe zdjęcie z filmu Ilford HP5 Plus">
+                    <img src="https://cdn.assets.lomography.com/03/a56a5e97b14330c50ef0ee2745743273443f12/1216x823x2.jpg?auth=832a066ca04fa5b879be49113cc8ae5e927a075e"
+                         alt="Przykładowe zdjęcie z filmu Ilford HP5 Plus"
+                         onclick="openLightbox(
+                             'https://cdn.assets.lomography.com/03/a56a5e97b14330c50ef0ee2745743273443f12/1216x823x2.jpg?auth=832a066ca04fa5b879be49113cc8ae5e927a075e',
+                             'Przykładowe zdjęcie z filmu Ilford HP5 Plus',
+                             'https://www.lomography.com/search/photos/23121197?query=Ilford+HP5+Plus')">
                     <div class="image-reference">
                         <a href="https://www.lomography.com/search/photos/23121197?query=Ilford+HP5+Plus">Źródło obrazu</a>
                     </div>
@@ -46,9 +109,15 @@
                     <a href="https://www.amazon.pl/s?k=Ilford+HP5+Plus&tag=blueprintkc08-21" class="cta-button">Kup teraz</a>
                 </div>
 
+                <!-- Kodak Tri-X 400 -->
                 <div class="product">
                     <h3>Kodak Tri-X 400 - Legendarny film o bogatej historii</h3>
-                    <img src="https://cdn.assets.lomography.com/74/7645fba440b8c16ef77e44be06b06163e41441/1216x918x1.jpg?auth=78a68119a573b220a0d412bbf45dd0835f4f35d1" alt="Przykładowe zdjęcie z filmu Kodak Tri-X 400">
+                    <img src="https://cdn.assets.lomography.com/74/7645fba440b8c16ef77e44be06b06163e41441/1216x918x1.jpg?auth=78a68119a573b220a0d412bbf45dd0835f4f35d1"
+                         alt="Przykładowe zdjęcie z filmu Kodak Tri-X 400"
+                         onclick="openLightbox(
+                             'https://cdn.assets.lomography.com/74/7645fba440b8c16ef77e44be06b06163e41441/1216x918x1.jpg?auth=78a68119a573b220a0d412bbf45dd0835f4f35d1',
+                             'Przykładowe zdjęcie z filmu Kodak Tri-X 400',
+                             'https://www.lomography.com/films/871911232-kodak-tri-x-400/photos/6138771?order=popular')">
                     <div class="image-reference">
                         <a href="https://www.lomography.com/films/871911232-kodak-tri-x-400/photos/6138771?order=popular">Źródło obrazu</a>
                     </div>
@@ -56,9 +125,15 @@
                     <a href="https://www.amazon.pl/s?k=Kodak+Tri-X+400&tag=blueprintkc08-21" class="cta-button">Kup teraz</a>
                 </div>
 
+                <!-- Ilford Delta 400 -->
                 <div class="product">
                     <h3>Ilford Delta 400 - Wyjątkowa jakość i tonalność</h3>
-                    <img src="https://cdn.assets.lomography.com/4b/8c9bf9d64417c62dd398c87020bc34fffdda45/1216x804x2.jpg?auth=d81b1818ad6da4e4d7af06e79d0a0c4765b23241" alt="Przykładowe zdjęcie z filmu Ilford Delta 400">
+                    <img src="https://cdn.assets.lomography.com/4b/8c9bf9d64417c62dd398c87020bc34fffdda45/1216x804x2.jpg?auth=d81b1818ad6da4e4d7af06e79d0a0c4765b23241"
+                         alt="Przykładowe zdjęcie z filmu Ilford Delta 400"
+                         onclick="openLightbox(
+                             'https://cdn.assets.lomography.com/4b/8c9bf9d64417c62dd398c87020bc34fffdda45/1216x804x2.jpg?auth=d81b1818ad6da4e4d7af06e79d0a0c4765b23241',
+                             'Przykładowe zdjęcie z filmu Ilford Delta 400',
+                             'https://www.lomography.com/search/photos/21015255?query=Ilford+Delta+400')">
                     <div class="image-reference">
                         <a href="https://www.lomography.com/search/photos/21015255?query=Ilford+Delta+400">Źródło obrazu</a>
                     </div>
@@ -66,9 +141,15 @@
                     <a href="https://www.amazon.pl/s?k=Ilford+Delta+400&tag=blueprintkc08-21" class="cta-button">Kup teraz</a>
                 </div>
 
+                <!-- Kentmere 400 -->
                 <div class="product">
                     <h3>Kentmere 400 - Doskonały wybór do eksperymentów</h3>
-                    <img src="https://cdn.assets.lomography.com/b2/4b0e0f771473a9fa32ef8d9c22f918e8da17b0/2000x3000x2.jpg?auth=2b499fbadf53c0383d23906887376a8719897139" alt="Przykładowe zdjęcie z filmu Kentmere 400">
+                    <img src="https://cdn.assets.lomography.com/b2/4b0e0f771473a9fa32ef8d9c22f918e8da17b0/2000x3000x2.jpg?auth=2b499fbadf53c0383d23906887376a8719897139"
+                         alt="Przykładowe zdjęcie z filmu Kentmere 400"
+                         onclick="openLightbox(
+                             'https://cdn.assets.lomography.com/b2/4b0e0f771473a9fa32ef8d9c22f918e8da17b0/2000x3000x2.jpg?auth=2b499fbadf53c0383d23906887376a8719897139',
+                             'Przykładowe zdjęcie z filmu Kentmere 400',
+                             'https://www.lomography.com/search/photos/25641628?query=Kentmere+400')">
                     <div class="image-reference">
                         <a href="https://www.lomography.com/search/photos/25641628?query=Kentmere+400">Źródło obrazu</a>
                     </div>
@@ -81,9 +162,15 @@
         <div class="product-section">
             <h2>Filmy Kolorowe</h2>
             <div class="product-row three-column">
+                <!-- Kodak Ektar 100 -->
                 <div class="product">
                     <h3>Kodak Ektar 100 - Perfekcja kolorów</h3>
-                    <img src="https://cdn.assets.lomography.com/50/3a89ca9d58daa4dcb12e14b1c48b9b8f313ebd/1216x769x1.jpg?auth=6961d195a504f1f4109c44213b7e97aec5013067" alt="Przykładowe zdjęcie z filmu Kodak Ektar 100">
+                    <img src="https://cdn.assets.lomography.com/50/3a89ca9d58daa4dcb12e14b1c48b9b8f313ebd/1216x769x1.jpg?auth=6961d195a504f1f4109c44213b7e97aec5013067"
+                         alt="Przykładowe zdjęcie z filmu Kodak Ektar 100"
+                         onclick="openLightbox(
+                             'https://cdn.assets.lomography.com/50/3a89ca9d58daa4dcb12e14b1c48b9b8f313ebd/1216x769x1.jpg?auth=6961d195a504f1f4109c44213b7e97aec5013067',
+                             'Przykładowe zdjęcie z filmu Kodak Ektar 100',
+                             'https://www.lomography.com/search/photos/20841493?query=Kodak+Ektar+100')">
                     <div class="image-reference">
                         <a href="https://www.lomography.com/search/photos/20841493?query=Kodak+Ektar+100">Źródło obrazu</a>
                     </div>
@@ -91,9 +178,15 @@
                     <a href="https://www.amazon.pl/s?k=Kodak+Ektar+100&tag=blueprintkc08-21" class="cta-button">Kup teraz</a>
                 </div>
 
+                <!-- Kodak Portra 400 -->
                 <div class="product">
                     <h3>Kodak Portra 400 - Żywe kolory i naturalne odcienie skóry</h3>
-                    <img src="https://cdn.assets.lomography.com/ca/bcaac61c8ac248d8667c4410325040eda07932/1216x493x2.jpg?auth=8bfa5c363326e6526348be0230d8cc4fbfc4e855" alt="Przykładowe zdjęcie z filmu Kodak Portra 400">
+                    <img src="https://cdn.assets.lomography.com/ca/bcaac61c8ac248d8667c4410325040eda07932/1216x493x2.jpg?auth=8bfa5c363326e6526348be0230d8cc4fbfc4e855"
+                         alt="Przykładowe zdjęcie z filmu Kodak Portra 400"
+                         onclick="openLightbox(
+                             'https://cdn.assets.lomography.com/ca/bcaac61c8ac248d8667c4410325040eda07932/1216x493x2.jpg?auth=8bfa5c363326e6526348be0230d8cc4fbfc4e855',
+                             'Przykładowe zdjęcie z filmu Kodak Portra 400',
+                             'https://www.lomography.com/search/photos/20966017?query=Kodak+Portra+400')">
                     <div class="image-reference">
                         <a href="https://www.lomography.com/search/photos/20966017?query=Kodak+Portra+400">Źródło obrazu</a>
                     </div>
@@ -101,9 +194,15 @@
                     <a href="https://www.amazon.pl/s?k=Kodak+Portra+400&tag=blueprintkc08-21" class="cta-button">Kup teraz</a>
                 </div>
 
+                <!-- Fujifilm Superia X-TRA 400 -->
                 <div class="product">
                     <h3>Fujifilm Superia X-TRA 400 - Wszechstronny film do codziennego użytku</h3>
-                    <img src="https://cdn.assets.lomography.com/c5/1a49ac8189f0efea8a2ab7390caf327d8f1fb4/960x636x1.jpg?auth=4611deec1489f531c08e5938e49df68b77249ed2" alt="Przykładowe zdjęcie z filmu Fujifilm Superia X-TRA 400">
+                    <img src="https://cdn.assets.lomography.com/c5/1a49ac8189f0efea8a2ab7390caf327d8f1fb4/960x636x1.jpg?auth=4611deec1489f531c08e5938e49df68b77249ed2"
+                         alt="Przykładowe zdjęcie z filmu Fujifilm Superia X-TRA 400"
+                         onclick="openLightbox(
+                             'https://cdn.assets.lomography.com/c5/1a49ac8189f0efea8a2ab7390caf327d8f1fb4/960x636x1.jpg?auth=4611deec1489f531c08e5938e49df68b77249ed2',
+                             'Przykładowe zdjęcie z filmu Fujifilm Superia X-TRA 400',
+                             'https://www.lomography.com/search/photos/23263486?query=Fujifilm+Superia+X-TRA+400')">
                     <div class="image-reference">
                         <a href="https://www.lomography.com/search/photos/23263486?query=Fujifilm+Superia+X-TRA+400">Źródło obrazu</a>
                     </div>
@@ -111,9 +210,15 @@
                     <a href="https://www.amazon.pl/s?k=Fujifilm+Superia+X-TRA+400&tag=blueprintkc08-21" class="cta-button">Kup teraz</a>
                 </div>
 
+                <!-- Kodak Gold 200 -->
                 <div class="product">
                     <h3>Kodak Gold 200 - Klasyczny film do zdjęć codziennych</h3>
-                    <img src="https://cdn.assets.lomography.com/6b/b814bf7d6da39ae839123cbfce4eec4c2da7ae/1216x806x2.jpg?auth=f60ec61259631fd4ce2fa752160db931fd723780" alt="Przykładowe zdjęcie z filmu Kodak Gold 200">
+                    <img src="https://cdn.assets.lomography.com/6b/b814bf7d6da39ae839123cbfce4eec4c2da7ae/1216x806x2.jpg?auth=f60ec61259631fd4ce2fa752160db931fd723780"
+                         alt="Przykładowe zdjęcie z filmu Kodak Gold 200"
+                         onclick="openLightbox(
+                             'https://cdn.assets.lomography.com/6b/b814bf7d6da39ae839123cbfce4eec4c2da7ae/1216x806x2.jpg?auth=f60ec61259631fd4ce2fa752160db931fd723780',
+                             'Przykładowe zdjęcie z filmu Kodak Gold 200',
+                             'https://www.lomography.com/search/photos/24775039?query=Kodak+Gold+200')">
                     <div class="image-reference">
                         <a href="https://www.lomography.com/search/photos/24775039?query=Kodak+Gold+200">Źródło obrazu</a>
                     </div>
@@ -121,9 +226,15 @@
                     <a href="https://www.amazon.pl/s?k=Kodak+Gold+200&tag=blueprintkc08-21" class="cta-button">Kup teraz</a>
                 </div>
 
+                <!-- Fujifilm Pro 400H -->
                 <div class="product">
                     <h3>Fujifilm Pro 400H - Profesjonalna jakość kolorów</h3>
-                    <img src="https://cdn.assets.lomography.com/db/27227bc65b5724a5a0757ea664c265dbd1c4bc/1216x806x2.jpg?auth=3fb1a535be9d2bc3e10e06cafa2651b82970b994" alt="Przykładowe zdjęcie z filmu Fujifilm Pro 400H">
+                    <img src="https://cdn.assets.lomography.com/db/27227bc65b5724a5a0757ea664c265dbd1c4bc/1216x806x2.jpg?auth=3fb1a535be9d2bc3e10e06cafa2651b82970b994"
+                         alt="Przykładowe zdjęcie z filmu Fujifilm Pro 400H"
+                         onclick="openLightbox(
+                             'https://cdn.assets.lomography.com/db/27227bc65b5724a5a0757ea664c265dbd1c4bc/1216x806x2.jpg?auth=3fb1a535be9d2bc3e10e06cafa2651b82970b994',
+                             'Przykładowe zdjęcie z filmu Fujifilm Pro 400H',
+                             'https://www.lomography.com/search/photos/27262523?query=Fujifilm+Pro+400H')">
                     <div class="image-reference">
                         <a href="https://www.lomography.com/search/photos/27262523?query=Fujifilm+Pro+400H">Źródło obrazu</a>
                     </div>
@@ -145,5 +256,30 @@
             <p>Wszystkie linki prowadzą do Amazon.pl, gdzie możesz znaleźć więcej informacji i dokonać zakupu. Kupując przez nasze linki, wspierasz rozwój naszej strony!</p>
         </div>
     </div>
+
+    <!-- Lightbox JavaScript -->
+    <script>
+        function openLightbox(imgSrc, altText, sourceLink) {
+            var lightbox = document.getElementById('lightbox');
+            var lightboxContent = document.querySelector('.lightbox-content');
+            var lightboxImg = document.getElementById('lightbox-img');
+            var lightboxReference = document.getElementById('lightbox-reference');
+
+            lightboxImg.src = imgSrc;
+            lightboxImg.alt = altText;
+            lightboxReference.innerHTML = '<a href="' + sourceLink + '">Źródło obrazu</a>';
+            lightbox.style.display = 'flex';
+
+            // Center the lightbox content vertically
+            var windowHeight = window.innerHeight;
+            var contentHeight = lightboxContent.offsetHeight;
+            var topMargin = (windowHeight - contentHeight) / 2;
+            lightboxContent.style.marginTop = topMargin + 'px';
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox').style.display = 'none';
+        }
+    </script>
 </body>
 </html>
