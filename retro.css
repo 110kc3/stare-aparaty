@@ -1,0 +1,16 @@
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+
+:root {
+    --retro-font: "Press Start 2P", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.retro {
+    font-family: var(--retro-font);
+    line-height: 1.6;
+    letter-spacing: 0.04em;
+}
+
+.pixelated {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
