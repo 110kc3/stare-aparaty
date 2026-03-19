@@ -24,6 +24,8 @@ The Amazon section on the page is preserved and left untouched as requested.
 
 If you remove a link from the workflow input, that product disappears from the page after the next rebuild.
 
+The public page stays in Polish, while the automation, code, and documentation stay in English.
+
 ## Project structure
 
 - `index.html` - generated static page published on GitHub Pages
@@ -34,7 +36,7 @@ If you remove a link from the workflow input, that product disappears from the p
 - `templates/index.template.html` - HTML template for page generation
 - `scripts/build-catalog.js` - catalog generator script
 - `.github/workflows/update-products.yml` - manual workflow for refreshing products
-- `.github/workflows/deploy-pages.yml` - GitHub Pages deployment workflow
+- `.github/workflows/deploy-pages.yml` - GitHub Pages deployment workflow that rebuilds the site on push
 
 ## Local usage
 
@@ -72,6 +74,7 @@ The generator tries common metadata sources from each listing page:
 1. Push the repository to GitHub.
 2. In repository settings, enable **GitHub Pages** with **GitHub Actions** as the source.
 3. Use the workflows in `.github/workflows`.
+4. Trigger **Update cameras from links** whenever you want to replace the full camera list with a new set of links.
 
 ## Notes
 
