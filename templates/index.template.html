@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Stare Aparaty — Gablota ogłoszeń</title>
-  <meta name="description" content="Retro gablota ze starymi aparatami. Lista ofert jest aktualizowana automatycznie na podstawie zapisanych linków.">
+  <title>Stare Aparaty — Aparaty analogowe i filmowy klimat</title>
+  <meta name="description" content="Wybrane aparaty analogowe, filmy i akcesoria w filmowym klimacie.">
   <link rel="stylesheet" href="retro.css">
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -12,48 +12,58 @@
   <div class="page-shell">
     <header class="masthead pixel-frame">
       <div class="masthead__topline">
-        <span class="masthead__badge">STARE APARATY // KATALOG ONLINE</span>
-        <span class="masthead__signal">SYGNAŁ: AKTYWNY</span>
+        <span class="masthead__badge">STARE APARATY</span>
+        <span class="masthead__signal">ARCHIWUM 35MM</span>
       </div>
       <div class="masthead__brand">
-        <h1>Stare aparaty<br>gablotka ogłoszeń</h1>
+        <p class="masthead__kicker">CYFROWA GABLOTA Z OGŁOSZENIAMI</p>
+        <h1>Vintage aparaty,<br>jedna taśma linków</h1>
         <p>
-          Zbiór analogowych perełek, korpusów i zestawów znalezionych w ogłoszeniach.
-          Strona odświeża się automatycznie po aktualizacji listy linków.
+          Strona zbiera aktualne oferty aparatów analogowych w jednym miejscu.
+          Wystarczy podać listę linków, a katalog odświeży się automatycznie.
         </p>
       </div>
+      <nav class="masthead__nav" aria-label="Szybka nawigacja">
+        <a href="#kamera-lista">Aparaty</a>
+        <a href="#amazon-oferty">Filmy i akcesoria</a>
+      </nav>
     </header>
 
     <section class="hero-panel">
       <div class="hero-panel__intro pixel-frame">
-        <span class="hero-panel__label">TRYB KOLEKCJONERA</span>
+        <span class="hero-panel__label">TRYB PODGLĄDU</span>
+        <h2 class="hero-panel__headline">Nowa selekcja budowana z samych linków</h2>
         <p>
-          Tutaj trafiają wybrane aparaty, które warto obserwować. Każda karta prowadzi bezpośrednio do źródłowego ogłoszenia.
-          Gdy lista linków zostanie zmieniona, cała gablota buduje się od nowa.
+          Każdy link z workflow trafia do generatora, który pobiera metadane i
+          przebudowuje całą sekcję z aparatami bez ręcznego edytowania kart.
         </p>
         <div class="hero-panel__actions">
-          <a class="retro-button retro-button--accent" href="#kamera-lista">Przejdź do aparatów</a>
-          <a class="retro-button" href="olx_meta.json">Pobierz dane JSON</a>
+          <a class="retro-button retro-button--accent" href="#kamera-lista">Przeglądaj aparaty</a>
+          <a class="retro-button" href="#amazon-oferty">Zobacz sekcję filmów</a>
         </div>
-        <span class="generated-note">Ostatnia przebudowa: {{LAST_UPDATED}}</span>
+        <span class="generated-note">Ostatnia selekcja: {{LAST_UPDATED}}</span>
       </div>
 
-      <aside class="hero-panel__stats pixel-frame" aria-label="Statystyki katalogu">
+      <aside class="hero-panel__stats pixel-frame" aria-label="Szybki podgląd katalogu">
         <span class="hero-panel__label">PANEL STATUSU</span>
         <ul class="hero-stats">
           <li><span>Liczba ofert</span><strong>{{COUNT}}</strong></li>
-          <li><span>Źródło danych</span><strong>Linki wejściowe</strong></li>
           <li><span>Hosting</span><strong>GitHub Pages</strong></li>
+          <li><span>Aktualizacja</span><strong>GitHub Actions</strong></li>
         </ul>
+        <div class="status-stack">
+          <p class="status-chip">Dodaj link → uruchom workflow → gotowe</p>
+          <p class="status-chip">Usuń link → karta zniknie po przebudowie</p>
+        </div>
       </aside>
     </section>
 
     <section class="section-title" id="kamera-lista">
       <div>
-        <span class="section-title__tag">LISTA AKTYWNA</span>
-        <h2>Aktualne aparaty</h2>
+        <span class="section-title__tag">KATALOG</span>
+        <h2>Aktualna lista aparatów</h2>
       </div>
-      <p>Dodaj lub usuń linki w workflow, a ta sekcja zostanie odbudowana automatycznie.</p>
+      <p>Każda karta jest generowana automatycznie na podstawie podanego linku.</p>
     </section>
 
     <main>
@@ -62,44 +72,44 @@
       </section>
 
       <section class="product-section pixel-frame" id="amazon-oferty">
-        <span class="product-section__tag">SEKCJA AMAZON</span>
+        <span class="product-section__tag">FILM LAB</span>
         <h2>Filmy Czarnobiałe</h2>
-        <p class="product-section__lead">Sprawdzone propozycje materiałów światłoczułych dla miłośników klasycznej fotografii.</p>
+        <p class="product-section__lead">Klasyczne emulsje do czarno-białej fotografii.</p>
         <div class="product-row three-column">
           <article class="product pixel-frame">
             <h3>Fujifilm Acros 100 - Nowoczesny film czarno-biały</h3>
-            <img class="pixelated" src="https://cdn.assets.lomography.com/dd/f51b3673d0fa0cbfd908fd46629c13e7522619/1216x784x1.jpg?auth=e13347014bbcd5062aa02e9a91036bc174cf4197" alt="Przykładowe zdjęcie z filmu Fujifilm Acros 100" onclick="openLightbox('https://cdn.assets.lomography.com/dd/f51b3673d0fa0cbfd908fd46629c13e7522619/1216x784x1.jpg?auth=e13347014bbcd5062aa02e9a91036bc174cf4197','Przykładowe zdjęcie z filmu Fujifilm Acros 100','https://www.lomography.com/search/photos/20930435?query=Fujifilm+Acros+100')">
+            <img src="https://cdn.assets.lomography.com/dd/f51b3673d0fa0cbfd908fd46629c13e7522619/1216x784x1.jpg?auth=e13347014bbcd5062aa02e9a91036bc174cf4197" alt="Przykładowe zdjęcie z filmu Fujifilm Acros 100" onclick="openLightbox('https://cdn.assets.lomography.com/dd/f51b3673d0fa0cbfd908fd46629c13e7522619/1216x784x1.jpg?auth=e13347014bbcd5062aa02e9a91036bc174cf4197','Przykładowe zdjęcie z filmu Fujifilm Acros 100','https://www.lomography.com/search/photos/20930435?query=Fujifilm+Acros+100')">
             <div class="image-reference"><a href="https://www.lomography.com/search/photos/20930435?query=Fujifilm+Acros+100">Źródło obrazu</a></div>
-            <p>Fujifilm Acros 100 to film monochromatyczny o doskonałym kontraście i szerokim zakresie tonalnym, idealny do portretów i krajobrazów.</p>
-            <a href="https://www.amazon.pl/s?k=Fujifilm+Acros+100&tag=blueprintkc08-21" class="cta-button">Kup teraz</a>
+            <p>Drobne ziarno i szeroka skala tonów do spokojnych, precyzyjnych kadrów.</p>
+            <a href="https://www.amazon.pl/s?k=Fujifilm+Acros+100&tag=blueprintkc0a-21" class="cta-button">Sprawdź na Amazon</a>
           </article>
           <article class="product pixel-frame">
             <h3>Ilford HP5 Plus - Klasyczny film o wysokim kontraście</h3>
-            <img class="pixelated" src="https://cdn.assets.lomography.com/03/a56a5e97b14330c50ef0ee2745743273443f12/1216x823x2.jpg?auth=832a066ca04fa5b879be49113cc8ae5e927a075e" alt="Przykładowe zdjęcie z filmu Ilford HP5 Plus" onclick="openLightbox('https://cdn.assets.lomography.com/03/a56a5e97b14330c50ef0ee2745743273443f12/1216x823x2.jpg?auth=832a066ca04fa5b879be49113cc8ae5e927a075e','Przykładowe zdjęcie z filmu Ilford HP5 Plus','https://www.lomography.com/search/photos/23121197?query=Ilford+HP5+Plus')">
+            <img src="https://cdn.assets.lomography.com/03/a56a5e97b14330c50ef0ee2745743273443f12/1216x823x2.jpg?auth=832a066ca04fa5b879be49113cc8ae5e927a075e" alt="Przykładowe zdjęcie z filmu Ilford HP5 Plus" onclick="openLightbox('https://cdn.assets.lomography.com/03/a56a5e97b14330c50ef0ee2745743273443f12/1216x823x2.jpg?auth=832a066ca04fa5b879be49113cc8ae5e927a075e','Przykładowe zdjęcie z filmu Ilford HP5 Plus','https://www.lomography.com/search/photos/23121197?query=Ilford+HP5+Plus')">
             <div class="image-reference"><a href="https://www.lomography.com/search/photos/23121197?query=Ilford+HP5+Plus">Źródło obrazu</a></div>
-            <p>Ilford HP5 Plus to wszechstronny film o ziarnistej strukturze, idealny do reportażu i street photography.</p>
-            <a href="https://www.amazon.pl/s?k=Ilford+HP5+Plus&tag=blueprintkc08-21" class="cta-button">Kup teraz</a>
+            <p>Uniwersalny klasyk do reportażu, ulicy i codziennego fotografowania.</p>
+            <a href="https://www.amazon.pl/s?k=Ilford+HP5+Plus&tag=blueprintkc0a-21" class="cta-button">Sprawdź na Amazon</a>
           </article>
           <article class="product pixel-frame">
             <h3>Kodak Tri-X 400 - Legendarny film o bogatej historii</h3>
-            <img class="pixelated" src="https://cdn.assets.lomography.com/74/7645fba440b8c16ef77e44be06b06163e41441/1216x918x1.jpg?auth=78a68119a573b220a0d412bbf45dd0835f4f35d1" alt="Przykładowe zdjęcie z filmu Kodak Tri-X 400" onclick="openLightbox('https://cdn.assets.lomography.com/74/7645fba440b8c16ef77e44be06b06163e41441/1216x918x1.jpg?auth=78a68119a573b220a0d412bbf45dd0835f4f35d1','Przykładowe zdjęcie z filmu Kodak Tri-X 400','https://www.lomography.com/films/871911232-kodak-tri-x-400/photos/6138771?order=popular')">
+            <img src="https://cdn.assets.lomography.com/74/7645fba440b8c16ef77e44be06b06163e41441/1216x918x1.jpg?auth=78a68119a573b220a0d412bbf45dd0835f4f35d1" alt="Przykładowe zdjęcie z filmu Kodak Tri-X 400" onclick="openLightbox('https://cdn.assets.lomography.com/74/7645fba440b8c16ef77e44be06b06163e41441/1216x918x1.jpg?auth=78a68119a573b220a0d412bbf45dd0835f4f35d1','Przykładowe zdjęcie z filmu Kodak Tri-X 400','https://www.lomography.com/films/871911232-kodak-tri-x-400/photos/6138771?order=popular')">
             <div class="image-reference"><a href="https://www.lomography.com/films/871911232-kodak-tri-x-400/photos/6138771?order=popular">Źródło obrazu</a></div>
-            <p>Kodak Tri-X 400 to kultowy film o charakterystycznym ziarnie, używany przez dekady przez profesjonalnych fotografów.</p>
-            <a href="https://www.amazon.pl/s?k=Kodak+Tri-X+400&tag=blueprintkc08-21" class="cta-button">Kup teraz</a>
+            <p>Legendarny charakter, mocny kontrast i ziarno z prawdziwie reportażowym pazurem.</p>
+            <a href="https://www.amazon.pl/s?k=Kodak+Tri-X+400&tag=blueprintkc0a-21" class="cta-button">Sprawdź na Amazon</a>
           </article>
           <article class="product pixel-frame">
             <h3>Ilford Delta 400 - Wyjątkowa jakość i tonalność</h3>
-            <img class="pixelated" src="https://cdn.assets.lomography.com/4b/8c9bf9d64417c62dd398c87020bc34fffdda45/1216x804x2.jpg?auth=d81b1818ad6da4e4d7af06e79d0a0c4765b23241" alt="Przykładowe zdjęcie z filmu Ilford Delta 400" onclick="openLightbox('https://cdn.assets.lomography.com/4b/8c9bf9d64417c62dd398c87020bc34fffdda45/1216x804x2.jpg?auth=d81b1818ad6da4e4d7af06e79d0a0c4765b23241','Przykładowe zdjęcie z filmu Ilford Delta 400','https://www.lomography.com/search/photos/21015255?query=Ilford+Delta+400')">
+            <img src="https://cdn.assets.lomography.com/4b/8c9bf9d64417c62dd398c87020bc34fffdda45/1216x804x2.jpg?auth=d81b1818ad6da4e4d7af06e79d0a0c4765b23241" alt="Przykładowe zdjęcie z filmu Ilford Delta 400" onclick="openLightbox('https://cdn.assets.lomography.com/4b/8c9bf9d64417c62dd398c87020bc34fffdda45/1216x804x2.jpg?auth=d81b1818ad6da4e4d7af06e79d0a0c4765b23241','Przykładowe zdjęcie z filmu Ilford Delta 400','https://www.lomography.com/search/photos/21015255?query=Ilford+Delta+400')">
             <div class="image-reference"><a href="https://www.lomography.com/search/photos/21015255?query=Ilford+Delta+400">Źródło obrazu</a></div>
-            <p>Ilford Delta 400 oferuje doskonałą jakość obrazu, wysoką rozdzielczość i bogatą tonalność, idealny do fotografii artystycznej.</p>
-            <a href="https://www.amazon.pl/s?k=Ilford+Delta+400&tag=blueprintkc08-21" class="cta-button">Kup teraz</a>
+            <p>Nowoczesna emulsja z miękką tonalnością i świetną ostrością.</p>
+            <a href="https://www.amazon.pl/s?k=Ilford+Delta+400&tag=blueprintkc0a-21" class="cta-button">Sprawdź na Amazon</a>
           </article>
           <article class="product pixel-frame">
             <h3>Kentmere 400 - Doskonały wybór do eksperymentów</h3>
-            <img class="pixelated" src="https://cdn.assets.lomography.com/b2/4b0e0f771473a9fa32ef8d9c22f918e8da17b0/2000x3000x2.jpg?auth=2b499fbadf53c0383d23906887376a8719897139" alt="Przykładowe zdjęcie z filmu Kentmere 400" onclick="openLightbox('https://cdn.assets.lomography.com/b2/4b0e0f771473a9fa32ef8d9c22f918e8da17b0/2000x3000x2.jpg?auth=2b499fbadf53c0383d23906887376a8719897139','Przykładowe zdjęcie z filmu Kentmere 400','https://www.lomography.com/search/photos/25641628?query=Kentmere+400')">
+            <img src="https://cdn.assets.lomography.com/b2/4b0e0f771473a9fa32ef8d9c22f918e8da17b0/2000x3000x2.jpg?auth=2b499fbadf53c0383d23906887376a8719897139" alt="Przykładowe zdjęcie z filmu Kentmere 400" onclick="openLightbox('https://cdn.assets.lomography.com/b2/4b0e0f771473a9fa32ef8d9c22f918e8da17b0/2000x3000x2.jpg?auth=2b499fbadf53c0383d23906887376a8719897139','Przykładowe zdjęcie z filmu Kentmere 400','https://www.lomography.com/search/photos/25641628?query=Kentmere+400')">
             <div class="image-reference"><a href="https://www.lomography.com/search/photos/25641628?query=Kentmere+400">Źródło obrazu</a></div>
-            <p>Kentmere 400 to wszechstronny czarno-biały film, idealny do różnych warunków oświetleniowych oraz kreatywnych eksperymentów.</p>
-            <a href="https://www.amazon.pl/s?k=Kentmere+400&tag=blueprintkc08-21" class="cta-button">Kup teraz</a>
+            <p>Przystępny materiał do testów, spacerów i pierwszych rolek.</p>
+            <a href="https://www.amazon.pl/s?k=Kentmere+400&tag=blueprintkc0a-21" class="cta-button">Sprawdź na Amazon</a>
           </article>
         </div>
       </section>
@@ -162,8 +172,8 @@
       <section class="footer-panel pixel-frame">
         <span class="footer-note">AKTUALIZACJA STEROWANA PRZEZ GITHUB ACTIONS</span>
         <p>
-          Ten widok jest generowany automatycznie na podstawie listy zapisanych linków.
-          Dzięki temu dodawanie i usuwanie ofert nie wymaga ręcznej edycji kart na stronie.
+          Ten widok jest publikowany na GitHub Pages i generowany automatycznie z zapisanej listy linków.
+          Dodawanie oraz usuwanie ofert odbywa się bez ręcznej edycji HTML każdej karty.
         </p>
       </section>
     </main>
