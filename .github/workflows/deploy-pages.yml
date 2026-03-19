@@ -9,10 +9,13 @@ on:
     paths:
       - index.html
       - olx_meta.json
+      - templates/**
+      - scripts/**
       - retro.css
       - styles.css
       - product-links.txt
       - .github/workflows/deploy-pages.yml
+      - .github/workflows/update-products.yml
   workflow_dispatch:
 
 permissions:
@@ -34,6 +37,14 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build static catalog
+        run: node scripts/build-catalog.js
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
