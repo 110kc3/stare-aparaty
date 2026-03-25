@@ -270,7 +270,7 @@ function renderIndex(items) {
   const template = fs.readFileSync(TEMPLATE_FILE, 'utf8');
   const renderedCards = items.length > 0
     ? items.map((item, index) => renderCard(item, index)).join('\n')
-    : '<article class="catalog-empty pixel-frame"><p>Brak ofert do wyświetlenia. Dodaj lub wklej linki w workflow GitHub Actions, aby odbudować katalog aparatów.</p></article>';
+    : '<article class="catalog-empty pixel-frame"><p>Brak ofert do wyświetlenia w tej chwili.</p></article>';
 
   const lastUpdated = new Intl.DateTimeFormat('pl-PL', {
     dateStyle: 'medium',
@@ -288,13 +288,13 @@ function renderCard(item, index) {
   return `
         <article class="camera-card pixel-frame">
           <div class="camera-card__media">
-            <span class="camera-card__serial">KLATKA ${String(index + 1).padStart(2, '0')}</span>
+            <span class="camera-card__serial">KADR ${String(index + 1).padStart(2, '0')}</span>
             <img class="pixelated" src="${escapeAttribute(item.image)}" alt="${escapeAttribute(item.title)}">
           </div>
           <div class="camera-card__body">
-            <p class="camera-card__meta">ŹRÓDŁO // ${escapeHtml(item.host.toUpperCase())}</p>
+            <p class="camera-card__meta">Ogłoszenie z ${escapeHtml(item.host)}</p>
             <h3 class="camera-card__title">${escapeHtml(item.title)}</h3>
-            <p class="camera-card__caption">Karta wygenerowana automatycznie z metadanych pobranych z ogłoszenia.</p>
+            <p class="camera-card__caption">Sprawdź szczegóły oferty, zdjęcia i aktualną dostępność.</p>
             <div class="camera-card__actions">
               <a class="camera-card__link" href="${escapeAttribute(item.url)}" target="_blank" rel="noopener noreferrer">Otwórz ogłoszenie</a>
             </div>
