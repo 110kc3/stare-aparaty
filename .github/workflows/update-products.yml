@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       links:
-        description: 'Paste one product link per line'
+        description: 'Paste product links separated by semicolons (;) or new lines'
         required: true
         type: string
 
