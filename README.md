@@ -17,7 +17,9 @@ The Amazon section on the page is preserved and left untouched as requested.
 
 1. Open the **GitHub Actions** tab in the repository.
 2. Run the **Update cameras from links** workflow.
-3. Paste the complete list of product links, one per line.
+3. Paste the complete list of product links.
+   - Recommended: separate links with semicolons (`;`)
+   - Also supported: one link per line
 4. The workflow fetches metadata from each link and regenerates the catalog.
 5. The workflow commits the new generated files.
 6. GitHub Pages deploys the refreshed version automatically.
@@ -81,3 +83,4 @@ The generator tries common metadata sources from each listing page:
 - Website copy remains in Polish.
 - Code, scripts, and documentation remain in English.
 - The Amazon section is intentionally preserved.
+- The update workflow accepts links separated by semicolons, line breaks, or plain spaces, but semicolons are the clearest option in the GitHub Actions form.
