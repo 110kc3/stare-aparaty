@@ -85,7 +85,8 @@ function loadLinks(parsedArgs) {
 }
 
 function normalizeLinks(rawText) {
-  return [...new Set(rawText.split(/\r?\n/).map((entry) => entry.trim()).filter(Boolean))];
+  const extractedLinks = rawText.match(/https?:\/\/[^\s;]+/gi) || [];
+  return [...new Set(extractedLinks.map((entry) => entry.trim().replace(/[),]+$/g, '')).filter(Boolean))];
 }
 
 function loadPreviousMetadata() {
