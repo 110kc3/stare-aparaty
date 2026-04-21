@@ -295,7 +295,6 @@ function renderCard(item, index) {
           <div class="camera-card__body">
             <p class="camera-card__meta">Ogłoszenie z ${escapeHtml(item.host)}</p>
             <h3 class="camera-card__title">${escapeHtml(item.title)}</h3>
-            <p class="camera-card__caption">Sprawdź szczegóły oferty, zdjęcia i aktualną dostępność.</p>
             <div class="camera-card__actions">
               <a class="camera-card__link" href="${escapeAttribute(item.url)}" target="_blank" rel="noopener noreferrer">Otwórz ogłoszenie</a>
             </div>
