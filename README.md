@@ -1,86 +1,93 @@
 # Stare Aparaty
 
-Retro-styled static website for showcasing vintage camera listings. The website content itself is in Polish, while the code and documentation are in English.
+A small static site that lists my vintage cameras for sale on OLX alongside a curated selection of film stocks and accessories on Amazon. The site is hosted on GitHub Pages; the public copy is in Polish, the code and this README are in English.
 
-## Overview
+## What the site is
 
-This project is prepared for **GitHub Pages**, not AWS.
+- **Cameras section** — each card is generated from a live OLX listing URL. Title and cover image are fetched from the listing's metadata and the card links straight to the ad.
+- **Film & accessories section** — hand-picked products on Amazon.pl. Every link carries the `blueprintkc0a-21` affiliate tag, so qualifying purchases support the site.
 
-You only provide product links, and the automation rebuilds the full cameras page for you. The generated output includes:
+## How the build works
 
-- `index.html` - the published static page
-- `olx_meta.json` - normalized product metadata
+Everything is rendered by `scripts/build-catalog.js`. It reads the camera URLs from `product-links.txt`, fetches each listing's HTML, pulls a title and image from the page metadata (Open Graph, then Twitter cards, then JSON-LD, then the `<title>` tag as a last resort), and writes two files:
 
-The Amazon section on the page is preserved and left untouched as requested.
+- `index.html` — the published page, rendered by filling in `templates/index.template.html`
+- `olx_meta.json` — the normalized camera data, also used as a cache on the next run so that transient fetch failures fall back to the previously-known title/image instead of a placeholder
 
-## Update flow
+The film & accessories section lives inside the template and is fully static — the build script does not touch it.
 
-1. Open the **GitHub Actions** tab in the repository.
-2. Run the **Update cameras from links** workflow.
-3. Paste the complete list of product links.
-   - Recommended: separate links with semicolons (`;`)
-   - Also supported: one link per line
-4. The workflow fetches metadata from each link and regenerates the catalog.
-5. The workflow commits the new generated files.
-6. GitHub Pages deploys the refreshed version automatically.
+## Workflows
 
-If you remove a link from the workflow input, that product disappears from the page after the next rebuild.
+The repo ships two GitHub Actions workflows that work together:
 
-The public page stays in Polish, while the automation, code, and documentation stay in English.
+### `update-products.yml` — refresh the camera list
+
+Triggered **manually** from the Actions tab. It takes one input: a list of OLX links. You can separate them with semicolons (`;`), newlines, or spaces — semicolons are the cleanest option in the Actions UI because the form is single-line.
+
+The job:
+
+1. Saves the pasted input to a temp file.
+2. Runs the builder with `--links-file workflow-links.txt --write-links-file`, which rebuilds `index.html` / `olx_meta.json` **and** overwrites `product-links.txt` with the normalized, de-duplicated list.
+3. Commits `index.html`, `olx_meta.json`, and `product-links.txt` back to the branch with the message `chore: update camera catalog`, using the `github-actions[bot]` identity. If nothing changed it exits without committing.
+
+That commit is what triggers the deploy step — the workflow itself does not publish anything to Pages.
+
+### `deploy-pages.yml` — publish to GitHub Pages
+
+Triggered automatically on push to `main`, `master`, or `update-film-info`, but only when one of the relevant paths changes (`index.html`, `olx_meta.json`, `templates/**`, `scripts/**`, `retro.css`, `styles.css`, `product-links.txt`, or either workflow file). Can also be run manually via `workflow_dispatch`.
+
+The job checks out the repo, installs Node 20, runs `node scripts/build-catalog.js` again on the runner (so the deployed `index.html` always reflects the latest `product-links.txt` and template, even if someone forgot to rebuild locally), and ships the whole directory as a Pages artifact through `actions/deploy-pages`. A concurrency group (`github-pages`, `cancel-in-progress: true`) prevents overlapping deploys.
+
+### How they chain
+
+The normal flow for changing cameras:
+
+```
+run update-products.yml (manual)
+  → commit to branch
+    → push triggers deploy-pages.yml
+      → site updates on GitHub Pages
+```
+
+For copy, styling, or template changes: just commit to one of the watched branches — `deploy-pages.yml` picks it up and redeploys.
 
 ## Project structure
 
-- `index.html` - generated static page published on GitHub Pages
-- `olx_meta.json` - generated camera metadata
-- `product-links.txt` - saved source list of links
-- `retro.css` - retro font and pixel-image helpers
-- `styles.css` - main layout and retro UI styles
-- `templates/index.template.html` - HTML template for page generation
-- `scripts/build-catalog.js` - catalog generator script
-- `.github/workflows/update-products.yml` - manual workflow for refreshing products
-- `.github/workflows/deploy-pages.yml` - GitHub Pages deployment workflow that rebuilds the site on push
+| Path | Purpose |
+| --- | --- |
+| `index.html` | Generated static page published on GitHub Pages |
+| `templates/index.template.html` | Source template with `{{COUNT}}`, `{{LAST_UPDATED}}`, `{{CAMERA_CARDS}}` placeholders |
+| `scripts/build-catalog.js` | Node script that fetches metadata and renders the template |
+| `product-links.txt` | Source list of OLX camera URLs |
+| `olx_meta.json` | Cached camera metadata (title / image / host) |
+| `styles.css` | Main layout and visual styles |
+| `retro.css` | Pixel-font kickers and pixelated-image helper (Polish diacritics fall through to Inter / Cormorant Garamond — see the comment at the top of the file) |
+| `.github/workflows/update-products.yml` | Manual workflow to refresh cameras from pasted links |
+| `.github/workflows/deploy-pages.yml` | Auto-deploy workflow for GitHub Pages |
 
 ## Local usage
 
-### Rebuild from saved links
+Rebuild from the saved list:
 
 ```bash
 node scripts/build-catalog.js
 ```
 
-### Rebuild from links passed directly
+Rebuild from an ad-hoc list (semicolons, newlines, or spaces all work) and persist it back to `product-links.txt`:
 
 ```bash
-node scripts/build-catalog.js --links "https://example.com/item-1\nhttps://example.com/item-2" --write-links-file
+node scripts/build-catalog.js \
+  --links "https://olx.pl/...;https://olx.pl/..." \
+  --write-links-file
 ```
 
-### Preview locally
+Preview locally:
 
 ```bash
 python -m http.server 8000 --bind 127.0.0.1
+# open http://127.0.0.1:8000
 ```
-
-Then open `http://127.0.0.1:8000`.
-
-## Metadata extraction
-
-The generator tries common metadata sources from each listing page:
-
-- Open Graph tags like `og:title` and `og:image`
-- Twitter card tags like `twitter:title` and `twitter:image`
-- JSON-LD blocks
-- The regular HTML `<title>` tag as fallback
 
 ## GitHub Pages setup
 
-1. Push the repository to GitHub.
-2. In repository settings, enable **GitHub Pages** with **GitHub Actions** as the source.
-3. Use the workflows in `.github/workflows`.
-4. Trigger **Update cameras from links** whenever you want to replace the full camera list with a new set of links.
-
-## Notes
-
-- Website copy remains in Polish.
-- Code, scripts, and documentation remain in English.
-- The Amazon section is intentionally preserved.
-- The update workflow accepts links separated by semicolons, line breaks, or plain spaces, but semicolons are the clearest option in the GitHub Actions form.
+In the repository settings, enable **Pages** with **GitHub Actions** as the source. That's all — the workflows handle the rest. The deploy action reports the live URL in the job summary.
