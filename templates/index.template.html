@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="pl" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,261 +7,531 @@
   <meta name="description" content="Wybrane aparaty analogowe, filmy i akcesoria w spokojnym, filmowym klimacie.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="retro.css">
-  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600&family=Press+Start+2P&display=swap" rel="stylesheet">
   <script>
-    // Apply the saved theme before first paint to avoid a light-mode flash.
-    (function () {
+    (function(){
       try {
-        var stored = localStorage.getItem('theme');
-        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        var theme = stored === 'light' || stored === 'dark' ? stored : (prefersDark ? 'dark' : 'light');
-        document.documentElement.setAttribute('data-theme', theme);
-      } catch (err) {
-        document.documentElement.setAttribute('data-theme', 'light');
-      }
+        var t = localStorage.getItem('theme');
+        var dark = t === 'light' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', dark);
+      } catch(e) {}
     })();
   </script>
+  <style>
+    /* ── Tokens ─────────────────────────────────────────────────── */
+    :root {
+      --bg:        #0e0b08;
+      --bg-2:      #141009;
+      --bg-card:   #111;
+      --bg-strip:  #1a1612;
+      --ink:       #f2e8d8;
+      --ink-soft:  #7a6e60;
+      --ink-faint: #3a3127;
+      --gold:      #f5d06e;
+      --gold-dim:  #c4a044;
+      --line:      #2a2218;
+      --line-gold: #f5d06e;
+      --paper:     #fffdf9;
+      --paper-2:   #f6f1e8;
+      --shadow:    rgba(0,0,0,0.55);
+      --retro:     "Press Start 2P", "Courier New", monospace;
+      --serif:     "Cormorant Garamond", "Times New Roman", serif;
+      --sans:      "Inter", "Segoe UI", sans-serif;
+    }
+    [data-theme="light"] {
+      --bg:        #f6f1e8;
+      --bg-2:      #faf7f2;
+      --bg-card:   #fffdf9;
+      --bg-strip:  #e8e0d4;
+      --ink:       #1c1815;
+      --ink-soft:  #5f564d;
+      --ink-faint: #c8bfb4;
+      --gold:      #7a5a18;
+      --gold-dim:  #9a7428;
+      --line:      #d8cfc3;
+      --line-gold: #7a5a18;
+      --paper:     #fffdf9;
+      --paper-2:   #f6f1e8;
+      --shadow:    rgba(28,24,21,0.12);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--sans);
+      line-height: 1.6;
+      min-height: 100vh;
+      transition: background 200ms, color 200ms;
+    }
+    a { color: inherit; }
+    img { display: block; max-width: 100%; }
+
+    body::before {
+      content: "";
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(200,180,150,0.025) 0, rgba(200,180,150,0.025) 1px,
+        transparent 1px, transparent 5px
+      );
+    }
+
+    .shell {
+      position: relative; z-index: 1;
+      width: min(1160px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 56px;
+    }
+
+    .label {
+      display: inline-block;
+      font-family: var(--retro);
+      font-size: 7px;
+      letter-spacing: 0.1em;
+      line-height: 1.6;
+      color: var(--gold);
+      padding: 3px 10px;
+      border: 1px solid var(--gold-dim);
+    }
+    .label--soft { color: var(--ink-soft); border-color: var(--line); }
+
+    .masthead {
+      border: 2px solid var(--line-gold);
+      padding: 28px 32px 24px;
+      margin-bottom: 8px;
+      display: grid;
+      gap: 18px;
+      background: var(--bg-2);
+    }
+    .masthead__topline {
+      display: flex; justify-content: space-between; align-items: center; gap: 16px;
+    }
+    .masthead h1 {
+      font-family: var(--serif);
+      font-size: clamp(2.8rem, 5vw, 5rem);
+      font-weight: 600; line-height: 0.95;
+      letter-spacing: -0.03em;
+    }
+    .masthead__sub {
+      font-size: 13px; color: var(--ink-soft); max-width: 560px;
+    }
+    .masthead__nav {
+      display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px;
+    }
+    .masthead__nav a {
+      font-size: 11px; font-weight: 500; letter-spacing: 0.04em;
+      text-decoration: none; padding: 7px 14px;
+      border: 1px solid var(--ink-faint); color: var(--ink-soft);
+      transition: border-color 120ms, color 120ms;
+    }
+    .masthead__nav a:hover { border-color: var(--gold); color: var(--gold); }
+
+    .theme-toggle {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 6px 12px; border: 1px solid var(--ink-faint);
+      background: transparent; color: var(--ink-soft);
+      font: inherit; font-size: 11px; cursor: pointer;
+      transition: border-color 120ms, color 120ms;
+    }
+    .theme-toggle:hover { border-color: var(--gold); color: var(--gold); }
+    .theme-toggle__icon { font-size: 13px; }
+    [data-theme="dark"]  .icon-sun  { display: inline; }
+    [data-theme="dark"]  .icon-moon { display: none; }
+    [data-theme="light"] .icon-sun  { display: none; }
+    [data-theme="light"] .icon-moon { display: inline; }
+
+    .filmstrip {
+      height: 20px;
+      background: var(--bg-strip);
+      border-top: 2px solid var(--line-gold);
+      border-bottom: 2px solid var(--line-gold);
+      background-image: repeating-linear-gradient(
+        90deg,
+        transparent 0, transparent 52px,
+        var(--ink-faint) 52px, var(--ink-faint) 60px
+      );
+    }
+
+    .section-head {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      padding: 22px 0 14px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 16px;
+    }
+    .section-head h2 {
+      font-family: var(--serif);
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      font-weight: 500; line-height: 1;
+    }
+    .section-head p { font-size: 12px; color: var(--ink-soft); }
+
+    .camera-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 3px;
+      background: var(--bg-strip);
+      border: 2px solid var(--line-gold);
+      padding: 3px;
+    }
+
+    .cam-card {
+      display: block; text-decoration: none; color: inherit;
+      background: var(--bg-card);
+      overflow: hidden;
+      transition: outline 120ms;
+      outline: 2px solid transparent;
+    }
+    .cam-card:hover { outline: 2px solid var(--gold); z-index: 2; position: relative; }
+    .cam-card__img-wrap {
+      position: relative; overflow: hidden; aspect-ratio: 4/3;
+      background: #111;
+    }
+    .cam-card__img {
+      width: 100%; height: 100%; object-fit: cover;
+      filter: sepia(0.18) contrast(1.05);
+      transition: opacity 200ms, transform 220ms, filter 200ms;
+      opacity: 0.88;
+    }
+    .cam-card:hover .cam-card__img {
+      opacity: 0.45; transform: scale(1.04); filter: none;
+    }
+    .cam-card__hover-cta {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 200ms;
+      pointer-events: none;
+    }
+    .cam-card:hover .cam-card__hover-cta { opacity: 1; }
+    .cam-card__cta-pill {
+      font-family: var(--retro); font-size: 7px; letter-spacing: 0.1em;
+      padding: 8px 16px;
+      background: var(--gold); color: #111;
+      border: none;
+    }
+    .cam-card__strip {
+      padding: 9px 11px;
+      border-top: 2px solid var(--line-gold);
+      background: var(--bg-strip);
+      display: flex; justify-content: space-between; align-items: center; gap: 8px;
+      transition: background 200ms;
+    }
+    .cam-card:hover .cam-card__strip { background: var(--gold); }
+    .cam-card__name {
+      font-family: var(--serif); font-size: 17px; font-weight: 600;
+      color: var(--ink); line-height: 1.1; margin-bottom: 2px;
+      transition: color 200ms;
+    }
+    .cam-card:hover .cam-card__name { color: #111; }
+    .cam-card__detail {
+      font-size: 10px; color: var(--ink-soft);
+      transition: color 200ms;
+    }
+    .cam-card:hover .cam-card__detail { color: #444; }
+
+    .product-section { margin-top: 32px; }
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    .product-card {
+      background: var(--bg-2);
+      border: 1px solid var(--line);
+      display: flex; flex-direction: column; gap: 10px;
+      padding: 16px; overflow: hidden;
+      transition: border-color 150ms;
+    }
+    .product-card:hover { border-color: var(--gold-dim); }
+    .product-card__img {
+      width: 100%; aspect-ratio: 4/3; object-fit: cover;
+      cursor: pointer;
+      transition: opacity 150ms;
+    }
+    .product-card__img:hover { opacity: 0.8; }
+    .product-card h3 {
+      font-family: var(--serif); font-size: 20px; font-weight: 600;
+      line-height: 1.1;
+    }
+    .product-card p { font-size: 12px; color: var(--ink-soft); line-height: 1.5; }
+    .product-card .cta {
+      margin-top: auto; display: inline-flex; align-items: center; justify-content: space-between;
+      padding: 9px 13px; text-decoration: none;
+      border: 1px solid var(--gold-dim);
+      color: var(--gold); font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+      transition: background 150ms, color 150ms;
+    }
+    .product-card .cta:hover { background: var(--gold); color: #111; }
+    .img-ref { font-size: 10px; color: var(--ink-faint); }
+    .img-ref a { color: var(--ink-soft); }
+
+    .footer {
+      margin-top: 36px;
+      border-top: 2px solid var(--line-gold);
+      padding-top: 18px;
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+    }
+    .footer p { font-size: 11px; color: var(--ink-soft); }
+
+    .lightbox {
+      display: none; position: fixed; z-index: 999; inset: 0; padding: 24px;
+      background: rgba(5,3,2,0.92); align-items: center; justify-content: center;
+    }
+    .lightbox.open { display: flex; }
+    .lightbox__content {
+      position: relative; width: min(900px,100%);
+      background: var(--bg-2); border: 1px solid var(--line-gold);
+      padding: 16px;
+    }
+    .lightbox__img { width: 100%; max-height: 70vh; object-fit: contain; }
+    .lightbox__close {
+      position: absolute; top: -14px; right: -14px;
+      width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+      background: var(--bg-2); border: 1px solid var(--line-gold);
+      color: var(--gold); font-size: 18px; cursor: pointer;
+    }
+
+    @media (max-width: 900px) {
+      .camera-grid, .product-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 560px) {
+      .camera-grid, .product-grid { grid-template-columns: 1fr; }
+      .shell { width: calc(100% - 16px); }
+      .masthead { padding: 16px 18px; }
+      .masthead__topline { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
 </head>
-<body class="retro">
-  <div class="page-shell">
-    <header class="masthead frame-soft">
-      <div class="masthead__topline">
-        <span class="masthead__badge">STARE APARATY</span>
-        <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Przełącz tryb jasny i ciemny">
-          <span class="theme-toggle__icon theme-toggle__icon--sun" aria-hidden="true">☀</span>
-          <span class="theme-toggle__icon theme-toggle__icon--moon" aria-hidden="true">☾</span>
-          <span class="theme-toggle__label" id="theme-toggle-label">Tryb ciemny</span>
-        </button>
-      </div>
-      <div class="masthead__brand">
-        <h1>Aparaty analogowe<br>z charakterem</h1>
-        <p>
-          Moje aparaty z ogłoszeń OLX oraz sprawdzone filmy i akcesoria —
-          wszystko dla miłośników fotografii na kliszy.
-        </p>
-      </div>
-      <nav class="masthead__nav" aria-label="Szybka nawigacja">
-        <a href="#kamera-lista">Aparaty</a>
-        <a href="#amazon-oferty">Filmy i akcesoria</a>
-      </nav>
-    </header>
+<body>
+<div class="shell">
 
-    <section class="hero-panel">
-      <div class="hero-panel__intro frame-soft">
-        <h2 class="hero-panel__headline">Sprawdzone modele do fotografii analogowej</h2>
-        <p>
-          Każda karta prowadzi do aktualnego ogłoszenia na OLX.
-        </p>
-        <div class="hero-panel__actions">
-          <a class="button-primary" href="#kamera-lista">Przeglądaj aparaty</a>
-          <a class="button-secondary" href="#amazon-oferty">Filmy i akcesoria</a>
-        </div>
-        <span class="generated-note">Aktualizacja: {{LAST_UPDATED}}</span>
-      </div>
+  <header class="masthead">
+    <div class="masthead__topline">
+      <span class="label">STARE APARATY</span>
+      <button class="theme-toggle" id="theme-toggle" aria-label="Przełącz motyw">
+        <span class="theme-toggle__icon icon-sun">☀</span>
+        <span class="theme-toggle__icon icon-moon">☾</span>
+        <span id="theme-label">Tryb jasny</span>
+      </button>
+    </div>
+    <h1>Aparaty analogowe<br>z charakterem</h1>
+    <p class="masthead__sub">Moje aparaty z ogłoszeń OLX oraz sprawdzone filmy i akcesoria — wszystko dla miłośników fotografii na kliszy.</p>
+    <nav class="masthead__nav">
+      <a href="#aparaty">Aparaty ({{COUNT}})</a>
+      <a href="#filmy-bw">Filmy B&amp;W</a>
+      <a href="#filmy-kolor">Filmy kolorowe</a>
+      <a href="#wywolywanie">Wywoływanie</a>
+    </nav>
+  </header>
 
-      <aside class="hero-panel__stats frame-soft" aria-label="Szybki podgląd katalogu">
-        <ul class="hero-stats">
-          <li><span>Aparaty w katalogu</span><strong>{{COUNT}}</strong></li>
-          <li><span>Źródło ogłoszeń</span><strong>olx.pl</strong></li>
-          <li><span>Lokalizacja</span><strong>Gliwice</strong></li>
-        </ul>
-      </aside>
-    </section>
+  <div class="filmstrip" aria-hidden="true"></div>
 
-    <section class="section-title" id="kamera-lista">
+  <section id="aparaty">
+    <div class="section-head">
       <div>
         <h2>Aparaty w ofercie</h2>
+        <p>Kliknij kartę, aby przejść do ogłoszenia na OLX</p>
       </div>
-      <p>Kliknij kartę, aby przejść do ogłoszenia.</p>
-    </section>
-
-    <main>
-      <section class="catalog-grid" aria-label="Lista aparatów">
-        {{CAMERA_CARDS}}
-      </section>
-
-      <section class="product-section frame-soft" id="amazon-oferty">
-        <span class="product-section__tag">CZARNO-BIAŁE</span>
-        <h2>Filmy czarno-białe</h2>
-        <p class="product-section__lead">Klasyczne emulsje do czarno-białej fotografii.</p>
-        <div class="product-row three-column">
-          <article class="product frame-soft">
-            <h3>Fujifilm Acros 100</h3>
-            <img class="pixelated" src="https://cdn.assets.lomography.com/dd/f51b3673d0fa0cbfd908fd46629c13e7522619/1216x784x1.jpg?auth=e13347014bbcd5062aa02e9a91036bc174cf4197" alt="Przykładowe zdjęcie z filmu Fujifilm Acros 100" onclick="openLightbox('https://cdn.assets.lomography.com/dd/f51b3673d0fa0cbfd908fd46629c13e7522619/1216x784x1.jpg?auth=e13347014bbcd5062aa02e9a91036bc174cf4197','Przykładowe zdjęcie z filmu Fujifilm Acros 100','https://www.lomography.com/search/photos/20930435?query=Fujifilm+Acros+100')">
-            <div class="image-reference"><a href="https://www.lomography.com/search/photos/20930435?query=Fujifilm+Acros+100">Źródło obrazu</a></div>
-            <p>Drobne ziarno i szeroka skala tonów do spokojnych, precyzyjnych kadrów.</p>
-            <a href="https://www.amazon.pl/dp/B085R9RN6F?tag=blueprintkc0a-21" class="cta-button">Sprawdź na Amazon</a>
-          </article>
-          <article class="product frame-soft">
-            <h3>Ilford HP5 Plus</h3>
-            <img class="pixelated" src="https://cdn.assets.lomography.com/03/a56a5e97b14330c50ef0ee2745743273443f12/1216x823x2.jpg?auth=832a066ca04fa5b879be49113cc8ae5e927a075e" alt="Przykładowe zdjęcie z filmu Ilford HP5 Plus" onclick="openLightbox('https://cdn.assets.lomography.com/03/a56a5e97b14330c50ef0ee2745743273443f12/1216x823x2.jpg?auth=832a066ca04fa5b879be49113cc8ae5e927a075e','Przykładowe zdjęcie z filmu Ilford HP5 Plus','https://www.lomography.com/search/photos/23121197?query=Ilford+HP5+Plus')">
-            <div class="image-reference"><a href="https://www.lomography.com/search/photos/23121197?query=Ilford+HP5+Plus">Źródło obrazu</a></div>
-            <p>Uniwersalny klasyk do reportażu, ulicy i codziennego fotografowania.</p>
-            <a href="https://www.amazon.pl/dp/B00CD4JFES?tag=blueprintkc0a-21" class="cta-button">Sprawdź na Amazon</a>
-          </article>
-          <article class="product frame-soft">
-            <h3>Kodak Tri-X 400</h3>
-            <img class="pixelated" src="https://cdn.assets.lomography.com/74/7645fba440b8c16ef77e44be06b06163e41441/1216x918x1.jpg?auth=78a68119a573b220a0d412bbf45dd0835f4f35d1" alt="Przykładowe zdjęcie z filmu Kodak Tri-X 400" onclick="openLightbox('https://cdn.assets.lomography.com/74/7645fba440b8c16ef77e44be06b06163e41441/1216x918x1.jpg?auth=78a68119a573b220a0d412bbf45dd0835f4f35d1','Przykładowe zdjęcie z filmu Kodak Tri-X 400','https://www.lomography.com/films/871911232-kodak-tri-x-400/photos/6138771?order=popular')">
-            <div class="image-reference"><a href="https://www.lomography.com/films/871911232-kodak-tri-x-400/photos/6138771?order=popular">Źródło obrazu</a></div>
-            <p>Legendarny charakter, mocny kontrast i ziarno z prawdziwie reportażowym pazurem.</p>
-            <a href="https://www.amazon.pl/dp/B00DTTLVXO?tag=blueprintkc0a-21" class="cta-button">Sprawdź na Amazon</a>
-          </article>
-          <article class="product frame-soft">
-            <h3>Kentmere 400</h3>
-            <img class="pixelated" src="https://cdn.assets.lomography.com/b2/4b0e0f771473a9fa32ef8d9c22f918e8da17b0/2000x3000x2.jpg?auth=2b499fbadf53c0383d23906887376a8719897139" alt="Przykładowe zdjęcie z filmu Kentmere 400" onclick="openLightbox('https://cdn.assets.lomography.com/b2/4b0e0f771473a9fa32ef8d9c22f918e8da17b0/2000x3000x2.jpg?auth=2b499fbadf53c0383d23906887376a8719897139','Przykładowe zdjęcie z filmu Kentmere 400','https://www.lomography.com/search/photos/25641628?query=Kentmere+400')">
-            <div class="image-reference"><a href="https://www.lomography.com/search/photos/25641628?query=Kentmere+400">Źródło obrazu</a></div>
-            <p>Przystępny materiał do testów, spacerów i pierwszych rolek.</p>
-            <a href="https://www.amazon.pl/dp/B00FMVETSG?tag=blueprintkc0a-21" class="cta-button">Sprawdź na Amazon</a>
-          </article>
-        </div>
-      </section>
-
-      <section class="product-section frame-soft">
-        <span class="product-section__tag">KOLOROWE</span>
-        <h2>Filmy kolorowe</h2>
-        <p class="product-section__lead">Kolorowe emulsje do portretów, spacerów i codziennych kadrów.</p>
-        <div class="product-row three-column">
-          <article class="product frame-soft">
-            <h3>Kodak Ektar 100</h3>
-            <img class="pixelated" src="https://cdn.assets.lomography.com/50/3a89ca9d58daa4dcb12e14b1c48b9b8f313ebd/1216x769x1.jpg?auth=6961d195a504f1f4109c44213b7e97aec5013067" alt="Przykładowe zdjęcie z filmu Kodak Ektar 100" onclick="openLightbox('https://cdn.assets.lomography.com/50/3a89ca9d58daa4dcb12e14b1c48b9b8f313ebd/1216x769x1.jpg?auth=6961d195a504f1f4109c44213b7e97aec5013067','Przykładowe zdjęcie z filmu Kodak Ektar 100','https://www.lomography.com/search/photos/20841493?query=Kodak+Ektar+100')">
-            <div class="image-reference"><a href="https://www.lomography.com/search/photos/20841493?query=Kodak+Ektar+100">Źródło obrazu</a></div>
-            <p>Nasycone kolory i drobne ziarno — stworzony do krajobrazów.</p>
-            <a href="https://www.amazon.pl/dp/B00L9IVBZA?tag=blueprintkc0a-21" class="cta-button">Sprawdź na Amazon</a>
-          </article>
-          <article class="product frame-soft">
-            <h3>Kodak Portra 400</h3>
-            <img class="pixelated" src="https://cdn.assets.lomography.com/ca/bcaac61c8ac248d8667c4410325040eda07932/1216x493x2.jpg?auth=8bfa5c363326e6526348be0230d8cc4fbfc4e855" alt="Przykładowe zdjęcie z filmu Kodak Portra 400" onclick="openLightbox('https://cdn.assets.lomography.com/ca/bcaac61c8ac248d8667c4410325040eda07932/1216x493x2.jpg?auth=8bfa5c363326e6526348be0230d8cc4fbfc4e855','Przykładowe zdjęcie z filmu Kodak Portra 400','https://www.lomography.com/search/photos/20966017?query=Kodak+Portra+400')">
-            <div class="image-reference"><a href="https://www.lomography.com/search/photos/20966017?query=Kodak+Portra+400">Źródło obrazu</a></div>
-            <p>Naturalne odcienie skóry i miękka tonalność — klasyk do portretów.</p>
-            <a href="https://www.amazon.pl/dp/B004FNRTGG?tag=blueprintkc0a-21" class="cta-button">Sprawdź na Amazon</a>
-          </article>
-          <article class="product frame-soft">
-            <h3>Fujifilm Superia X-TRA 400</h3>
-            <img class="pixelated" src="https://cdn.assets.lomography.com/c5/1a49ac8189f0efea8a2ab7390caf327d8f1fb4/960x636x1.jpg?auth=4611deec1489f531c08e5938e49df68b77249ed2" alt="Przykładowe zdjęcie z filmu Fujifilm Superia X-TRA 400" onclick="openLightbox('https://cdn.assets.lomography.com/c5/1a49ac8189f0efea8a2ab7390caf327d8f1fb4/960x636x1.jpg?auth=4611deec1489f531c08e5938e49df68b77249ed2','Przykładowe zdjęcie z filmu Fujifilm Superia X-TRA 400','https://www.lomography.com/search/photos/23263486?query=Fujifilm+Superia+X-TRA+400')">
-            <div class="image-reference"><a href="https://www.lomography.com/search/photos/23263486?query=Fujifilm+Superia+X-TRA+400">Źródło obrazu</a></div>
-            <p>Uniwersalny film na wyjazdy i codzienne kadry, radzi sobie w różnym świetle.</p>
-            <a href="https://www.amazon.pl/dp/B000L9NIWW?tag=blueprintkc0a-21" class="cta-button">Sprawdź na Amazon</a>
-          </article>
-          <article class="product frame-soft">
-            <h3>Kodak Gold 200</h3>
-            <img class="pixelated" src="https://cdn.assets.lomography.com/6b/b814bf7d6da39ae839123cbfce4eec4c2da7ae/1216x806x2.jpg?auth=f60ec61259631fd4ce2fa752160db931fd723780" alt="Przykładowe zdjęcie z filmu Kodak Gold 200" onclick="openLightbox('https://cdn.assets.lomography.com/6b/b814bf7d6da39ae839123cbfce4eec4c2da7ae/1216x806x2.jpg?auth=f60ec61259631fd4ce2fa752160db931fd723780','Przykładowe zdjęcie z filmu Kodak Gold 200','https://www.lomography.com/search/photos/24775039?query=Kodak+Gold+200')">
-            <div class="image-reference"><a href="https://www.lomography.com/search/photos/24775039?query=Kodak+Gold+200">Źródło obrazu</a></div>
-            <p>Ciepłe, złociste kolory i przystępna cena — ulubieniec do fotografii codziennej.</p>
-            <a href="https://www.amazon.pl/dp/B00JDOCW3M?tag=blueprintkc0a-21" class="cta-button">Sprawdź na Amazon</a>
-          </article>
-        </div>
-      </section>
-
-      <section class="product-section frame-soft">
-        <span class="product-section__tag">AKCESORIA</span>
-        <h2>Akcesoria do aparatów</h2>
-        <p class="product-section__lead">Drobiazgi, które ułatwiają fotografowanie na kliszy.</p>
-        <ul>
-          <li><a href="https://www.amazon.pl/s?k=vintage+camera+strap&tag=blueprintkc0a-21">Paski do aparatów</a></li>
-          <li><a href="https://www.amazon.pl/s?k=vintage+camera+bag&tag=blueprintkc0a-21">Torby w stylu retro</a></li>
-          <li><a href="https://www.amazon.pl/s?k=film+for+vintage+cameras&tag=blueprintkc0a-21">Klisze do aparatów analogowych</a></li>
-        </ul>
-        <p class="product-section__lead generated-note">Linki Amazon zawierają tag afiliacyjny — zakup przez nie wspiera tę stronę.</p>
-      </section>
-
-      <section class="product-section frame-soft">
-        <span class="product-section__tag">WYWOŁYWANIE</span>
-        <h2>Wywoływanie i skanowanie</h2>
-        <p class="product-section__lead">Wszystko, czego potrzeba, żeby wywołać rolkę w domu i przenieść ją do cyfrowego archiwum.</p>
-        <div class="product-row">
-          <article class="product frame-soft">
-            <h3>Adox Rodinal 500 ml</h3>
-            <img class="pixelated" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'><rect width='400' height='300' fill='%23f8e9c8'/><rect x='12' y='12' width='376' height='276' fill='none' stroke='%2311040f' stroke-width='6'/><rect x='188' y='70' width='24' height='18' fill='%234a3a2a'/><rect x='170' y='88' width='60' height='140' rx='6' fill='%234a3a2a'/><rect x='184' y='130' width='32' height='80' fill='%23f8e9c8'/><text x='200' y='260' text-anchor='middle' font-family='monospace' font-size='22' font-weight='bold' fill='%23261729'>DEV</text></svg>" alt="Butelka wywoływacza Adox Rodinal">
-            <p>Klasyczny koncentrat do filmów czarno-białych — jedna butelka wystarcza na kilkadziesiąt rolek.</p>
-            <a href="https://www.amazon.pl/dp/B01FSX40GI?tag=blueprintkc0a-21" class="cta-button">Sprawdź na Amazon</a>
-          </article>
-          <article class="product frame-soft">
-            <h3>Ilford Rapid Fixer 1 L</h3>
-            <img class="pixelated" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'><rect width='400' height='300' fill='%23f8e9c8'/><rect x='12' y='12' width='376' height='276' fill='none' stroke='%2311040f' stroke-width='6'/><rect x='188' y='70' width='24' height='18' fill='%237a3a22'/><rect x='170' y='88' width='60' height='140' rx='6' fill='%237a3a22'/><rect x='184' y='130' width='32' height='80' fill='%23f8e9c8'/><text x='200' y='260' text-anchor='middle' font-family='monospace' font-size='22' font-weight='bold' fill='%23261729'>FIX</text></svg>" alt="Butelka utrwalacza Ilford Rapid Fixer">
-            <p>Uniwersalny utrwalacz do filmów i papieru — szybki, prosty, sprawdzony od dekad.</p>
-            <a href="https://www.amazon.pl/dp/B00K33JEQ0?tag=blueprintkc0a-21" class="cta-button">Sprawdź na Amazon</a>
-          </article>
-          <article class="product frame-soft">
-            <h3>Kodak Slide N Scan 5"</h3>
-            <img class="pixelated" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'><rect width='400' height='300' fill='%23f8e9c8'/><rect x='12' y='12' width='376' height='276' fill='none' stroke='%2311040f' stroke-width='6'/><rect x='90' y='80' width='220' height='140' rx='8' fill='%231c1815'/><rect x='110' y='100' width='180' height='100' fill='%236e5b4b'/><text x='200' y='260' text-anchor='middle' font-family='monospace' font-size='22' font-weight='bold' fill='%23261729'>SCAN</text></svg>" alt="Skaner Kodak Slide N Scan">
-            <p>Stacjonarny skaner z ekranem LCD — negatywy i slajdy zapisze na karcie SD bez komputera.</p>
-            <a href="https://www.amazon.pl/dp/B084NVRHYQ?tag=blueprintkc0a-21" class="cta-button">Sprawdź na Amazon</a>
-          </article>
-          <article class="product frame-soft">
-            <h3>Mobilny skaner Kodak</h3>
-            <img class="pixelated" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'><rect width='400' height='300' fill='%23f8e9c8'/><rect x='12' y='12' width='376' height='276' fill='none' stroke='%2311040f' stroke-width='6'/><rect x='160' y='40' width='80' height='200' rx='14' fill='%231c1815'/><rect x='170' y='60' width='60' height='150' fill='%236e5b4b'/><circle cx='200' cy='225' r='6' fill='%23d8cfc3'/><text x='200' y='275' text-anchor='middle' font-family='monospace' font-size='18' font-weight='bold' fill='%23261729'>MOBILE</text></svg>" alt="Mobilny skaner klisz Kodak">
-            <p>Składane urządzenie do skanowania klisz 35 mm aparatem w smartfonie — budżetowa alternatywa do domowej digitalizacji.</p>
-            <a href="https://www.amazon.pl/dp/B07MTKNTPK?tag=blueprintkc0a-21" class="cta-button">Sprawdź na Amazon</a>
-          </article>
-        </div>
-      </section>
-
-      <section class="footer-panel frame-soft">
-        <span class="footer-note">STARE APARATY</span>
-        <p>
-          Projekt prywatny. Ogłoszenia pochodzą z olx.pl, linki do filmów i akcesoriów prowadzą do Amazon.pl.
-        </p>
-      </section>
-    </main>
-  </div>
-
-  <div id="lightbox" class="lightbox" onclick="closeLightbox()">
-    <div class="lightbox-content" onclick="event.stopPropagation()">
-      <button class="close-lightbox" type="button" aria-label="Zamknij podgląd" onclick="closeLightbox()">×</button>
-      <img id="lightbox-img" class="lightbox-image" src="" alt="">
-      <div id="lightbox-reference" class="image-reference"></div>
+      <span class="label label--soft">Aktualizacja: {{LAST_UPDATED}}</span>
     </div>
+
+    <div class="camera-grid" aria-label="Katalog aparatów">
+{{CAMERA_CARDS}}
+    </div>
+  </section>
+
+  <div class="filmstrip" style="margin-top: 32px;" aria-hidden="true"></div>
+
+  <section class="product-section" id="filmy-bw">
+    <div class="section-head">
+      <div>
+        <span class="label" style="margin-bottom:10px; display:inline-block">CZARNO-BIAŁE</span>
+        <h2>Filmy czarno-białe</h2>
+      </div>
+      <p>Klasyczne emulsje do czarno-białej fotografii</p>
+    </div>
+    <div class="product-grid">
+
+      <div class="product-card">
+        <img class="product-card__img" src="https://cdn.assets.lomography.com/dd/f51b3673d0fa0cbfd908fd46629c13e7522619/1216x784x1.jpg?auth=e13347014bbcd5062aa02e9a91036bc174cf4197" alt="Fujifilm Acros 100" onclick="openLightbox(this.src,'Fujifilm Acros 100','https://www.lomography.com/search/photos/20930435?query=Fujifilm+Acros+100')">
+        <p class="img-ref"><a href="https://www.lomography.com/search/photos/20930435?query=Fujifilm+Acros+100" target="_blank">Źródło</a></p>
+        <h3>Fujifilm Acros 100</h3>
+        <p>Drobne ziarno i szeroka skala tonów do spokojnych, precyzyjnych kadrów.</p>
+        <a class="cta" href="https://www.amazon.pl/dp/B085R9RN6F?tag=blueprintkc0a-21" target="_blank" rel="noopener">Sprawdź na Amazon <span>→</span></a>
+      </div>
+
+      <div class="product-card">
+        <img class="product-card__img" src="https://cdn.assets.lomography.com/03/a56a5e97b14330c50ef0ee2745743273443f12/1216x823x2.jpg?auth=832a066ca04fa5b879be49113cc8ae5e927a075e" alt="Ilford HP5 Plus" onclick="openLightbox(this.src,'Ilford HP5 Plus','https://www.lomography.com/search/photos/23121197?query=Ilford+HP5+Plus')">
+        <p class="img-ref"><a href="https://www.lomography.com/search/photos/23121197?query=Ilford+HP5+Plus" target="_blank">Źródło</a></p>
+        <h3>Ilford HP5 Plus</h3>
+        <p>Uniwersalny klasyk do reportażu, ulicy i codziennego fotografowania.</p>
+        <a class="cta" href="https://www.amazon.pl/dp/B00CD4JFES?tag=blueprintkc0a-21" target="_blank" rel="noopener">Sprawdź na Amazon <span>→</span></a>
+      </div>
+
+      <div class="product-card">
+        <img class="product-card__img" src="https://cdn.assets.lomography.com/74/7645fba440b8c16ef77e44be06b06163e41441/1216x918x1.jpg?auth=78a68119a573b220a0d412bbf45dd0835f4f35d1" alt="Kodak Tri-X 400" onclick="openLightbox(this.src,'Kodak Tri-X 400','https://www.lomography.com/films/871911232-kodak-tri-x-400/photos/6138771?order=popular')">
+        <p class="img-ref"><a href="https://www.lomography.com/films/871911232-kodak-tri-x-400/photos/6138771?order=popular" target="_blank">Źródło</a></p>
+        <h3>Kodak Tri-X 400</h3>
+        <p>Legendarny charakter, mocny kontrast i ziarno z prawdziwie reportażowym pazurem.</p>
+        <a class="cta" href="https://www.amazon.pl/dp/B00DTTLVXO?tag=blueprintkc0a-21" target="_blank" rel="noopener">Sprawdź na Amazon <span>→</span></a>
+      </div>
+
+      <div class="product-card">
+        <img class="product-card__img" src="https://cdn.assets.lomography.com/b2/4b0e0f771473a9fa32ef8d9c22f918e8da17b0/2000x3000x2.jpg?auth=2b499fbadf53c0383d23906887376a8719897139" alt="Kentmere 400" onclick="openLightbox(this.src,'Kentmere 400','https://www.lomography.com/search/photos/25641628?query=Kentmere+400')">
+        <p class="img-ref"><a href="https://www.lomography.com/search/photos/25641628?query=Kentmere+400" target="_blank">Źródło</a></p>
+        <h3>Kentmere 400</h3>
+        <p>Przystępny materiał do testów, spacerów i pierwszych rolek.</p>
+        <a class="cta" href="https://www.amazon.pl/dp/B00FMVETSG?tag=blueprintkc0a-21" target="_blank" rel="noopener">Sprawdź na Amazon <span>→</span></a>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="product-section" id="filmy-kolor">
+    <div class="section-head">
+      <div>
+        <span class="label" style="margin-bottom:10px; display:inline-block">KOLOROWE</span>
+        <h2>Filmy kolorowe</h2>
+      </div>
+      <p>Emulsje do portretów, spacerów i codziennych kadrów</p>
+    </div>
+    <div class="product-grid">
+
+      <div class="product-card">
+        <img class="product-card__img" src="https://cdn.assets.lomography.com/50/3a89ca9d58daa4dcb12e14b1c48b9b8f313ebd/1216x769x1.jpg?auth=6961d195a504f1f4109c44213b7e97aec5013067" alt="Kodak Ektar 100" onclick="openLightbox(this.src,'Kodak Ektar 100','https://www.lomography.com/search/photos/20841493?query=Kodak+Ektar+100')">
+        <p class="img-ref"><a href="https://www.lomography.com/search/photos/20841493?query=Kodak+Ektar+100" target="_blank">Źródło</a></p>
+        <h3>Kodak Ektar 100</h3>
+        <p>Nasycone kolory i drobne ziarno — stworzony do krajobrazów.</p>
+        <a class="cta" href="https://www.amazon.pl/dp/B00L9IVBZA?tag=blueprintkc0a-21" target="_blank" rel="noopener">Sprawdź na Amazon <span>→</span></a>
+      </div>
+
+      <div class="product-card">
+        <img class="product-card__img" src="https://cdn.assets.lomography.com/ca/bcaac61c8ac248d8667c4410325040eda07932/1216x493x2.jpg?auth=8bfa5c363326e6526348be0230d8cc4fbfc4e855" alt="Kodak Portra 400" onclick="openLightbox(this.src,'Kodak Portra 400','https://www.lomography.com/search/photos/20966017?query=Kodak+Portra+400')">
+        <p class="img-ref"><a href="https://www.lomography.com/search/photos/20966017?query=Kodak+Portra+400" target="_blank">Źródło</a></p>
+        <h3>Kodak Portra 400</h3>
+        <p>Naturalne odcienie skóry i miękka tonalność — klasyk do portretów.</p>
+        <a class="cta" href="https://www.amazon.pl/dp/B004FNRTGG?tag=blueprintkc0a-21" target="_blank" rel="noopener">Sprawdź na Amazon <span>→</span></a>
+      </div>
+
+      <div class="product-card">
+        <img class="product-card__img" src="https://cdn.assets.lomography.com/c5/1a49ac8189f0efea8a2ab7390caf327d8f1fb4/960x636x1.jpg?auth=4611deec1489f531c08e5938e49df68b77249ed2" alt="Fujifilm Superia X-TRA 400" onclick="openLightbox(this.src,'Fujifilm Superia X-TRA 400','https://www.lomography.com/search/photos/23263486?query=Fujifilm+Superia+X-TRA+400')">
+        <p class="img-ref"><a href="https://www.lomography.com/search/photos/23263486?query=Fujifilm+Superia+X-TRA+400" target="_blank">Źródło</a></p>
+        <h3>Fujifilm Superia X-TRA 400</h3>
+        <p>Uniwersalny film na wyjazdy i codzienne kadry, radzi sobie w różnym świetle.</p>
+        <a class="cta" href="https://www.amazon.pl/dp/B000L9NIWW?tag=blueprintkc0a-21" target="_blank" rel="noopener">Sprawdź na Amazon <span>→</span></a>
+      </div>
+
+      <div class="product-card">
+        <img class="product-card__img" src="https://cdn.assets.lomography.com/6b/b814bf7d6da39ae839123cbfce4eec4c2da7ae/1216x806x2.jpg?auth=f60ec61259631fd4ce2fa752160db931fd723780" alt="Kodak Gold 200" onclick="openLightbox(this.src,'Kodak Gold 200','https://www.lomography.com/search/photos/24775039?query=Kodak+Gold+200')">
+        <p class="img-ref"><a href="https://www.lomography.com/search/photos/24775039?query=Kodak+Gold+200" target="_blank">Źródło</a></p>
+        <h3>Kodak Gold 200</h3>
+        <p>Ciepłe, złociste kolory i przystępna cena — ulubieniec do fotografii codziennej.</p>
+        <a class="cta" href="https://www.amazon.pl/dp/B00JDOCW3M?tag=blueprintkc0a-21" target="_blank" rel="noopener">Sprawdź na Amazon <span>→</span></a>
+      </div>
+
+    </div>
+  </section>
+
+  <div class="filmstrip" style="margin-top: 32px;" aria-hidden="true"></div>
+
+  <section class="product-section" id="wywolywanie">
+    <div class="section-head">
+      <div>
+        <span class="label" style="margin-bottom:10px; display:inline-block">WYWOŁYWANIE</span>
+        <h2>Wywoływanie i skanowanie</h2>
+      </div>
+      <p>Wszystko, czego potrzeba, żeby wywołać rolkę w domu i przenieść ją do cyfrowego archiwum</p>
+    </div>
+    <div class="product-grid">
+
+      <div class="product-card">
+        <img class="product-card__img" src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f8e9c8'/%3E%3Crect x='12' y='12' width='376' height='276' fill='none' stroke='%2311040f' stroke-width='6'/%3E%3Crect x='188' y='70' width='24' height='18' fill='%234a3a2a'/%3E%3Crect x='170' y='88' width='60' height='140' rx='6' fill='%234a3a2a'/%3E%3Crect x='184' y='130' width='32' height='80' fill='%23f8e9c8'/%3E%3Ctext x='200' y='260' text-anchor='middle' font-family='monospace' font-size='22' font-weight='bold' fill='%23261729'%3EDEV%3C/text%3E%3C/svg%3E" alt="Adox Rodinal">
+        <h3>Adox Rodinal 500 ml</h3>
+        <p>Klasyczny koncentrat do filmów czarno-białych — jedna butelka wystarcza na kilkadziesiąt rolek.</p>
+        <a class="cta" href="https://www.amazon.pl/dp/B01FSX40GI?tag=blueprintkc0a-21" target="_blank" rel="noopener">Sprawdź na Amazon <span>→</span></a>
+      </div>
+
+      <div class="product-card">
+        <img class="product-card__img" src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f8e9c8'/%3E%3Crect x='12' y='12' width='376' height='276' fill='none' stroke='%2311040f' stroke-width='6'/%3E%3Crect x='188' y='70' width='24' height='18' fill='%237a3a22'/%3E%3Crect x='170' y='88' width='60' height='140' rx='6' fill='%237a3a22'/%3E%3Crect x='184' y='130' width='32' height='80' fill='%23f8e9c8'/%3E%3Ctext x='200' y='260' text-anchor='middle' font-family='monospace' font-size='22' font-weight='bold' fill='%23261729'%3EFIX%3C/text%3E%3C/svg%3E" alt="Ilford Rapid Fixer">
+        <h3>Ilford Rapid Fixer 1 L</h3>
+        <p>Uniwersalny utrwalacz do filmów i papieru — szybki, prosty, sprawdzony od dekad.</p>
+        <a class="cta" href="https://www.amazon.pl/dp/B00K33JEQ0?tag=blueprintkc0a-21" target="_blank" rel="noopener">Sprawdź na Amazon <span>→</span></a>
+      </div>
+
+      <div class="product-card">
+        <img class="product-card__img" src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f8e9c8'/%3E%3Crect x='12' y='12' width='376' height='276' fill='none' stroke='%2311040f' stroke-width='6'/%3E%3Crect x='90' y='80' width='220' height='140' rx='8' fill='%231c1815'/%3E%3Crect x='110' y='100' width='180' height='100' fill='%236e5b4b'/%3E%3Ctext x='200' y='260' text-anchor='middle' font-family='monospace' font-size='22' font-weight='bold' fill='%23261729'%3ESCAN%3C/text%3E%3C/svg%3E" alt="Kodak Slide N Scan">
+        <h3>Kodak Slide N Scan 5"</h3>
+        <p>Stacjonarny skaner z ekranem LCD — negatywy i slajdy zapisze na karcie SD bez komputera.</p>
+        <a class="cta" href="https://www.amazon.pl/dp/B084NVRHYQ?tag=blueprintkc0a-21" target="_blank" rel="noopener">Sprawdź na Amazon <span>→</span></a>
+      </div>
+
+      <div class="product-card">
+        <img class="product-card__img" src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f8e9c8'/%3E%3Crect x='12' y='12' width='376' height='276' fill='none' stroke='%2311040f' stroke-width='6'/%3E%3Crect x='160' y='40' width='80' height='200' rx='14' fill='%231c1815'/%3E%3Crect x='170' y='60' width='60' height='150' fill='%236e5b4b'/%3E%3Ccircle cx='200' cy='225' r='6' fill='%23d8cfc3'/%3E%3Ctext x='200' y='275' text-anchor='middle' font-family='monospace' font-size='18' font-weight='bold' fill='%23261729'%3EMOBILE%3C/text%3E%3C/svg%3E" alt="Mobilny skaner Kodak">
+        <h3>Mobilny skaner Kodak</h3>
+        <p>Składane urządzenie do skanowania klisz 35 mm aparatem w smartfonie — budżetowa alternatywa do domowej digitalizacji.</p>
+        <a class="cta" href="https://www.amazon.pl/dp/B07MTKNTPK?tag=blueprintkc0a-21" target="_blank" rel="noopener">Sprawdź na Amazon <span>→</span></a>
+      </div>
+
+    </div>
+  </section>
+
+  <footer class="footer">
+    <span class="label label--soft">STARE APARATY</span>
+    <p>Projekt prywatny. Ogłoszenia pochodzą z olx.pl, linki do filmów i akcesoriów prowadzą do Amazon.pl.</p>
+  </footer>
+
+</div><!-- /.shell -->
+
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <div class="lightbox__content" onclick="event.stopPropagation()">
+    <button type="button" class="lightbox__close" aria-label="Zamknij podgląd" onclick="closeLightbox()">×</button>
+    <img class="lightbox__img" id="lightbox-img" src="" alt="">
+    <p class="img-ref" id="lightbox-ref"></p>
   </div>
+</div>
 
-  <script>
-    function openLightbox(imgSrc, altText, sourceLink) {
-      var lightbox = document.getElementById('lightbox');
-      var lightboxImg = document.getElementById('lightbox-img');
-      var lightboxReference = document.getElementById('lightbox-reference');
+<script>
+  function openLightbox(src, alt, sourceUrl) {
+    var box = document.getElementById('lightbox');
+    var img = document.getElementById('lightbox-img');
+    var ref = document.getElementById('lightbox-ref');
+    img.src = src;
+    img.alt = alt || '';
+    ref.innerHTML = sourceUrl
+      ? '<a href="' + sourceUrl + '" target="_blank" rel="noopener">Źródło</a>'
+      : '';
+    box.classList.add('open');
+  }
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('open');
+  }
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') closeLightbox();
+  });
 
-      lightboxImg.src = imgSrc;
-      lightboxImg.alt = altText;
-      lightboxReference.innerHTML = '<a href="' + sourceLink + '" target="_blank" rel="noopener noreferrer">Źródło obrazu</a>';
-      lightbox.classList.add('is-visible');
+  (function () {
+    var toggle = document.getElementById('theme-toggle');
+    var label = document.getElementById('theme-label');
+    if (!toggle) return;
+
+    function syncLabel() {
+      if (!label) return;
+      var current = document.documentElement.getAttribute('data-theme');
+      label.textContent = current === 'dark' ? 'Tryb jasny' : 'Tryb ciemny';
     }
 
-    function closeLightbox() {
-      document.getElementById('lightbox').classList.remove('is-visible');
-    }
+    syncLabel();
 
-    document.addEventListener('keydown', function(event) {
-      if (event.key === 'Escape') {
-        closeLightbox();
-      }
-    });
-
-    (function () {
-      var toggle = document.getElementById('theme-toggle');
-      var label = document.getElementById('theme-toggle-label');
-      if (!toggle) return;
-
-      function syncLabel() {
-        if (!label) return;
-        var current = document.documentElement.getAttribute('data-theme');
-        label.textContent = current === 'dark' ? 'Tryb jasny' : 'Tryb ciemny';
-      }
-
+    toggle.addEventListener('click', function () {
+      var current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+      var next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      try { localStorage.setItem('theme', next); } catch (err) { /* ignore */ }
       syncLabel();
+    });
+  })();
+</script>
 
-      toggle.addEventListener('click', function () {
-        var current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-        var next = current === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', next);
-        try {
-          localStorage.setItem('theme', next);
-        } catch (err) {
-          /* ignore storage errors */
-        }
-        syncLabel();
-      });
-    })();
-  </script>
 </body>
 </html>

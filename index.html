@@ -55,7 +55,6 @@
       --shadow:    rgba(28,24,21,0.12);
     }
 
-    /* ── Reset ──────────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
     body {
@@ -69,7 +68,6 @@
     a { color: inherit; }
     img { display: block; max-width: 100%; }
 
-    /* ── Scanline texture ───────────────────────────────────────── */
     body::before {
       content: "";
       position: fixed; inset: 0; pointer-events: none; z-index: 0;
@@ -80,7 +78,6 @@
       );
     }
 
-    /* ── Layout shell ───────────────────────────────────────────── */
     .shell {
       position: relative; z-index: 1;
       width: min(1160px, calc(100% - 32px));
@@ -88,7 +85,6 @@
       padding: 28px 0 56px;
     }
 
-    /* ── Shared label ───────────────────────────────────────────── */
     .label {
       display: inline-block;
       font-family: var(--retro);
@@ -101,7 +97,6 @@
     }
     .label--soft { color: var(--ink-soft); border-color: var(--line); }
 
-    /* ── Header ─────────────────────────────────────────────────── */
     .masthead {
       border: 2px solid var(--line-gold);
       padding: 28px 32px 24px;
@@ -133,7 +128,6 @@
     }
     .masthead__nav a:hover { border-color: var(--gold); color: var(--gold); }
 
-    /* Theme toggle */
     .theme-toggle {
       display: inline-flex; align-items: center; gap: 7px;
       padding: 6px 12px; border: 1px solid var(--ink-faint);
@@ -148,7 +142,6 @@
     [data-theme="light"] .icon-sun  { display: none; }
     [data-theme="light"] .icon-moon { display: inline; }
 
-    /* ── Film strip divider ──────────────────────────────────────── */
     .filmstrip {
       height: 20px;
       background: var(--bg-strip);
@@ -161,7 +154,6 @@
       );
     }
 
-    /* ── Section header ─────────────────────────────────────────── */
     .section-head {
       display: flex; justify-content: space-between; align-items: flex-end;
       padding: 22px 0 14px;
@@ -175,7 +167,6 @@
     }
     .section-head p { font-size: 12px; color: var(--ink-soft); }
 
-    /* ── Camera grid ────────────────────────────────────────────── */
     .camera-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -185,7 +176,6 @@
       padding: 3px;
     }
 
-    /* ── Camera card ────────────────────────────────────────────── */
     .cam-card {
       display: block; text-decoration: none; color: inherit;
       background: var(--bg-card);
@@ -239,19 +229,7 @@
       transition: color 200ms;
     }
     .cam-card:hover .cam-card__detail { color: #444; }
-    .cam-card__type {
-      flex-shrink: 0;
-      font-family: var(--retro); font-size: 6px; letter-spacing: 0.08em;
-      padding: 3px 6px; line-height: 1.6;
-      border: 1px solid var(--gold);
-      color: var(--gold);
-      transition: background 200ms, color 200ms, border-color 200ms;
-    }
-    .cam-card:hover .cam-card__type {
-      background: #111; color: var(--gold); border-color: #111;
-    }
 
-    /* ── Product sections ───────────────────────────────────────── */
     .product-section { margin-top: 32px; }
     .product-grid {
       display: grid;
@@ -288,17 +266,6 @@
     .img-ref { font-size: 10px; color: var(--ink-faint); }
     .img-ref a { color: var(--ink-soft); }
 
-    /* Accessories list */
-    .acc-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
-    .acc-list a {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 12px 16px; text-decoration: none;
-      border: 1px solid var(--line); color: var(--ink);
-      font-size: 13px; transition: border-color 150ms, color 150ms;
-    }
-    .acc-list a:hover { border-color: var(--gold-dim); color: var(--gold); }
-
-    /* ── Footer ─────────────────────────────────────────────────── */
     .footer {
       margin-top: 36px;
       border-top: 2px solid var(--line-gold);
@@ -307,7 +274,6 @@
     }
     .footer p { font-size: 11px; color: var(--ink-soft); }
 
-    /* ── Lightbox ───────────────────────────────────────────────── */
     .lightbox {
       display: none; position: fixed; z-index: 999; inset: 0; padding: 24px;
       background: rgba(5,3,2,0.92); align-items: center; justify-content: center;
@@ -326,7 +292,6 @@
       color: var(--gold); font-size: 18px; cursor: pointer;
     }
 
-    /* ── Responsive ─────────────────────────────────────────────── */
     @media (max-width: 900px) {
       .camera-grid, .product-grid { grid-template-columns: repeat(2, 1fr); }
     }
@@ -341,7 +306,6 @@
 <body>
 <div class="shell">
 
-  <!-- ── Header ─────────────────────────────────────────── -->
   <header class="masthead">
     <div class="masthead__topline">
       <span class="label">STARE APARATY</span>
@@ -357,127 +321,138 @@
       <a href="#aparaty">Aparaty (8)</a>
       <a href="#filmy-bw">Filmy B&amp;W</a>
       <a href="#filmy-kolor">Filmy kolorowe</a>
-      <a href="#wywoływanie">Wywoływanie</a>
+      <a href="#wywolywanie">Wywoływanie</a>
     </nav>
   </header>
 
-  <!-- ── Film strip ──────────────────────────────────────── -->
   <div class="filmstrip" aria-hidden="true"></div>
 
-  <!-- ── Camera section ─────────────────────────────────── -->
   <section id="aparaty">
     <div class="section-head">
       <div>
         <h2>Aparaty w ofercie</h2>
         <p>Kliknij kartę, aby przejść do ogłoszenia na OLX</p>
       </div>
-      <span class="label label--soft">Gliwice · olx.pl</span>
+      <span class="label label--soft">Aktualizacja: 25 kwi 2026, 11:54</span>
     </div>
 
     <div class="camera-grid" aria-label="Katalog aparatów">
 
-      <a class="cam-card" href="https://www.olx.pl/d/oferta/aparat-na-film-chinon-ce-5-z-auto-chinon-50mm-f-1-9-chinon-pw-530-CID99-ID12T9tS.html?bs=olx_pro_listing" target="_blank" rel="noopener">
+      <a class="cam-card" href="https://www.olx.pl/d/oferta/aparat-na-film-chinon-ce-5-z-auto-chinon-50mm-f-1-9-chinon-pw-530-CID99-ID12T9tS.html?bs=olx_pro_listing" target="_blank" rel="noopener noreferrer">
         <div class="cam-card__img-wrap">
-          <img class="cam-card__img" src="https://ireland.apollo.olxcdn.com/v1/files/cabn09tzjb9o-PL/image;s=2000x1333" alt="Chinon CE-5">
+          <img class="cam-card__img" src="https://ireland.apollo.olxcdn.com/v1/files/cabn09tzjb9o-PL/image;s=2000x1333" alt="Aparat na film Chinon CE-5 z Auto Chinon 50mm f/1.9 Chinon PW-530 Gliwice Sikornik">
           <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
         </div>
         <div class="cam-card__strip">
-          <div><p class="cam-card__name">Chinon CE-5</p><p class="cam-card__detail">Auto Chinon 50mm f/1.9</p></div>
-          <span class="cam-card__type">SLR</span>
+          <div>
+            <p class="cam-card__name">Aparat na film Chinon CE-5 z Auto Chinon 50mm f/1.9 Chinon PW-530 Gliwice Sikornik</p>
+            <p class="cam-card__detail">olx.pl</p>
+          </div>
         </div>
       </a>
 
-      <a class="cam-card" href="https://www.olx.pl/d/oferta/aparat-na-film-mamiya-rank-35mm-dalmierz-CID4042-ID139MkA.html?bs=olx_pro_listing" target="_blank" rel="noopener">
+      <a class="cam-card" href="https://www.olx.pl/d/oferta/aparat-na-film-mamiya-rank-35mm-dalmierz-CID4042-ID139MkA.html?bs=olx_pro_listing" target="_blank" rel="noopener noreferrer">
         <div class="cam-card__img-wrap">
-          <img class="cam-card__img" src="https://ireland.apollo.olxcdn.com/v1/files/eyi07or6nx3b-PL/image;s=2000x1333" alt="Mamiya Rank 35mm">
+          <img class="cam-card__img" src="https://ireland.apollo.olxcdn.com/v1/files/eyi07or6nx3b-PL/image;s=2000x1333" alt="Aparat na film Mamiya Rank 35mm Dalmierz Gliwice Sikornik">
           <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
         </div>
         <div class="cam-card__strip">
-          <div><p class="cam-card__name">Mamiya Rank 35mm</p><p class="cam-card__detail">Dalmierz</p></div>
-          <span class="cam-card__type">Dalmierz</span>
+          <div>
+            <p class="cam-card__name">Aparat na film Mamiya Rank 35mm Dalmierz Gliwice Sikornik</p>
+            <p class="cam-card__detail">olx.pl</p>
+          </div>
         </div>
       </a>
 
-      <a class="cam-card" href="https://www.olx.pl/d/oferta/aparat-kompaktowy-analogowy-na-film-minolta-f25-retro-CID99-ID13Azpl.html?bs=olx_pro_listing" target="_blank" rel="noopener">
+      <a class="cam-card" href="https://www.olx.pl/d/oferta/aparat-kompaktowy-analogowy-na-film-minolta-f25-retro-CID99-ID13Azpl.html?bs=olx_pro_listing" target="_blank" rel="noopener noreferrer">
         <div class="cam-card__img-wrap">
-          <img class="cam-card__img" src="https://ireland.apollo.olxcdn.com/v1/files/gntgkhngqf073-PL/image;s=2000x1333" alt="Minolta F25">
+          <img class="cam-card__img" src="https://ireland.apollo.olxcdn.com/v1/files/gntgkhngqf073-PL/image;s=2000x1333" alt="Aparat kompaktowy analogowy na film Minolta F25, retro Gliwice Sikornik">
           <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
         </div>
         <div class="cam-card__strip">
-          <div><p class="cam-card__name">Minolta F25</p><p class="cam-card__detail">Kompakt analogowy</p></div>
-          <span class="cam-card__type">Kompakt</span>
+          <div>
+            <p class="cam-card__name">Aparat kompaktowy analogowy na film Minolta F25, retro Gliwice Sikornik</p>
+            <p class="cam-card__detail">olx.pl</p>
+          </div>
         </div>
       </a>
 
-      <a class="cam-card" href="https://www.olx.pl/d/oferta/aparat-petri-ft-ee-fully-automatic-z-petri-c-c-auto-55mm-f-1-8-na-film-CID99-ID12T8Az.html?bs=olx_pro_listing" target="_blank" rel="noopener">
+      <a class="cam-card" href="https://www.olx.pl/d/oferta/aparat-petri-ft-ee-fully-automatic-z-petri-c-c-auto-55mm-f-1-8-na-film-CID99-ID12T8Az.html?bs=olx_pro_listing" target="_blank" rel="noopener noreferrer">
         <div class="cam-card__img-wrap">
-          <img class="cam-card__img" src="https://ireland.apollo.olxcdn.com/v1/files/e4cc3z1i2d033-PL/image;s=2000x1333" alt="Petri FT EE">
+          <img class="cam-card__img" src="https://ireland.apollo.olxcdn.com/v1/files/e4cc3z1i2d033-PL/image;s=2000x1333" alt="Aparat PETRI FT EE FULLY AUTOMATIC z Petri C.C Auto 55mm F/1.8 na film Gliwice Sikornik">
           <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
         </div>
         <div class="cam-card__strip">
-          <div><p class="cam-card__name">Petri FT EE</p><p class="cam-card__detail">C.C Auto 55mm f/1.8</p></div>
-          <span class="cam-card__type">SLR</span>
+          <div>
+            <p class="cam-card__name">Aparat PETRI FT EE FULLY AUTOMATIC z Petri C.C Auto 55mm F/1.8 na film Gliwice Sikornik</p>
+            <p class="cam-card__detail">olx.pl</p>
+          </div>
         </div>
       </a>
 
-      <a class="cam-card" href="https://www.olx.pl/d/oferta/olympus-am-100-quartzdate-analog-kompaktowy-na-film-CID99-ID12VaGV.html?bs=olx_pro_listing" target="_blank" rel="noopener">
+      <a class="cam-card" href="https://www.olx.pl/d/oferta/olympus-am-100-quartzdate-analog-kompaktowy-na-film-CID99-ID12VaGV.html?bs=olx_pro_listing" target="_blank" rel="noopener noreferrer">
         <div class="cam-card__img-wrap">
-          <img class="cam-card__img" src="https://ireland.apollo.olxcdn.com/v1/files/95v9hc576o9n-PL/image;s=2000x1333" alt="Olympus AM-100">
+          <img class="cam-card__img" src="https://ireland.apollo.olxcdn.com/v1/files/95v9hc576o9n-PL/image;s=2000x1333" alt="Olympus AM-100 Quartzdate, analog kompaktowy na film Gliwice Sikornik">
           <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
         </div>
         <div class="cam-card__strip">
-          <div><p class="cam-card__name">Olympus AM-100</p><p class="cam-card__detail">Quartzdate</p></div>
-          <span class="cam-card__type">Kompakt</span>
+          <div>
+            <p class="cam-card__name">Olympus AM-100 Quartzdate, analog kompaktowy na film Gliwice Sikornik</p>
+            <p class="cam-card__detail">olx.pl</p>
+          </div>
         </div>
       </a>
 
-      <a class="cam-card" href="https://www.olx.pl/d/oferta/pentax-sf7-z-obiektywami-pentax-f-zoom-28-80mm-i-smc-pentax-f-35-80mm-CID99-ID15n0RK.html?bs=olx_pro_listing" target="_blank" rel="noopener">
+      <a class="cam-card" href="https://www.olx.pl/d/oferta/pentax-sf7-z-obiektywami-pentax-f-zoom-28-80mm-i-smc-pentax-f-35-80mm-CID99-ID15n0RK.html?bs=olx_pro_listing" target="_blank" rel="noopener noreferrer">
         <div class="cam-card__img-wrap">
-          <img class="cam-card__img" src="https://ireland.apollo.olxcdn.com/v1/files/llewrszjpci72-PL/image;s=2000x1333" alt="Pentax SF7">
+          <img class="cam-card__img" src="https://ireland.apollo.olxcdn.com/v1/files/llewrszjpci72-PL/image;s=2000x1333" alt="Pentax SF7 z obiektywami Pentax-F Zoom 28-80mm i SMC Pentax-F 35-80mm Gliwice Sikornik">
           <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
         </div>
         <div class="cam-card__strip">
-          <div><p class="cam-card__name">Pentax SF7</p><p class="cam-card__detail">28–80mm + 35–80mm</p></div>
-          <span class="cam-card__type">SLR</span>
+          <div>
+            <p class="cam-card__name">Pentax SF7 z obiektywami Pentax-F Zoom 28-80mm i SMC Pentax-F 35-80mm Gliwice Sikornik</p>
+            <p class="cam-card__detail">olx.pl</p>
+          </div>
         </div>
       </a>
 
-      <a class="cam-card" href="https://www.olx.pl/d/oferta/aparat-exa-iia-obiektyw-domiplan-2-8-50-na-czesci-do-ozdoby-CID99-ID17hAD4.html?bs=olx_pro_listing" target="_blank" rel="noopener">
+      <a class="cam-card" href="https://www.olx.pl/d/oferta/aparat-exa-iia-obiektyw-domiplan-2-8-50-na-czesci-do-ozdoby-CID99-ID17hAD4.html?bs=olx_pro_listing" target="_blank" rel="noopener noreferrer">
         <div class="cam-card__img-wrap">
-          <img class="cam-card__img" src="https://ireland.apollo.olxcdn.com/v1/files/n5hzz57dk2n63-PL/image;s=2000x1333" alt="EXA IIa">
+          <img class="cam-card__img" src="https://ireland.apollo.olxcdn.com/v1/files/n5hzz57dk2n63-PL/image;s=2000x1333" alt="Aparat EXA IIa + obiektyw Domiplan 2.8/50 - na części / do ozdoby Gliwice Sikornik">
           <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
         </div>
         <div class="cam-card__strip">
-          <div><p class="cam-card__name">EXA IIa</p><p class="cam-card__detail">Domiplan 2.8/50</p></div>
-          <span class="cam-card__type">Na części</span>
+          <div>
+            <p class="cam-card__name">Aparat EXA IIa + obiektyw Domiplan 2.8/50 - na części / do ozdoby Gliwice Sikornik</p>
+            <p class="cam-card__detail">olx.pl</p>
+          </div>
         </div>
       </a>
 
-      <a class="cam-card" href="https://www.olx.pl/d/oferta/aparat-analogowy-pudelkowy-coronet-ambassador-sprawny-CID4042-ID17hzHB.html?bs=olx_pro_listing" target="_blank" rel="noopener">
+      <a class="cam-card" href="https://www.olx.pl/d/oferta/aparat-analogowy-pudelkowy-coronet-ambassador-sprawny-CID4042-ID17hzHB.html?bs=olx_pro_listing" target="_blank" rel="noopener noreferrer">
         <div class="cam-card__img-wrap">
-          <img class="cam-card__img" src="https://ireland.apollo.olxcdn.com/v1/files/435utp3o27aa3-PL/image;s=2000x1333" alt="Coronet Ambassador">
+          <img class="cam-card__img" src="https://ireland.apollo.olxcdn.com/v1/files/435utp3o27aa3-PL/image;s=2000x1333" alt="Aparat analogowy pudełkowy Coronet Ambassador, sprawny Gliwice Sikornik">
           <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
         </div>
         <div class="cam-card__strip">
-          <div><p class="cam-card__name">Coronet Ambassador</p><p class="cam-card__detail">Aparat pudełkowy</p></div>
-          <span class="cam-card__type">Box</span>
+          <div>
+            <p class="cam-card__name">Aparat analogowy pudełkowy Coronet Ambassador, sprawny Gliwice Sikornik</p>
+            <p class="cam-card__detail">olx.pl</p>
+          </div>
         </div>
       </a>
-
     </div>
   </section>
 
-  <!-- ── Film strip ──────────────────────────────────────── -->
   <div class="filmstrip" style="margin-top: 32px;" aria-hidden="true"></div>
 
-  <!-- ── B&W Films ───────────────────────────────────────── -->
   <section class="product-section" id="filmy-bw">
     <div class="section-head">
       <div>
         <span class="label" style="margin-bottom:10px; display:inline-block">CZARNO-BIAŁE</span>
         <h2>Filmy czarno-białe</h2>
       </div>
-      <p class="section-head p">Klasyczne emulsje do czarno-białej fotografii</p>
+      <p>Klasyczne emulsje do czarno-białej fotografii</p>
     </div>
     <div class="product-grid">
 
@@ -516,7 +491,6 @@
     </div>
   </section>
 
-  <!-- ── Color Films ─────────────────────────────────────── -->
   <section class="product-section" id="filmy-kolor">
     <div class="section-head">
       <div>
@@ -562,10 +536,8 @@
     </div>
   </section>
 
-  <!-- ── Film strip ──────────────────────────────────────── -->
   <div class="filmstrip" style="margin-top: 32px;" aria-hidden="true"></div>
 
-  <!-- ── Wywoływanie i skanowanie ────────────────────────── -->
   <section class="product-section" id="wywolywanie">
     <div class="section-head">
       <div>
@@ -607,7 +579,6 @@
     </div>
   </section>
 
-  <!-- ── Footer ──────────────────────────────────────────── -->
   <footer class="footer">
     <span class="label label--soft">STARE APARATY</span>
     <p>Projekt prywatny. Ogłoszenia pochodzą z olx.pl, linki do filmów i akcesoriów prowadzą do Amazon.pl.</p>
@@ -615,7 +586,6 @@
 
 </div><!-- /.shell -->
 
-<!-- ── Lightbox ──────────────────────────────────────────── -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
   <div class="lightbox__content" onclick="event.stopPropagation()">
     <button type="button" class="lightbox__close" aria-label="Zamknij podgląd" onclick="closeLightbox()">×</button>
@@ -625,7 +595,6 @@
 </div>
 
 <script>
-  // Lightbox
   function openLightbox(src, alt, sourceUrl) {
     var box = document.getElementById('lightbox');
     var img = document.getElementById('lightbox-img');
@@ -644,7 +613,6 @@
     if (event.key === 'Escape') closeLightbox();
   });
 
-  // Theme toggle
   (function () {
     var toggle = document.getElementById('theme-toggle');
     var label = document.getElementById('theme-label');

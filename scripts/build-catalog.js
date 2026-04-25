@@ -270,8 +270,8 @@ function createPlaceholderImage(title) {
 function renderIndex(items) {
   const template = fs.readFileSync(TEMPLATE_FILE, 'utf8');
   const renderedCards = items.length > 0
-    ? items.map((item, index) => renderCard(item, index)).join('\n')
-    : '<article class="catalog-empty pixel-frame"><p>Brak ofert do wyświetlenia w tej chwili.</p></article>';
+    ? items.map((item) => renderCard(item)).join('\n')
+    : '      <p style="grid-column:1/-1;padding:24px;color:var(--ink-soft);text-align:center;">Brak ofert do wyświetlenia w tej chwili.</p>';
 
   const lastUpdated = new Intl.DateTimeFormat('pl-PL', {
     dateStyle: 'medium',
@@ -285,21 +285,20 @@ function renderIndex(items) {
     .replace('{{CAMERA_CARDS}}', renderedCards);
 }
 
-function renderCard(item, index) {
+function renderCard(item) {
   return `
-        <article class="camera-card pixel-frame">
-          <div class="camera-card__media">
-            <span class="camera-card__serial">KADR ${String(index + 1).padStart(2, '0')}</span>
-            <img class="pixelated" src="${escapeAttribute(item.image)}" alt="${escapeAttribute(item.title)}">
+      <a class="cam-card" href="${escapeAttribute(item.url)}" target="_blank" rel="noopener noreferrer">
+        <div class="cam-card__img-wrap">
+          <img class="cam-card__img" src="${escapeAttribute(item.image)}" alt="${escapeAttribute(item.title)}">
+          <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
+        </div>
+        <div class="cam-card__strip">
+          <div>
+            <p class="cam-card__name">${escapeHtml(item.title)}</p>
+            <p class="cam-card__detail">${escapeHtml(item.host)}</p>
           </div>
-          <div class="camera-card__body">
-            <p class="camera-card__meta">Ogłoszenie z ${escapeHtml(item.host)}</p>
-            <h3 class="camera-card__title">${escapeHtml(item.title)}</h3>
-            <div class="camera-card__actions">
-              <a class="camera-card__link" href="${escapeAttribute(item.url)}" target="_blank" rel="noopener noreferrer">Otwórz ogłoszenie</a>
-            </div>
-          </div>
-        </article>`;
+        </div>
+      </a>`;
 }
 
 function absolutizeUrl(value, baseUrl) {
