@@ -10,12 +10,30 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600&display=swap">
   <link rel="stylesheet" href="retro.css">
   <link rel="stylesheet" href="styles.css">
+  <script>
+    // Apply the saved theme before first paint to avoid a light-mode flash.
+    (function () {
+      try {
+        var stored = localStorage.getItem('theme');
+        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var theme = stored === 'light' || stored === 'dark' ? stored : (prefersDark ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (err) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
 </head>
 <body class="retro">
   <div class="page-shell">
     <header class="masthead frame-soft">
       <div class="masthead__topline">
         <span class="masthead__badge">STARE APARATY</span>
+        <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Przełącz tryb jasny i ciemny">
+          <span class="theme-toggle__icon theme-toggle__icon--sun" aria-hidden="true">☀</span>
+          <span class="theme-toggle__icon theme-toggle__icon--moon" aria-hidden="true">☾</span>
+          <span class="theme-toggle__label" id="theme-toggle-label">Tryb ciemny</span>
+        </button>
       </div>
       <div class="masthead__brand">
         <h1>Aparaty analogowe<br>z charakterem</h1>
@@ -148,6 +166,38 @@
         <p class="product-section__lead generated-note">Linki Amazon zawierają tag afiliacyjny — zakup przez nie wspiera tę stronę.</p>
       </section>
 
+      <section class="product-section frame-soft">
+        <span class="product-section__tag">WYWOŁYWANIE</span>
+        <h2>Wywoływanie i skanowanie</h2>
+        <p class="product-section__lead">Wszystko, czego potrzeba, żeby wywołać rolkę w domu i przenieść ją do cyfrowego archiwum.</p>
+        <div class="product-row">
+          <article class="product frame-soft">
+            <h3>Adox Rodinal 500 ml</h3>
+            <img class="pixelated" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'><rect width='400' height='300' fill='%23f8e9c8'/><rect x='12' y='12' width='376' height='276' fill='none' stroke='%2311040f' stroke-width='6'/><rect x='188' y='70' width='24' height='18' fill='%234a3a2a'/><rect x='170' y='88' width='60' height='140' rx='6' fill='%234a3a2a'/><rect x='184' y='130' width='32' height='80' fill='%23f8e9c8'/><text x='200' y='260' text-anchor='middle' font-family='monospace' font-size='22' font-weight='bold' fill='%23261729'>DEV</text></svg>" alt="Butelka wywoływacza Adox Rodinal">
+            <p>Klasyczny koncentrat do filmów czarno-białych — jedna butelka wystarcza na kilkadziesiąt rolek.</p>
+            <a href="https://www.amazon.pl/dp/B01FSX40GI?tag=blueprintkc0a-21" class="cta-button">Sprawdź na Amazon</a>
+          </article>
+          <article class="product frame-soft">
+            <h3>Ilford Rapid Fixer 1 L</h3>
+            <img class="pixelated" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'><rect width='400' height='300' fill='%23f8e9c8'/><rect x='12' y='12' width='376' height='276' fill='none' stroke='%2311040f' stroke-width='6'/><rect x='188' y='70' width='24' height='18' fill='%237a3a22'/><rect x='170' y='88' width='60' height='140' rx='6' fill='%237a3a22'/><rect x='184' y='130' width='32' height='80' fill='%23f8e9c8'/><text x='200' y='260' text-anchor='middle' font-family='monospace' font-size='22' font-weight='bold' fill='%23261729'>FIX</text></svg>" alt="Butelka utrwalacza Ilford Rapid Fixer">
+            <p>Uniwersalny utrwalacz do filmów i papieru — szybki, prosty, sprawdzony od dekad.</p>
+            <a href="https://www.amazon.pl/dp/B00K33JEQ0?tag=blueprintkc0a-21" class="cta-button">Sprawdź na Amazon</a>
+          </article>
+          <article class="product frame-soft">
+            <h3>Kodak Slide N Scan 5"</h3>
+            <img class="pixelated" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'><rect width='400' height='300' fill='%23f8e9c8'/><rect x='12' y='12' width='376' height='276' fill='none' stroke='%2311040f' stroke-width='6'/><rect x='90' y='80' width='220' height='140' rx='8' fill='%231c1815'/><rect x='110' y='100' width='180' height='100' fill='%236e5b4b'/><text x='200' y='260' text-anchor='middle' font-family='monospace' font-size='22' font-weight='bold' fill='%23261729'>SCAN</text></svg>" alt="Skaner Kodak Slide N Scan">
+            <p>Stacjonarny skaner z ekranem LCD — negatywy i slajdy zapisze na karcie SD bez komputera.</p>
+            <a href="https://www.amazon.pl/dp/B084NVRHYQ?tag=blueprintkc0a-21" class="cta-button">Sprawdź na Amazon</a>
+          </article>
+          <article class="product frame-soft">
+            <h3>Mobilny skaner Kodak</h3>
+            <img class="pixelated" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'><rect width='400' height='300' fill='%23f8e9c8'/><rect x='12' y='12' width='376' height='276' fill='none' stroke='%2311040f' stroke-width='6'/><rect x='160' y='40' width='80' height='200' rx='14' fill='%231c1815'/><rect x='170' y='60' width='60' height='150' fill='%236e5b4b'/><circle cx='200' cy='225' r='6' fill='%23d8cfc3'/><text x='200' y='275' text-anchor='middle' font-family='monospace' font-size='18' font-weight='bold' fill='%23261729'>MOBILE</text></svg>" alt="Mobilny skaner klisz Kodak">
+            <p>Składane urządzenie do skanowania klisz 35 mm aparatem w smartfonie — budżetowa alternatywa do domowej digitalizacji.</p>
+            <a href="https://www.amazon.pl/dp/B07MTKNTPK?tag=blueprintkc0a-21" class="cta-button">Sprawdź na Amazon</a>
+          </article>
+        </div>
+      </section>
+
       <section class="footer-panel frame-soft">
         <span class="footer-note">STARE APARATY</span>
         <p>
@@ -186,6 +236,32 @@
         closeLightbox();
       }
     });
+
+    (function () {
+      var toggle = document.getElementById('theme-toggle');
+      var label = document.getElementById('theme-toggle-label');
+      if (!toggle) return;
+
+      function syncLabel() {
+        if (!label) return;
+        var current = document.documentElement.getAttribute('data-theme');
+        label.textContent = current === 'dark' ? 'Tryb jasny' : 'Tryb ciemny';
+      }
+
+      syncLabel();
+
+      toggle.addEventListener('click', function () {
+        var current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+        var next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        try {
+          localStorage.setItem('theme', next);
+        } catch (err) {
+          /* ignore storage errors */
+        }
+        syncLabel();
+      });
+    })();
   </script>
 </body>
 </html>
