@@ -16,7 +16,7 @@ Ideas to improve Stare Aparaty. Ordered roughly by impact-per-effort within each
 - [ ] **Favicon + apple-touch-icon + web manifest.** Tab icon is currently the browser default. A simple pixelated camera icon would carry the retro vibe. Also unlocks "add to home screen" if a manifest is added.
 - [ ] **`robots.txt` + `sitemap.xml`.** Static, tiny, and a free SEO win. The site has only one canonical URL so the sitemap is ~6 lines.
 - [ ] **Product JSON-LD.** Each camera card could emit `Product` / `Offer` structured data (price, availability, image, URL). Enables rich results in Google Shopping tabs.
-- [ ] **Custom 404 page.** GitHub Pages picks up `404.html` automatically. Styled to match the site, with a link back to the catalog.
+- [x] **Custom 404 page.** GitHub Pages picks up `404.html` automatically. Styled to match the site, with a link back to the catalog. *(Done — `404.html` at the repo root, dark default with gold accent, "Klatka nieznaleziona" copy and a link back to `/`.)*
 
 ## UX polish
 

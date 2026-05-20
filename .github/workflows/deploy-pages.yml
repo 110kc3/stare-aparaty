@@ -8,6 +8,7 @@ on:
       - update-film-info
     paths:
       - index.html
+      - 404.html
       - olx_meta.json
       - templates/**
       - scripts/**
