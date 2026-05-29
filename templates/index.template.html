@@ -230,6 +230,34 @@
     }
     .cam-card:hover .cam-card__detail { color: #444; }
 
+    /* Sold-out state — listing was removed from OLX (HTTP 410/404). */
+    .cam-card--sold { cursor: default; outline: 2px solid transparent; pointer-events: none; }
+    .cam-card--sold:hover { outline: 2px solid transparent; }
+    .cam-card--sold .cam-card__img {
+      filter: grayscale(1) brightness(0.55);
+      opacity: 0.7;
+      transform: none;
+    }
+    .cam-card--sold .cam-card__strip { background: var(--bg-strip); }
+    .cam-card--sold .cam-card__name { color: var(--ink-soft); text-decoration: line-through; }
+    .cam-card--sold .cam-card__detail { color: var(--ink-faint); }
+    .cam-card__sold-badge {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      pointer-events: none;
+    }
+    .cam-card__sold-stamp {
+      font-family: var(--retro);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      padding: 8px 14px;
+      color: var(--gold);
+      background: rgba(14,11,8,0.78);
+      border: 2px solid var(--gold);
+      transform: rotate(-8deg);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+    }
+
     .product-section { margin-top: 32px; }
     .product-grid {
       display: grid;

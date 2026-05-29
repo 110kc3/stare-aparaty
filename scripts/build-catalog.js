@@ -32,6 +32,7 @@ async function main() {
     image: item.image,
     url: item.url,
     host: item.host,
+    sold: !!item.sold,
   }));
 
   if (args.writeLinksFile) {
@@ -116,6 +117,20 @@ async function buildItem(url, fallbackItem) {
       redirect: 'follow',
     });
 
+    // OLX returns 410 (Gone) — and sometimes 404 — when a listing is removed,
+    // which almost always means the camera was sold. Mark the card so the
+    // template can render a SPRZEDANE state instead of a broken click.
+    if (response.status === 410 || response.status === 404) {
+      console.warn(`Listing gone (HTTP ${response.status}) — marking sold: ${url}`);
+      return {
+        title: fallbackItem?.title || buildFallbackTitle(url),
+        image: fallbackItem?.image || createPlaceholderImage(buildFallbackTitle(url)),
+        url,
+        host: new URL(url).hostname.replace(/^www\./, ''),
+        sold: true,
+      };
+    }
+
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
@@ -127,14 +142,17 @@ async function buildItem(url, fallbackItem) {
       image: extracted.image || fallbackItem?.image || createPlaceholderImage(buildFallbackTitle(url)),
       url,
       host: new URL(url).hostname.replace(/^www\./, ''),
+      sold: false,
     };
   } catch (error) {
+    // Transient errors (timeout, DNS, etc.) shouldn't unset a previously-detected sold state.
     console.warn(`Falling back for ${url}: ${error.message}`);
     return {
       title: fallbackItem?.title || buildFallbackTitle(url),
       image: fallbackItem?.image || createPlaceholderImage(buildFallbackTitle(url)),
       url,
       host: new URL(url).hostname.replace(/^www\./, ''),
+      sold: !!fallbackItem?.sold,
     };
   }
 }
@@ -286,6 +304,21 @@ function renderIndex(items) {
 }
 
 function renderCard(item) {
+  if (item.sold) {
+    return `
+      <div class="cam-card cam-card--sold" aria-label="Sprzedane">
+        <div class="cam-card__img-wrap">
+          <img class="cam-card__img" src="${escapeAttribute(item.image)}" alt="${escapeAttribute(item.title)}">
+          <div class="cam-card__sold-badge"><span class="cam-card__sold-stamp">SPRZEDANE</span></div>
+        </div>
+        <div class="cam-card__strip">
+          <div>
+            <p class="cam-card__name">${escapeHtml(item.title)}</p>
+            <p class="cam-card__detail">${escapeHtml(item.host)} · sprzedane</p>
+          </div>
+        </div>
+      </div>`;
+  }
   return `
       <a class="cam-card" href="${escapeAttribute(item.url)}" target="_blank" rel="noopener noreferrer">
         <div class="cam-card__img-wrap">
