@@ -18,7 +18,7 @@ The film & accessories section lives inside the template and is fully static —
 
 ## Workflows
 
-The repo ships two GitHub Actions workflows that work together:
+The repo ships three GitHub Actions workflows that work together:
 
 ### `update-products.yml` — refresh the camera list
 
@@ -38,6 +38,19 @@ Triggered automatically on push to `main`, `master`, or `update-film-info`, but 
 
 The job checks out the repo, installs Node 20, runs `node scripts/build-catalog.js` again on the runner (so the deployed `index.html` always reflects the latest `product-links.txt` and template, even if someone forgot to rebuild locally), and ships the whole directory as a Pages artifact through `actions/deploy-pages`. A concurrency group (`github-pages`, `cancel-in-progress: true`) prevents overlapping deploys.
 
+### `refresh-amazon.yml` — refresh Amazon prices and product images
+
+Triggered automatically every **Monday at 06:00 UTC** (and manually via `workflow_dispatch`). The job installs Playwright + Chromium on the runner, runs `scripts/refresh-amazon.js` for every ASIN listed in `scripts/amazon-products.json`, then commits the JSON if anything changed with the message `chore: refresh Amazon prices and images`.
+
+The script:
+
+- Pulls each `/dp/{ASIN}` page in a real headless browser with Polish locale + Warsaw timezone, so Amazon usually serves the regular product layout instead of a bot-check page.
+- Extracts the current price via several fallback selectors (Amazon shuffles the price markup between PDP variants).
+- For entries that already declare an `image` field (the developer + scanners — i.e. cards rendered with a real product photo), it also refreshes the `og:image` URL.
+- Inserts a polite 2–4 second jittered delay between products and skips any ASIN where Amazon returns a CAPTCHA, leaving the previous value intact and stamping `lastFailed` so partial failures are visible.
+
+That JSON commit lands on a watched path, so `deploy-pages.yml` picks it up and ships fresh prices to Pages without any manual rebuild. Films still use Lomography sample photos by design — the refresh script only touches `image` fields where they exist.
+
 ### How they chain
 
 The normal flow for changing cameras:
@@ -49,6 +62,15 @@ run update-products.yml (manual)
       → site updates on GitHub Pages
 ```
 
+The Amazon refresh flow runs on its own each week:
+
+```
+schedule fires refresh-amazon.yml
+  → playwright scrapes Amazon, writes scripts/amazon-products.json
+    → commit triggers deploy-pages.yml
+      → build-catalog.js rewrites placeholders, Pages updates
+```
+
 For copy, styling, or template changes: just commit to one of the watched branches — `deploy-pages.yml` picks it up and redeploys.
 
 ## Project structure
@@ -58,11 +80,14 @@ For copy, styling, or template changes: just commit to one of the watched branch
 | `index.html` | Generated static page published on GitHub Pages |
 | `templates/index.template.html` | Source template with `{{COUNT}}`, `{{LAST_UPDATED}}`, `{{CAMERA_CARDS}}` placeholders |
 | `scripts/build-catalog.js` | Node script that fetches metadata and renders the template |
+| `scripts/refresh-amazon.js` | Headless-browser scraper that updates Amazon prices + images in `amazon-products.json` |
+| `scripts/amazon-products.json` | Source of truth for Amazon prices and (for dev/scanner cards) product images |
 | `product-links.txt` | Source list of OLX camera URLs |
 | `olx_meta.json` | Cached camera metadata (title / image / host) |
 | `styles.css` | Main layout and visual styles |
 | `retro.css` | Pixel-font kickers and pixelated-image helper (Polish diacritics fall through to Inter / Cormorant Garamond — see the comment at the top of the file) |
 | `.github/workflows/update-products.yml` | Manual workflow to refresh cameras from pasted links |
+| `.github/workflows/refresh-amazon.yml` | Weekly cron workflow to refresh Amazon prices and product images |
 | `.github/workflows/deploy-pages.yml` | Auto-deploy workflow for GitHub Pages |
 
 ## Local usage

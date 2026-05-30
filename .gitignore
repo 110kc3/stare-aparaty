@@ -1,0 +1,40 @@
+# Node / Playwright
+# The refresh-amazon workflow installs Playwright ad-hoc on the runner and
+# cleans up after itself, but if you run `node scripts/refresh-amazon.js`
+# locally you'll end up with these scratch files — none of them belong in
+# the repo.
+node_modules/
+package.json
+package-lock.json
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Playwright browser binaries + test artifacts (in case you ever run them locally)
+playwright-report/
+test-results/
+.playwright/
+ms-playwright/
+
+# CI scratch
+# update-products.yml writes the pasted link list to this temp file before
+# running the builder. It exists only inside the workflow run and shouldn't
+# ever land in git.
+workflow-links.txt
+
+# Local-only env / secrets — should never be committed.
+.env
+.env.local
+.env.*.local
+
+# Editor / IDE settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS clutter
+.DS_Store
+Thumbs.db
+desktop.ini

@@ -269,15 +269,43 @@
       border: 1px solid var(--line);
       display: flex; flex-direction: column; gap: 10px;
       padding: 16px; overflow: hidden;
-      transition: border-color 150ms;
+      text-decoration: none; color: inherit;
+      transition: border-color 150ms, transform 150ms, box-shadow 150ms;
     }
-    .product-card:hover { border-color: var(--gold-dim); }
+    .product-card:hover {
+      border-color: var(--gold-dim);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    }
+    .product-card__img-wrap {
+      position: relative;
+      overflow: hidden;
+    }
     .product-card__img {
       width: 100%; aspect-ratio: 4/3; object-fit: cover;
-      cursor: pointer;
+      display: block;
       transition: opacity 150ms;
     }
-    .product-card__img:hover { opacity: 0.8; }
+    .product-card:hover .product-card__img { opacity: 0.92; }
+    .product-card__img--contain {
+      object-fit: contain;
+      background: #f6f1e8;
+      padding: 8px;
+    }
+    .product-card__price {
+      position: absolute;
+      top: 8px; right: 8px;
+      background: var(--gold);
+      color: #111;
+      padding: 5px 10px;
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      border: 1px solid rgba(0,0,0,0.15);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+      white-space: nowrap;
+    }
     .product-card h3 {
       font-family: var(--serif); font-size: 20px; font-weight: 600;
       line-height: 1.1;
@@ -285,14 +313,12 @@
     .product-card p { font-size: 12px; color: var(--ink-soft); line-height: 1.5; }
     .product-card .cta {
       margin-top: auto; display: inline-flex; align-items: center; justify-content: space-between;
-      padding: 9px 13px; text-decoration: none;
+      padding: 9px 13px;
       border: 1px solid var(--gold-dim);
       color: var(--gold); font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
       transition: background 150ms, color 150ms;
     }
-    .product-card .cta:hover { background: var(--gold); color: #111; }
-    .img-ref { font-size: 10px; color: var(--ink-faint); }
-    .img-ref a { color: var(--ink-soft); }
+    .product-card:hover .cta { background: var(--gold); color: #111; }
 
     .footer {
       margin-top: 36px;
@@ -301,24 +327,6 @@
       display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
     }
     .footer p { font-size: 11px; color: var(--ink-soft); }
-
-    .lightbox {
-      display: none; position: fixed; z-index: 999; inset: 0; padding: 24px;
-      background: rgba(5,3,2,0.92); align-items: center; justify-content: center;
-    }
-    .lightbox.open { display: flex; }
-    .lightbox__content {
-      position: relative; width: min(900px,100%);
-      background: var(--bg-2); border: 1px solid var(--line-gold);
-      padding: 16px;
-    }
-    .lightbox__img { width: 100%; max-height: 70vh; object-fit: contain; }
-    .lightbox__close {
-      position: absolute; top: -14px; right: -14px;
-      width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
-      background: var(--bg-2); border: 1px solid var(--line-gold);
-      color: var(--gold); font-size: 18px; cursor: pointer;
-    }
 
     @media (max-width: 900px) {
       .camera-grid, .product-grid { grid-template-columns: repeat(2, 1fr); }
@@ -361,7 +369,7 @@
         <h2>Aparaty w ofercie</h2>
         <p>Kliknij kartę, aby przejść do ogłoszenia na OLX</p>
       </div>
-      <span class="label label--soft">Aktualizacja: 29 maj 2026, 20:44</span>
+      <span class="label label--soft">Aktualizacja: 30 maj 2026, 11:06</span>
     </div>
 
     <div class="camera-grid" aria-label="Katalog aparatów">
@@ -484,37 +492,45 @@
     </div>
     <div class="product-grid">
 
-      <div class="product-card">
-        <img class="product-card__img" src="https://cdn.assets.lomography.com/dd/f51b3673d0fa0cbfd908fd46629c13e7522619/1216x784x1.jpg?auth=e13347014bbcd5062aa02e9a91036bc174cf4197" alt="Fujifilm Acros 100" onclick="openLightbox(this.src,'Fujifilm Acros 100','https://www.lomography.com/search/photos/20930435?query=Fujifilm+Acros+100')">
-        <p class="img-ref"><a href="https://www.lomography.com/search/photos/20930435?query=Fujifilm+Acros+100" target="_blank">Źródło</a></p>
+      <a class="product-card" href="https://www.amazon.pl/dp/B085R9RN6F?tag=blueprintkc0a-21" target="_blank" rel="noopener">
+        <div class="product-card__img-wrap">
+          <img class="product-card__img" src="https://cdn.assets.lomography.com/dd/f51b3673d0fa0cbfd908fd46629c13e7522619/1216x784x1.jpg?auth=e13347014bbcd5062aa02e9a91036bc174cf4197" alt="Fujifilm Acros 100">
+          <span class="product-card__price">29,99 zł</span>
+        </div>
         <h3>Fujifilm Acros 100</h3>
         <p>Drobne ziarno i szeroka skala tonów do spokojnych, precyzyjnych kadrów.</p>
-        <a class="cta" href="https://www.amazon.pl/dp/B085R9RN6F?tag=blueprintkc0a-21" target="_blank" rel="noopener">Sprawdź na Amazon <span>→</span></a>
-      </div>
+        <span class="cta">Sprawdź na Amazon <span>→</span></span>
+      </a>
 
-      <div class="product-card">
-        <img class="product-card__img" src="https://cdn.assets.lomography.com/03/a56a5e97b14330c50ef0ee2745743273443f12/1216x823x2.jpg?auth=832a066ca04fa5b879be49113cc8ae5e927a075e" alt="Ilford HP5 Plus" onclick="openLightbox(this.src,'Ilford HP5 Plus','https://www.lomography.com/search/photos/23121197?query=Ilford+HP5+Plus')">
-        <p class="img-ref"><a href="https://www.lomography.com/search/photos/23121197?query=Ilford+HP5+Plus" target="_blank">Źródło</a></p>
+      <a class="product-card" href="https://www.amazon.pl/dp/B0000AE6AX?tag=blueprintkc0a-21" target="_blank" rel="noopener">
+        <div class="product-card__img-wrap">
+          <img class="product-card__img" src="https://cdn.assets.lomography.com/03/a56a5e97b14330c50ef0ee2745743273443f12/1216x823x2.jpg?auth=832a066ca04fa5b879be49113cc8ae5e927a075e" alt="Ilford HP5 Plus">
+          <span class="product-card__price">49,99 zł</span>
+        </div>
         <h3>Ilford HP5 Plus</h3>
         <p>Uniwersalny klasyk do reportażu, ulicy i codziennego fotografowania.</p>
-        <a class="cta" href="https://www.amazon.pl/dp/B0000AE6AX?tag=blueprintkc0a-21" target="_blank" rel="noopener">Sprawdź na Amazon <span>→</span></a>
-      </div>
+        <span class="cta">Sprawdź na Amazon <span>→</span></span>
+      </a>
 
-      <div class="product-card">
-        <img class="product-card__img" src="https://cdn.assets.lomography.com/74/7645fba440b8c16ef77e44be06b06163e41441/1216x918x1.jpg?auth=78a68119a573b220a0d412bbf45dd0835f4f35d1" alt="Kodak Tri-X 400" onclick="openLightbox(this.src,'Kodak Tri-X 400','https://www.lomography.com/films/871911232-kodak-tri-x-400/photos/6138771?order=popular')">
-        <p class="img-ref"><a href="https://www.lomography.com/films/871911232-kodak-tri-x-400/photos/6138771?order=popular" target="_blank">Źródło</a></p>
+      <a class="product-card" href="https://www.amazon.pl/dp/B000I2JI3A?tag=blueprintkc0a-21" target="_blank" rel="noopener">
+        <div class="product-card__img-wrap">
+          <img class="product-card__img" src="https://cdn.assets.lomography.com/74/7645fba440b8c16ef77e44be06b06163e41441/1216x918x1.jpg?auth=78a68119a573b220a0d412bbf45dd0835f4f35d1" alt="Kodak Tri-X 400">
+          <span class="product-card__price">85,00 zł</span>
+        </div>
         <h3>Kodak Tri-X 400</h3>
         <p>Legendarny charakter, mocny kontrast i ziarno z prawdziwie reportażowym pazurem.</p>
-        <a class="cta" href="https://www.amazon.pl/dp/B000I2JI3A?tag=blueprintkc0a-21" target="_blank" rel="noopener">Sprawdź na Amazon <span>→</span></a>
-      </div>
+        <span class="cta">Sprawdź na Amazon <span>→</span></span>
+      </a>
 
-      <div class="product-card">
-        <img class="product-card__img" src="https://cdn.assets.lomography.com/b2/4b0e0f771473a9fa32ef8d9c22f918e8da17b0/2000x3000x2.jpg?auth=2b499fbadf53c0383d23906887376a8719897139" alt="Kentmere 400" onclick="openLightbox(this.src,'Kentmere 400','https://www.lomography.com/search/photos/25641628?query=Kentmere+400')">
-        <p class="img-ref"><a href="https://www.lomography.com/search/photos/25641628?query=Kentmere+400" target="_blank">Źródło</a></p>
+      <a class="product-card" href="https://www.amazon.pl/dp/B001R2Y63C?tag=blueprintkc0a-21" target="_blank" rel="noopener">
+        <div class="product-card__img-wrap">
+          <img class="product-card__img" src="https://cdn.assets.lomography.com/b2/4b0e0f771473a9fa32ef8d9c22f918e8da17b0/2000x3000x2.jpg?auth=2b499fbadf53c0383d23906887376a8719897139" alt="Kentmere 400">
+          <span class="product-card__price">70,00 zł</span>
+        </div>
         <h3>Kentmere 400</h3>
         <p>Przystępny materiał do testów, spacerów i pierwszych rolek.</p>
-        <a class="cta" href="https://www.amazon.pl/dp/B001R2Y63C?tag=blueprintkc0a-21" target="_blank" rel="noopener">Sprawdź na Amazon <span>→</span></a>
-      </div>
+        <span class="cta">Sprawdź na Amazon <span>→</span></span>
+      </a>
 
     </div>
   </section>
@@ -529,37 +545,45 @@
     </div>
     <div class="product-grid">
 
-      <div class="product-card">
-        <img class="product-card__img" src="https://cdn.assets.lomography.com/50/3a89ca9d58daa4dcb12e14b1c48b9b8f313ebd/1216x769x1.jpg?auth=6961d195a504f1f4109c44213b7e97aec5013067" alt="Kodak Ektar 100" onclick="openLightbox(this.src,'Kodak Ektar 100','https://www.lomography.com/search/photos/20841493?query=Kodak+Ektar+100')">
-        <p class="img-ref"><a href="https://www.lomography.com/search/photos/20841493?query=Kodak+Ektar+100" target="_blank">Źródło</a></p>
+      <a class="product-card" href="https://www.amazon.pl/dp/B00L9IVBZA?tag=blueprintkc0a-21" target="_blank" rel="noopener">
+        <div class="product-card__img-wrap">
+          <img class="product-card__img" src="https://cdn.assets.lomography.com/50/3a89ca9d58daa4dcb12e14b1c48b9b8f313ebd/1216x769x1.jpg?auth=6961d195a504f1f4109c44213b7e97aec5013067" alt="Kodak Ektar 100">
+          <span class="product-card__price">98,89 zł</span>
+        </div>
         <h3>Kodak Ektar 100</h3>
         <p>Nasycone kolory i drobne ziarno — stworzony do krajobrazów.</p>
-        <a class="cta" href="https://www.amazon.pl/dp/B00L9IVBZA?tag=blueprintkc0a-21" target="_blank" rel="noopener">Sprawdź na Amazon <span>→</span></a>
-      </div>
+        <span class="cta">Sprawdź na Amazon <span>→</span></span>
+      </a>
 
-      <div class="product-card">
-        <img class="product-card__img" src="https://cdn.assets.lomography.com/ca/bcaac61c8ac248d8667c4410325040eda07932/1216x493x2.jpg?auth=8bfa5c363326e6526348be0230d8cc4fbfc4e855" alt="Kodak Portra 400" onclick="openLightbox(this.src,'Kodak Portra 400','https://www.lomography.com/search/photos/20966017?query=Kodak+Portra+400')">
-        <p class="img-ref"><a href="https://www.lomography.com/search/photos/20966017?query=Kodak+Portra+400" target="_blank">Źródło</a></p>
+      <a class="product-card" href="https://www.amazon.pl/dp/B004FNRTGG?tag=blueprintkc0a-21" target="_blank" rel="noopener">
+        <div class="product-card__img-wrap">
+          <img class="product-card__img" src="https://cdn.assets.lomography.com/ca/bcaac61c8ac248d8667c4410325040eda07932/1216x493x2.jpg?auth=8bfa5c363326e6526348be0230d8cc4fbfc4e855" alt="Kodak Portra 400">
+          <span class="product-card__price">488,97 zł</span>
+        </div>
         <h3>Kodak Portra 400</h3>
         <p><strong>Opakowanie 5 rolek.</strong> Naturalne odcienie skóry i miękka tonalność — klasyk do portretów.</p>
-        <a class="cta" href="https://www.amazon.pl/dp/B004FNRTGG?tag=blueprintkc0a-21" target="_blank" rel="noopener">Sprawdź na Amazon <span>→</span></a>
-      </div>
+        <span class="cta">Sprawdź na Amazon <span>→</span></span>
+      </a>
 
-      <div class="product-card">
-        <img class="product-card__img" src="https://cdn.assets.lomography.com/c5/1a49ac8189f0efea8a2ab7390caf327d8f1fb4/960x636x1.jpg?auth=4611deec1489f531c08e5938e49df68b77249ed2" alt="Fujifilm Superia X-TRA 400" onclick="openLightbox(this.src,'Fujifilm Superia X-TRA 400','https://www.lomography.com/search/photos/23263486?query=Fujifilm+Superia+X-TRA+400')">
-        <p class="img-ref"><a href="https://www.lomography.com/search/photos/23263486?query=Fujifilm+Superia+X-TRA+400" target="_blank">Źródło</a></p>
+      <a class="product-card" href="https://www.amazon.pl/dp/B0FJ8YFFQN?tag=blueprintkc0a-21" target="_blank" rel="noopener">
+        <div class="product-card__img-wrap">
+          <img class="product-card__img" src="https://cdn.assets.lomography.com/c5/1a49ac8189f0efea8a2ab7390caf327d8f1fb4/960x636x1.jpg?auth=4611deec1489f531c08e5938e49df68b77249ed2" alt="Fujifilm 400">
+          <span class="product-card__price">61,26 zł</span>
+        </div>
         <h3>Fujifilm 400</h3>
         <p>Uniwersalny film na wyjazdy i codzienne kadry, radzi sobie w różnym świetle. Następca Superia X-TRA 400.</p>
-        <a class="cta" href="https://www.amazon.pl/dp/B0FJ8YFFQN?tag=blueprintkc0a-21" target="_blank" rel="noopener">Sprawdź na Amazon <span>→</span></a>
-      </div>
+        <span class="cta">Sprawdź na Amazon <span>→</span></span>
+      </a>
 
-      <div class="product-card">
-        <img class="product-card__img" src="https://cdn.assets.lomography.com/6b/b814bf7d6da39ae839123cbfce4eec4c2da7ae/1216x806x2.jpg?auth=f60ec61259631fd4ce2fa752160db931fd723780" alt="Kodak Gold 200" onclick="openLightbox(this.src,'Kodak Gold 200','https://www.lomography.com/search/photos/24775039?query=Kodak+Gold+200')">
-        <p class="img-ref"><a href="https://www.lomography.com/search/photos/24775039?query=Kodak+Gold+200" target="_blank">Źródło</a></p>
+      <a class="product-card" href="https://www.amazon.pl/dp/B00JDOCW3M?tag=blueprintkc0a-21" target="_blank" rel="noopener">
+        <div class="product-card__img-wrap">
+          <img class="product-card__img" src="https://cdn.assets.lomography.com/6b/b814bf7d6da39ae839123cbfce4eec4c2da7ae/1216x806x2.jpg?auth=f60ec61259631fd4ce2fa752160db931fd723780" alt="Kodak Gold 200">
+          <span class="product-card__price">166,74 zł</span>
+        </div>
         <h3>Kodak Gold 200</h3>
         <p><strong>Opakowanie 3 rolek.</strong> Ciepłe, złociste kolory i przystępna cena — ulubieniec do fotografii codziennej.</p>
-        <a class="cta" href="https://www.amazon.pl/dp/B00JDOCW3M?tag=blueprintkc0a-21" target="_blank" rel="noopener">Sprawdź na Amazon <span>→</span></a>
-      </div>
+        <span class="cta">Sprawdź na Amazon <span>→</span></span>
+      </a>
 
     </div>
   </section>
@@ -576,64 +600,47 @@
     </div>
     <div class="product-grid">
 
-      <div class="product-card">
-        <img class="product-card__img" src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f8e9c8'/%3E%3Crect x='12' y='12' width='376' height='276' fill='none' stroke='%2311040f' stroke-width='6'/%3E%3Crect x='188' y='70' width='24' height='18' fill='%234a3a2a'/%3E%3Crect x='170' y='88' width='60' height='140' rx='6' fill='%234a3a2a'/%3E%3Crect x='184' y='130' width='32' height='80' fill='%23f8e9c8'/%3E%3Ctext x='200' y='260' text-anchor='middle' font-family='monospace' font-size='22' font-weight='bold' fill='%23261729'%3EDEV%3C/text%3E%3C/svg%3E" alt="Ilford ID-11">
+      <a class="product-card" href="https://www.amazon.pl/dp/B00009R6AD?tag=blueprintkc0a-21" target="_blank" rel="noopener">
+        <div class="product-card__img-wrap">
+          <img class="product-card__img product-card__img--contain" src="https://m.media-amazon.com/images/I/51F3WwMP96L._AC_SX679_.jpg" alt="Ilford ID-11">
+          <span class="product-card__price">76,70 zł</span>
+        </div>
         <h3>Ilford ID-11</h3>
         <p>Kultowy wywoływacz do filmów czarno-białych — proszek na 1 litr roztworu roboczego.</p>
-        <a class="cta" href="https://www.amazon.pl/dp/B00009R6AD?tag=blueprintkc0a-21" target="_blank" rel="noopener">Sprawdź na Amazon <span>→</span></a>
-      </div>
+        <span class="cta">Sprawdź na Amazon <span>→</span></span>
+      </a>
 
-      <div class="product-card">
-        <img class="product-card__img" src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f8e9c8'/%3E%3Crect x='12' y='12' width='376' height='276' fill='none' stroke='%2311040f' stroke-width='6'/%3E%3Crect x='90' y='80' width='220' height='140' rx='8' fill='%231c1815'/%3E%3Crect x='110' y='100' width='180' height='100' fill='%236e5b4b'/%3E%3Ctext x='200' y='260' text-anchor='middle' font-family='monospace' font-size='22' font-weight='bold' fill='%23261729'%3ESCAN%3C/text%3E%3C/svg%3E" alt="Kodak Slide N Scan">
+      <a class="product-card" href="https://www.amazon.pl/dp/B084NVRHYQ?tag=blueprintkc0a-21" target="_blank" rel="noopener">
+        <div class="product-card__img-wrap">
+          <img class="product-card__img product-card__img--contain" src="https://m.media-amazon.com/images/I/81RdTfBiqfL._AC_SX522_.jpg" alt="Kodak Slide N Scan">
+          <span class="product-card__price">712,60 zł</span>
+        </div>
         <h3>Kodak Slide N Scan 5"</h3>
         <p>Stacjonarny skaner z ekranem LCD — negatywy i slajdy zapisze na karcie SD bez komputera.</p>
-        <a class="cta" href="https://www.amazon.pl/dp/B084NVRHYQ?tag=blueprintkc0a-21" target="_blank" rel="noopener">Sprawdź na Amazon <span>→</span></a>
-      </div>
+        <span class="cta">Sprawdź na Amazon <span>→</span></span>
+      </a>
 
-      <div class="product-card">
-        <img class="product-card__img" src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f8e9c8'/%3E%3Crect x='12' y='12' width='376' height='276' fill='none' stroke='%2311040f' stroke-width='6'/%3E%3Crect x='160' y='40' width='80' height='200' rx='14' fill='%231c1815'/%3E%3Crect x='170' y='60' width='60' height='150' fill='%236e5b4b'/%3E%3Ccircle cx='200' cy='225' r='6' fill='%23d8cfc3'/%3E%3Ctext x='200' y='275' text-anchor='middle' font-family='monospace' font-size='18' font-weight='bold' fill='%23261729'%3EMOBILE%3C/text%3E%3C/svg%3E" alt="Mobilny skaner Kodak">
+      <a class="product-card" href="https://www.amazon.pl/dp/B07MTKNTPK?tag=blueprintkc0a-21" target="_blank" rel="noopener">
+        <div class="product-card__img-wrap">
+          <img class="product-card__img product-card__img--contain" src="https://m.media-amazon.com/images/I/71z8cGgjj-L._AC_SY300_SX300_QL70_ML2_.jpg" alt="Mobilny skaner Kodak">
+          <span class="product-card__price">235,00 zł</span>
+        </div>
         <h3>Mobilny skaner Kodak</h3>
         <p>Składane urządzenie do skanowania klisz 35 mm aparatem w smartfonie — budżetowa alternatywa do domowej digitalizacji.</p>
-        <a class="cta" href="https://www.amazon.pl/dp/B07MTKNTPK?tag=blueprintkc0a-21" target="_blank" rel="noopener">Sprawdź na Amazon <span>→</span></a>
-      </div>
+        <span class="cta">Sprawdź na Amazon <span>→</span></span>
+      </a>
 
     </div>
   </section>
 
   <footer class="footer">
     <span class="label label--soft">STARE APARATY</span>
-    <p>Projekt prywatny. Ogłoszenia pochodzą z olx.pl, linki do filmów i akcesoriów prowadzą do Amazon.pl.</p>
+    <p>Projekt prywatny. Ogłoszenia pochodzą z olx.pl, linki do filmów i akcesoriów prowadzą do Amazon.pl. Ceny orientacyjne — sprawdzone 2026-05-30, aktualną cenę zobaczysz po kliknięciu w produkt.</p>
   </footer>
 
 </div><!-- /.shell -->
 
-<div class="lightbox" id="lightbox" onclick="closeLightbox()">
-  <div class="lightbox__content" onclick="event.stopPropagation()">
-    <button type="button" class="lightbox__close" aria-label="Zamknij podgląd" onclick="closeLightbox()">×</button>
-    <img class="lightbox__img" id="lightbox-img" src="" alt="">
-    <p class="img-ref" id="lightbox-ref"></p>
-  </div>
-</div>
-
 <script>
-  function openLightbox(src, alt, sourceUrl) {
-    var box = document.getElementById('lightbox');
-    var img = document.getElementById('lightbox-img');
-    var ref = document.getElementById('lightbox-ref');
-    img.src = src;
-    img.alt = alt || '';
-    ref.innerHTML = sourceUrl
-      ? '<a href="' + sourceUrl + '" target="_blank" rel="noopener">Źródło</a>'
-      : '';
-    box.classList.add('open');
-  }
-  function closeLightbox() {
-    document.getElementById('lightbox').classList.remove('open');
-  }
-  document.addEventListener('keydown', function (event) {
-    if (event.key === 'Escape') closeLightbox();
-  });
-
   (function () {
     var toggle = document.getElementById('theme-toggle');
     var label = document.getElementById('theme-label');

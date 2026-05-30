@@ -17,6 +17,7 @@ on:
       - product-links.txt
       - .github/workflows/deploy-pages.yml
       - .github/workflows/update-products.yml
+      - .github/workflows/refresh-amazon.yml
   workflow_dispatch:
 
 permissions:

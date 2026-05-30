@@ -1,0 +1,64 @@
+# DISABLED — Amazon's bot detection trips the captcha on the second product
+# page even with the current stealth patches + ~15s rate limit. Re-enable
+# (rename back to `.yml`) after either: (a) replacing the scraper with the
+# Amazon Product Advertising API once Associates is approved, (b) routing
+# through a residential proxy, or (c) finding stealth tweaks that survive
+# Amazon's per-session counter. See TODO.md → "Fix Amazon price scraper".
+
+name: Refresh Amazon prices and images
+
+on:
+  schedule:
+    # Mondays at 06:00 UTC (08:00 in Europe/Warsaw during DST, 07:00 otherwise).
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-amazon
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Playwright
+        run: |
+          npm init -y --silent
+          npm install playwright@^1.49.0 --no-save --silent
+          npx playwright install --with-deps chromium
+
+      - name: Refresh prices and images
+        run: node scripts/refresh-amazon.js
+
+      - name: Commit updated JSON
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet --exit-code scripts/amazon-products.json; then
+            echo "No Amazon data changes — nothing to commit."
+            exit 0
+          fi
+
+          git add scripts/amazon-products.json
+          git commit -m "chore: refresh Amazon prices and images"
+          git push
+
+      - name: Clean up scratch files
+        if: always()
+        run: |
+          rm -f package.json package-lock.json
+          rm -rf node_modules

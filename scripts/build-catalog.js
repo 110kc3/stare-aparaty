@@ -6,6 +6,7 @@ const path = require('node:path');
 const ROOT_DIR = path.resolve(__dirname, '..');
 const LINKS_FILE = path.join(ROOT_DIR, 'product-links.txt');
 const TEMPLATE_FILE = path.join(ROOT_DIR, 'templates', 'index.template.html');
+const AMAZON_PRODUCTS_FILE = path.join(__dirname, 'amazon-products.json');
 const OUTPUT_HTML = path.join(ROOT_DIR, 'index.html');
 const OUTPUT_JSON = path.join(ROOT_DIR, 'olx_meta.json');
 
@@ -286,7 +287,7 @@ function createPlaceholderImage(title) {
 }
 
 function renderIndex(items) {
-  const template = fs.readFileSync(TEMPLATE_FILE, 'utf8');
+  let rendered = fs.readFileSync(TEMPLATE_FILE, 'utf8');
   const renderedCards = items.length > 0
     ? items.map((item) => renderCard(item)).join('\n')
     : '      <p style="grid-column:1/-1;padding:24px;color:var(--ink-soft);text-align:center;">Brak ofert do wyświetlenia w tej chwili.</p>';
@@ -297,10 +298,46 @@ function renderIndex(items) {
     timeZone: 'Europe/Warsaw',
   }).format(new Date());
 
-  return template
+  rendered = rendered
     .replace('{{COUNT}}', String(items.length))
     .replace('{{LAST_UPDATED}}', escapeHtml(lastUpdated))
     .replace('{{CAMERA_CARDS}}', renderedCards);
+
+  // Inject Amazon prices + images (managed by scripts/refresh-amazon.js).
+  const amazon = loadAmazonProducts();
+  for (const [asin, data] of Object.entries(amazon.products)) {
+    rendered = rendered
+      .split(`{{PRICE_${asin}}}`)
+      .join(escapeHtml(data.price || ''));
+    if (data.image) {
+      rendered = rendered
+        .split(`{{IMAGE_${asin}}}`)
+        .join(escapeAttribute(data.image));
+    }
+  }
+  rendered = rendered
+    .split('{{LAST_REFRESHED}}')
+    .join(escapeHtml(amazon.lastRefreshed));
+
+  return rendered;
+}
+
+function loadAmazonProducts() {
+  if (!fs.existsSync(AMAZON_PRODUCTS_FILE)) {
+    return { products: {}, lastRefreshed: '' };
+  }
+  try {
+    const products = JSON.parse(fs.readFileSync(AMAZON_PRODUCTS_FILE, 'utf8'));
+    // Oldest lastChecked across the catalog is the honest "as of" date.
+    const dates = Object.values(products)
+      .map((p) => p && p.lastChecked)
+      .filter(Boolean)
+      .sort();
+    return { products, lastRefreshed: dates[0] || '' };
+  } catch (error) {
+    console.warn(`Could not read ${AMAZON_PRODUCTS_FILE}: ${error.message}`);
+    return { products: {}, lastRefreshed: '' };
+  }
 }
 
 function renderCard(item) {

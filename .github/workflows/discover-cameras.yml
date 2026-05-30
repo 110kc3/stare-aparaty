@@ -1,0 +1,67 @@
+name: Discover cameras from OLX
+
+on:
+  schedule:
+    # Every day at 05:30 UTC. Adjust or remove as you like.
+    - cron: '30 5 * * *'
+  workflow_dispatch:
+
+# Needs contents:write to commit the refreshed files, plus pages/id-token to
+# publish to GitHub Pages in the same run (no reliance on a second workflow,
+# which GITHUB_TOKEN pushes can't trigger anyway).
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  discover-and-deploy:
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Discover listings from OLX user page
+        run: node scripts/discover-listings.js
+
+      - name: Rebuild catalog
+        run: node scripts/build-catalog.js
+
+      - name: Commit generated files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet --exit-code; then
+            echo "No changes to commit."
+          else
+            git add index.html olx_meta.json product-links.txt
+            git commit -m "chore: auto-discover camera catalog"
+            git push
+          fi
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
