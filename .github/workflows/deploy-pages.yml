@@ -1,23 +1,10 @@
 name: Deploy static site to GitHub Pages
 
+# Push deploys are now handled by discover-cameras.yml, which discovers,
+# rebuilds, and publishes in a single run (so a push can't double-deploy and
+# fight this workflow over the shared github-pages concurrency group). This
+# workflow stays available for manual, on-demand deploys.
 on:
-  push:
-    branches:
-      - main
-      - master
-      - update-film-info
-    paths:
-      - index.html
-      - 404.html
-      - olx_meta.json
-      - templates/**
-      - scripts/**
-      - retro.css
-      - styles.css
-      - product-links.txt
-      - .github/workflows/deploy-pages.yml
-      - .github/workflows/update-products.yml
-      - .github/workflows/refresh-amazon.yml
   workflow_dispatch:
 
 permissions:

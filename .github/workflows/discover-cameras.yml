@@ -4,6 +4,11 @@ on:
   schedule:
     # Every day at 05:30 UTC. Adjust or remove as you like.
     - cron: '30 5 * * *'
+  push:
+    branches:
+      - main
+      - master
+      - update-film-info
   workflow_dispatch:
 
 # Needs contents:write to commit the refreshed files, plus pages/id-token to
