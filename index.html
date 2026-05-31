@@ -168,9 +168,8 @@
     .section-head p { font-size: 12px; color: var(--ink-soft); }
 
     .camera-grid {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
       gap: 3px;
       background: var(--bg-strip);
       border: 2px solid var(--line-gold);
@@ -178,9 +177,6 @@
     }
 
     .cam-card {
-      /* 4 per row; the 3 gaps of 3px are subtracted so widths stay exact.
-         flex-wrap + justify-content:center keeps a short last row centered. */
-      flex: 0 0 calc((100% - 9px) / 4);
       display: block; text-decoration: none; color: inherit;
       background: var(--bg-card);
       overflow: hidden;
@@ -333,12 +329,10 @@
     .footer p { font-size: 11px; color: var(--ink-soft); }
 
     @media (max-width: 900px) {
-      .product-grid { grid-template-columns: repeat(2, 1fr); }
-      .cam-card { flex-basis: calc((100% - 3px) / 2); }
+      .camera-grid, .product-grid { grid-template-columns: repeat(2, 1fr); }
     }
     @media (max-width: 560px) {
-      .product-grid { grid-template-columns: 1fr; }
-      .cam-card { flex-basis: 100%; }
+      .camera-grid, .product-grid { grid-template-columns: 1fr; }
       .shell { width: calc(100% - 16px); }
       .masthead { padding: 16px 18px; }
       .masthead__topline { flex-direction: column; align-items: flex-start; }
@@ -375,7 +369,7 @@
         <h2>Aparaty w ofercie</h2>
         <p>Kliknij kartę, aby przejść do ogłoszenia na OLX</p>
       </div>
-      <span class="label label--soft">Aktualizacja: 31 maj 2026, 08:21</span>
+      <span class="label label--soft">Aktualizacja: 31 maj 2026, 08:22</span>
     </div>
 
     <div class="camera-grid" aria-label="Katalog aparatów">
@@ -661,4 +655,14 @@
     syncLabel();
 
     toggle.addEventListener('click', function () {
-      var current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'l
+      var current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+      var next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      try { localStorage.setItem('theme', next); } catch (err) { /* ignore */ }
+      syncLabel();
+    });
+  })();
+</script>
+
+</body>
+</html>
