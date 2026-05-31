@@ -5,8 +5,8 @@
  * product-links.txt — replacing the manual "paste the links" step.
  *
  * It fetches each user page (pagination handled automatically), reads the
- * listing data OLX embeds in the page, keeps only YOUR own active offers whose
- * title matches a keyword, and writes the de-duplicated URLs to
+ * listing data OLX embeds in the page, keeps only the page owner's active
+ * offers whose title matches a keyword, and writes the de-duplicated URLs to
  * product-links.txt. scripts/build-catalog.js then turns that into index.html
  * exactly as before.
  *
@@ -18,9 +18,10 @@
  * Notes on how OLX serves the data:
  *   The user page is a client-rendered app, but it still ships the current
  *   page's listings as an escaped JSON blob in the HTML (slashes as /).
- *   We collapse that escaping and pull out "title" / "url" / owning "user.id"
- *   for each offer. Only offers owned by the page's own user id are kept, so
- *   promoted/foreign ads never leak in.
+ *   We collapse that escaping and pull out "title" / "status" / "url" / owning
+ *   "user.id" for each offer. Only offers owned by the page's own user id are
+ *   kept, so promoted/foreign ads never leak in. Out-of-range pages on OLX
+ *   echo the last page's content, so we stop as soon as a page adds nothing new.
  */
 
 const fs = require('node:fs');
@@ -29,23 +30,24 @@ const path = require('node:path');
 // --- Config ----------------------------------------------------------------
 
 // Your OLX user listing page(s). List only the FIRST page of each view — pages
-// 2, 3, ... are fetched automatically until one comes back empty.
-// categoryId=99 is OLX's "Foto" category.
+// 2, 3, ... are fetched automatically until a page adds nothing new.
+// categoryId=99 is OLX's "Foto" category; a user URL with no categoryId
+// returns every category (the KEYWORDS filter still keeps only cameras).
 const USER_PAGES = [
   'https://www.olx.pl/oferty/uzytkownik/273W5/?categoryId=99',
+  'https://www.olx.pl/oferty/uzytkownik/vNQAM/',
 ];
 
 // Keep an offer only if its title contains one of these (case-insensitive).
-// The OLX category filter already narrows things down, this is the extra
-// "is it actually a camera" safety net. Edit freely — note that some cameras
-// are titled by brand/model only (e.g. "Pentax SF7"), so brand names are
-// included here on purpose. Set to [] to keep every offer in the category.
+// This is the "is it actually a camera" safety net. Edit freely — note that
+// some cameras are titled by brand/model only (e.g. "Pentax SF7"), so brand
+// names are included on purpose. Set to [] to keep every offer.
 const KEYWORDS = [
   'aparat', 'analog',
   // common analog-camera brands, so model-named listings aren't dropped:
   'pentax', 'canon', 'nikon', 'minolta', 'olympus', 'zenit', 'praktica',
   'zorki', 'fed', 'smena', 'lubitel', 'mamiya', 'chinon', 'petri', 'yashica',
-  'exa', 'exakta', 'coronet', 'kodak', 'fujica', 'konica', 'rollei',
+  'exa', 'exakta', 'coronet', 'kodak', 'fujica', 'konica', 'rollei', 'quasar',
 ];
 
 const MAX_PAGES = 25; // safety cap on pagination
@@ -78,15 +80,12 @@ async function fetchHtml(url) {
   return res.text();
 }
 
-// Pull every offer (title, url, ownerId) out of one page's embedded JSON.
+// Pull every offer (title, status, url, ownerId) out of one page's embedded
+// JSON.
 function extractOffers(html) {
-  // Collapse the JSON-string escaping: any run of backslashes before u002F
-  // becomes "/", and escaped quotes become real quotes.
   const text = html.replace(/\\+u002F/gi, '/').replace(/\\+"/g, '"');
-
   const re =
     /"title":"([^"]*)","status":"([^"]*)","url":"(https:\/\/www\.olx\.pl\/d\/oferta\/[A-Za-z0-9-]+\.html)","user":\{"id":(\d+)/g;
-
   const offers = [];
   let m;
   while ((m = re.exec(text)) !== null) {
@@ -120,6 +119,9 @@ function matchesKeyword(title) {
 
 async function discoverFromUserPage(firstPageUrl) {
   const collected = [];
+  const seenUrls = new Set();
+  let ownerId = null;
+
   for (let page = 1; page <= MAX_PAGES; page += 1) {
     const url = page === 1 ? firstPageUrl : withPage(firstPageUrl, page);
     let offers;
@@ -129,9 +131,27 @@ async function discoverFromUserPage(firstPageUrl) {
       console.error(`  page ${page}: fetch failed (${err.message})`);
       break;
     }
-    if (offers.length === 0) break; // no more results -> stop paginating
-    console.log(`  page ${page}: ${offers.length} offer(s)`);
-    collected.push(...offers);
+    if (offers.length === 0) break; // truly empty -> stop paginating
+
+    // The page owner = whoever owns the most offers on page 1. Out-of-range
+    // pages on OLX don't come back empty: they echo the last page's content
+    // (and sometimes a rotating promoted ad from a DIFFERENT seller). So keep
+    // only the owner's offers and stop as soon as a page adds none we haven't
+    // already seen.
+    if (ownerId === null) {
+      const freq = {};
+      for (const o of offers) freq[o.ownerId] = (freq[o.ownerId] || 0) + 1;
+      ownerId = Object.entries(freq).sort((a, b) => b[1] - a[1])[0]?.[0];
+    }
+
+    const fresh = offers.filter(
+      (o) => o.ownerId === ownerId && !seenUrls.has(o.url),
+    );
+    if (fresh.length === 0) break;
+    for (const o of fresh) seenUrls.add(o.url);
+
+    console.log(`  page ${page}: ${fresh.length} new offer(s)`);
+    collected.push(...fresh);
   }
   return collected;
 }
@@ -146,13 +166,7 @@ async function main() {
     console.log(`Scanning ${userPage}`);
     const offers = await discoverFromUserPage(userPage);
 
-    // The page owner is whoever owns the most offers on their own page.
-    const freq = {};
-    for (const o of offers) freq[o.ownerId] = (freq[o.ownerId] || 0) + 1;
-    const ownerId = Object.entries(freq).sort((a, b) => b[1] - a[1])[0]?.[0];
-
     for (const o of offers) {
-      if (ownerId && o.ownerId !== ownerId) continue; // skip foreign ads
       if (o.status && o.status !== 'active') continue; // skip inactive
       if (seen.has(o.url)) continue;
       seen.add(o.url);
