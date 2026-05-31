@@ -9,34 +9,47 @@ A small static site that lists my vintage cameras for sale on OLX alongside a cu
 
 ## How the build works
 
-Everything is rendered by `scripts/build-catalog.js`. It reads the camera URLs from `product-links.txt`, fetches each listing's HTML, pulls a title and image from the page metadata (Open Graph, then Twitter cards, then JSON-LD, then the `<title>` tag as a last resort), and writes two files:
+The camera list is produced in two steps:
+
+1. `scripts/discover-listings.js` reads my OLX **user** page(s), keeps only my own active offers whose title matches a camera keyword, and writes the de-duplicated URLs to `product-links.txt`. This replaces the old "paste the links by hand" step.
+2. `scripts/build-catalog.js` reads `product-links.txt`, fetches each listing's HTML, pulls a title and image from the page metadata (Open Graph, then Twitter cards, then JSON-LD, then the `<title>` tag as a last resort), and writes two files:
 
 - `index.html` — the published page, rendered by filling in `templates/index.template.html`
 - `olx_meta.json` — the normalized camera data, also used as a cache on the next run so that transient fetch failures fall back to the previously-known title/image instead of a placeholder
 
-The film & accessories section lives inside the template and is fully static — the build script does not touch it.
+The camera grid shows **4 cards per row**; the build renders every discovered camera (no cap), and a short final row is centered rather than stretched. The film & accessories section lives inside the template and is fully static — the build script does not touch it.
+
+### `scripts/discover-listings.js` — auto-discover my listings
+
+```bash
+node scripts/discover-listings.js            # update product-links.txt
+node scripts/discover-listings.js --dry-run  # print what it found, write nothing
+node scripts/discover-listings.js --out tmp.txt
+```
+
+The OLX user page is a client-rendered app, but it still ships the current page's listings as an escaped JSON blob in the HTML. The script collapses that escaping, reads `title` / `status` / `url` / owning `user.id` for each offer, paginates automatically until a page comes back empty, and keeps only offers that are mine (own `user.id`), `active`, and whose title contains a keyword. Config lives at the top of the file:
+
+- `USER_PAGES` — my OLX user listing page(s); list only the first page of each, pagination is automatic. `categoryId=99` is the Foto category.
+- `KEYWORDS` — the "is it actually a camera" filter (case-insensitive). Defaults to `aparat` / `analog` plus common analog-camera brands, since some cameras are titled by model only (e.g. *Pentax SF7*). Set to `[]` to keep every offer in the category.
 
 ## Workflows
 
-The repo ships three GitHub Actions workflows that work together:
+The repo ships these GitHub Actions workflows:
 
-### `update-products.yml` — refresh the camera list
+### `discover-cameras.yml` — discover, rebuild, and publish (automatic)
 
-Triggered **manually** from the Actions tab. It takes one input: a list of OLX links. You can separate them with semicolons (`;`), newlines, or spaces — semicolons are the cleanest option in the Actions UI because the form is single-line.
+The main workflow. Triggered on a **daily schedule** (`30 5 * * *`), on **push** to `main` / `master` / `update-film-info`, and manually via `workflow_dispatch`. In a single run it:
 
-The job:
+1. Runs `discover-listings.js` to regenerate `product-links.txt` from my OLX user page.
+2. Runs `build-catalog.js` to rebuild `index.html` / `olx_meta.json`.
+3. Commits those files (via `github-actions[bot]`) if anything changed.
+4. Publishes the result straight to GitHub Pages — no second workflow needed.
 
-1. Saves the pasted input to a temp file.
-2. Runs the builder with `--links-file workflow-links.txt --write-links-file`, which rebuilds `index.html` / `olx_meta.json` **and** overwrites `product-links.txt` with the normalized, de-duplicated list.
-3. Commits `index.html`, `olx_meta.json`, and `product-links.txt` back to the branch with the message `chore: update camera catalog`, using the `github-actions[bot]` identity. If nothing changed it exits without committing.
+Discovery and deploy live in the same job on purpose: a push made with `GITHUB_TOKEN` can't trigger another workflow, and a self-contained run also avoids two workflows fighting over the shared `github-pages` concurrency group.
 
-That commit is what triggers the deploy step — the workflow itself does not publish anything to Pages.
+### `deploy-pages.yml` — publish to GitHub Pages (manual fallback)
 
-### `deploy-pages.yml` — publish to GitHub Pages
-
-Triggered automatically on push to `main`, `master`, or `update-film-info`, but only when one of the relevant paths changes (`index.html`, `olx_meta.json`, `templates/**`, `scripts/**`, `retro.css`, `styles.css`, `product-links.txt`, or either workflow file). Can also be run manually via `workflow_dispatch`.
-
-The job checks out the repo, installs Node 20, runs `node scripts/build-catalog.js` again on the runner (so the deployed `index.html` always reflects the latest `product-links.txt` and template, even if someone forgot to rebuild locally), and ships the whole directory as a Pages artifact through `actions/deploy-pages`. A concurrency group (`github-pages`, `cancel-in-progress: true`) prevents overlapping deploys.
+Now `workflow_dispatch`-only. `discover-cameras.yml` owns automatic deploys; this one stays as an on-demand way to rebuild and publish the current files without re-scraping OLX. It checks out the repo, installs Node 20, runs `build-catalog.js`, and ships the directory as a Pages artifact. Shares the `github-pages` concurrency group.
 
 ### `refresh-amazon.yml` — refresh Amazon prices and product images
 
@@ -53,13 +66,13 @@ That JSON commit lands on a watched path, so `deploy-pages.yml` picks it up and 
 
 ### How they chain
 
-The normal flow for changing cameras:
+The normal flow for changing cameras is fully automatic:
 
 ```
-run update-products.yml (manual)
-  → commit to branch
-    → push triggers deploy-pages.yml
-      → site updates on GitHub Pages
+schedule / push / manual fires discover-cameras.yml
+  → discover-listings.js rewrites product-links.txt
+    → build-catalog.js rebuilds index.html + olx_meta.json
+      → same run publishes to GitHub Pages
 ```
 
 The Amazon refresh flow runs on its own each week:
@@ -71,7 +84,7 @@ schedule fires refresh-amazon.yml
       → build-catalog.js rewrites placeholders, Pages updates
 ```
 
-For copy, styling, or template changes: just commit to one of the watched branches — `deploy-pages.yml` picks it up and redeploys.
+For copy, styling, or template changes: push to one of the branches above and `discover-cameras.yml` rebuilds and redeploys (or run `deploy-pages.yml` manually).
 
 ## Project structure
 
@@ -79,20 +92,28 @@ For copy, styling, or template changes: just commit to one of the watched branch
 | --- | --- |
 | `index.html` | Generated static page published on GitHub Pages |
 | `templates/index.template.html` | Source template with `{{COUNT}}`, `{{LAST_UPDATED}}`, `{{CAMERA_CARDS}}` placeholders |
+| `scripts/discover-listings.js` | Auto-discovers my OLX offers and writes `product-links.txt` |
 | `scripts/build-catalog.js` | Node script that fetches metadata and renders the template |
 | `scripts/refresh-amazon.js` | Headless-browser scraper that updates Amazon prices + images in `amazon-products.json` |
 | `scripts/amazon-products.json` | Source of truth for Amazon prices and (for dev/scanner cards) product images |
-| `product-links.txt` | Source list of OLX camera URLs |
+| `product-links.txt` | List of OLX camera URLs (generated by `discover-listings.js`) |
 | `olx_meta.json` | Cached camera metadata (title / image / host) |
 | `styles.css` | Main layout and visual styles |
 | `retro.css` | Pixel-font kickers and pixelated-image helper (Polish diacritics fall through to Inter / Cormorant Garamond — see the comment at the top of the file) |
-| `.github/workflows/update-products.yml` | Manual workflow to refresh cameras from pasted links |
+| `.github/workflows/discover-cameras.yml` | Scheduled/push workflow: auto-discover cameras, rebuild, and deploy |
 | `.github/workflows/refresh-amazon.yml` | Weekly cron workflow to refresh Amazon prices and product images |
-| `.github/workflows/deploy-pages.yml` | Auto-deploy workflow for GitHub Pages |
+| `.github/workflows/deploy-pages.yml` | Manual fallback deploy workflow for GitHub Pages |
 
 ## Local usage
 
-Rebuild from the saved list:
+Refresh everything from my OLX user page, then rebuild:
+
+```bash
+node scripts/discover-listings.js
+node scripts/build-catalog.js
+```
+
+Rebuild from the saved list only:
 
 ```bash
 node scripts/build-catalog.js
