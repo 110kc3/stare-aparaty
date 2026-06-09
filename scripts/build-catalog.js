@@ -34,6 +34,7 @@ async function main() {
     url: item.url,
     host: item.host,
     sold: !!item.sold,
+    price: item.price || '',
   }));
 
   if (args.writeLinksFile) {
@@ -129,6 +130,7 @@ async function buildItem(url, fallbackItem) {
         url,
         host: new URL(url).hostname.replace(/^www\./, ''),
         sold: true,
+        price: fallbackItem?.price || '',
       };
     }
 
@@ -144,6 +146,7 @@ async function buildItem(url, fallbackItem) {
       url,
       host: new URL(url).hostname.replace(/^www\./, ''),
       sold: false,
+      price: extracted.price || fallbackItem?.price || '',
     };
   } catch (error) {
     // Transient errors (timeout, DNS, etc.) shouldn't unset a previously-detected sold state.
@@ -154,6 +157,7 @@ async function buildItem(url, fallbackItem) {
       url,
       host: new URL(url).hostname.replace(/^www\./, ''),
       sold: !!fallbackItem?.sold,
+      price: fallbackItem?.price || '',
     };
   }
 }
@@ -171,7 +175,39 @@ function extractMetadata(html, pageUrl) {
   return {
     title: cleanupText(title),
     image: absolutizeUrl(image, pageUrl),
+    price: extractJsonLdPrice(html),
   };
+}
+
+function extractJsonLdPrice(html) {
+  const jsonBlocks = getJsonLdBlocks(html);
+  for (const block of jsonBlocks) {
+    const offers = findFirstValue(block, ['offers']);
+    if (!offers || typeof offers !== 'object') {
+      continue;
+    }
+    const offer = Array.isArray(offers) ? offers[0] : offers;
+    if (!offer || typeof offer !== 'object') {
+      continue;
+    }
+    const amount = offer.price ?? offer.lowPrice;
+    if (amount === undefined || amount === null || amount === '') {
+      continue;
+    }
+    return formatPrice(amount, offer.priceCurrency || 'PLN');
+  }
+  return '';
+}
+
+function formatPrice(amount, currency) {
+  const value = Number(String(amount).replace(',', '.'));
+  if (!Number.isFinite(value) || value <= 0) {
+    return '';
+  }
+  const formatted = new Intl.NumberFormat('pl-PL', {
+    maximumFractionDigits: Number.isInteger(value) ? 0 : 2,
+  }).format(value);
+  return currency === 'PLN' ? `${formatted} zł` : `${formatted} ${currency}`;
 }
 
 function getMetaContent(html, attributeName, attributeValue) {
@@ -289,7 +325,7 @@ function createPlaceholderImage(title) {
 function renderIndex(items) {
   let rendered = fs.readFileSync(TEMPLATE_FILE, 'utf8');
   const renderedCards = items.length > 0
-    ? items.map((item) => renderCard(item)).join('\n')
+    ? items.map((item, index) => renderCard(item, index)).join('\n')
     : '      <p style="grid-column:1/-1;padding:24px;color:var(--ink-soft);text-align:center;">Brak ofert do wyświetlenia w tej chwili.</p>';
 
   const lastUpdated = new Intl.DateTimeFormat('pl-PL', {
@@ -340,12 +376,19 @@ function loadAmazonProducts() {
   }
 }
 
-function renderCard(item) {
+function renderCard(item, index = 0) {
+  // First row (4 cards) loads eagerly for fast above-the-fold paint;
+  // everything below lazy-loads.
+  const loadingAttrs = index < 4 ? '' : ' loading="lazy" decoding="async"';
+  const priceChip = item.price && !item.sold
+    ? `\n          <span class="cam-card__price">${escapeHtml(item.price)}</span>`
+    : '';
+
   if (item.sold) {
     return `
       <div class="cam-card cam-card--sold" aria-label="Sprzedane">
         <div class="cam-card__img-wrap">
-          <img class="cam-card__img" src="${escapeAttribute(item.image)}" alt="${escapeAttribute(item.title)}">
+          <img class="cam-card__img"${loadingAttrs} src="${escapeAttribute(item.image)}" alt="${escapeAttribute(item.title)}">
           <div class="cam-card__sold-badge"><span class="cam-card__sold-stamp">SPRZEDANE</span></div>
         </div>
         <div class="cam-card__strip">
@@ -359,7 +402,7 @@ function renderCard(item) {
   return `
       <a class="cam-card" href="${escapeAttribute(item.url)}" target="_blank" rel="noopener noreferrer">
         <div class="cam-card__img-wrap">
-          <img class="cam-card__img" src="${escapeAttribute(item.image)}" alt="${escapeAttribute(item.title)}">
+          <img class="cam-card__img"${loadingAttrs} src="${escapeAttribute(item.image)}" alt="${escapeAttribute(item.title)}">${priceChip}
           <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
         </div>
         <div class="cam-card__strip">

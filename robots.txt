@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://110kc3.github.io/stare-aparaty/sitemap.xml
