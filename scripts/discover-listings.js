@@ -36,6 +36,7 @@ const path = require('node:path');
 const USER_PAGES = [
   'https://www.olx.pl/oferty/uzytkownik/273W5/?categoryId=99',
   'https://www.olx.pl/oferty/uzytkownik/vNQAM/',
+  'https://www.olx.pl/oferty/uzytkownik/2OYKZ/',
 ];
 
 // Keep an offer only if its title contains one of these (case-insensitive).
