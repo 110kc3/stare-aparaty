@@ -362,6 +362,8 @@
       display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
     }
     .footer p { font-size: 11px; color: var(--ink-soft); }
+    .footer a { color: var(--gold-dim); text-decoration: none; }
+    .footer a:hover { color: var(--gold); text-decoration: underline; }
 
     @media (max-width: 900px) {
       .product-grid { grid-template-columns: repeat(2, 1fr); }
@@ -395,6 +397,7 @@
       <a href="#filmy-bw">Filmy B&amp;W</a>
       <a href="#filmy-kolor">Filmy kolorowe</a>
       <a href="#wywolywanie">Wywoływanie</a>
+      <a href="mailto:support@stareaparaty.com">Kontakt</a>
     </nav>
   </header>
 
@@ -570,6 +573,7 @@
   <footer class="footer">
     <span class="label label--soft">STARE APARATY</span>
     <p>Projekt prywatny. Ogłoszenia pochodzą z olx.pl, linki do filmów i akcesoriów prowadzą do Amazon.pl. Ceny orientacyjne — sprawdzone {{LAST_REFRESHED}}, aktualną cenę zobaczysz po kliknięciu w produkt.</p>
+    <p>Kontakt: <a href="mailto:support@stareaparaty.com">support@stareaparaty.com</a></p>
   </footer>
 
 </div><!-- /.shell -->
