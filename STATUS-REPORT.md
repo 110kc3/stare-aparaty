@@ -18,7 +18,10 @@
 
 2. ~~**Internal docs are published to the public site.**~~ ✅ **Fixed 2026-06-13.** Both workflows uploaded the Pages artifact with `path: .`, so `GROWTH-PLAN.md` (revenue numbers, monetization strategy), `TODO.md`, `scripts/`, and `templates/` were all fetchable on the live site. Both workflows now assemble a `dist/` folder containing only the public files (`index.html`, `404.html`, `favicon.svg`, `og-image.png`, `robots.txt`, `sitemap.xml`) and upload that. This also stops deploying the legacy `vintage_cameras.html` (finding #5).
 
-3. **Domain mismatch: email vs. site.** The new contact address uses **stareaparaty.com**, but the canonical URL, OG tags, robots.txt, and sitemap all point to `110kc3.github.io/stare-aparaty/`. If you own the `stareaparaty.com` domain, point it at Pages (CNAME file + repo settings) and update canonical/OG/sitemap/robots in one pass — splitting brand identity across two domains wastes any SEO the site builds. If you don't own it yet, register it before someone else does, since it's now printed on the site.
+3. **Domain mismatch: email vs. site.** ✅ **Code side done 2026-06-13** — canonical, OG/Twitter URLs, sitemap, robots, and the 404 home link now point to `https://stareaparaty.com/` (owner confirmed). ⚠️ **Remaining manual steps (repo settings + DNS, can't be done from the repo):**
+   1. At the DNS provider: apex `A` records → `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`; plus `CNAME` record `www` → `110kc3.github.io`.
+   2. GitHub repo **Settings → Pages → Custom domain**: enter `stareaparaty.com`, wait for the DNS check, then tick **Enforce HTTPS** (certificate provisioning can take up to ~1 h).
+   3. After it's live, the old `110kc3.github.io/stare-aparaty/` URL redirects automatically. Re-submit the new sitemap URL in Search Console under a property for `stareaparaty.com`.
 
 ### Medium priority
 
