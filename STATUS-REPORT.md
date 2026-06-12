@@ -2,7 +2,7 @@
 
 *Generated 2026-06-13. Covers: full review of scripts, workflows, templates, generated output, and planning docs (TODO.md, GROWTH-PLAN.md).*
 
-> ⚠️ Note: because the Pages workflow uploads the **entire repo** as the site artifact, this file — like TODO.md and GROWTH-PLAN.md — becomes publicly reachable once pushed. See bug #2.
+> Note: bug #2 below (whole repo published as the Pages artifact) is fixed — internal docs like this file no longer ship to the live site.
 
 ## What changed today
 
@@ -14,9 +14,9 @@
 
 ### High priority
 
-1. **`404.html` "back" link goes to the wrong site.** The button links to `href="/"`, which on a GitHub Pages *project* site resolves to `https://110kc3.github.io/` — not the catalog. Anyone hitting a 404 and clicking "Wróć do katalogu" lands off-site. Fix: use `/stare-aparaty/` (absolute path is required here because the 404 page is served at arbitrary depths).
+1. ~~**`404.html` "back" link goes to the wrong site.**~~ ✅ **Fixed 2026-06-13.** The button linked to `href="/"`, which on a GitHub Pages *project* site resolves to `https://110kc3.github.io/` — not the catalog. Now links to `/stare-aparaty/`.
 
-2. **Internal docs are published to the public site.** Both `discover-cameras.yml` and `deploy-pages.yml` upload the Pages artifact with `path: .`, so `GROWTH-PLAN.md` (revenue numbers, monetization strategy), `TODO.md`, `scripts/`, `templates/`, and `product-links.txt` are all fetchable at `https://110kc3.github.io/stare-aparaty/GROWTH-PLAN.md` etc. Fix: build into a `dist/` folder containing only the public files (`index.html`, `404.html`, CSS, favicon, og-image, robots, sitemap, `olx_meta.json` if desired) and upload that.
+2. ~~**Internal docs are published to the public site.**~~ ✅ **Fixed 2026-06-13.** Both workflows uploaded the Pages artifact with `path: .`, so `GROWTH-PLAN.md` (revenue numbers, monetization strategy), `TODO.md`, `scripts/`, and `templates/` were all fetchable on the live site. Both workflows now assemble a `dist/` folder containing only the public files (`index.html`, `404.html`, `favicon.svg`, `og-image.png`, `robots.txt`, `sitemap.xml`) and upload that. This also stops deploying the legacy `vintage_cameras.html` (finding #5).
 
 3. **Domain mismatch: email vs. site.** The new contact address uses **stareaparaty.com**, but the canonical URL, OG tags, robots.txt, and sitemap all point to `110kc3.github.io/stare-aparaty/`. If you own the `stareaparaty.com` domain, point it at Pages (CNAME file + repo settings) and update canonical/OG/sitemap/robots in one pass — splitting brand identity across two domains wastes any SEO the site builds. If you don't own it yet, register it before someone else does, since it's now printed on the site.
 
@@ -84,7 +84,7 @@ Also stale: the **prefers-reduced-motion** item references the `.retro` hover st
 
 ### Recommended order of attack
 
-1. Fix the 404 link and the artifact `path: .` exposure (both small, both shipping defects).
+1. ~~Fix the 404 link and the artifact `path: .` exposure.~~ ✅ Done 2026-06-13.
 2. Decide the domain question (#3) — it affects canonical/OG/sitemap and every future SEO step.
 3. Resolve the GoatCounter mismatch so measurement is trustworthy.
 4. Check off completed TODO items and write the first camera guide page.

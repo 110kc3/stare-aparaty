@@ -62,10 +62,18 @@ jobs:
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
+      # Only the public-facing files go into the artifact — uploading the
+      # whole repo would publish internal docs (TODO.md, GROWTH-PLAN.md,
+      # STATUS-REPORT.md), scripts, and templates on the live site.
+      - name: Assemble site artifact
+        run: |
+          mkdir dist
+          cp index.html 404.html favicon.svg og-image.png robots.txt sitemap.xml dist/
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: dist
 
       - name: Deploy to GitHub Pages
         id: deployment

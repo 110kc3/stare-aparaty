@@ -22,6 +22,8 @@ ms-playwright/
 # running the builder. It exists only inside the workflow run and shouldn't
 # ever land in git.
 workflow-links.txt
+# Pages artifact staging folder assembled by the deploy workflows.
+dist/
 
 # Local-only env / secrets — should never be committed.
 .env
