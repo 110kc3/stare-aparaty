@@ -27,11 +27,11 @@
 
 4. **`decodeHtmlEntities()` decodes in the wrong order** (`scripts/build-catalog.js:437`). `&amp;` is replaced first, so a listing title containing a double-encoded entity (e.g. `&amp;lt;`) decodes twice into a raw `<`. The decoded string is later re-escaped before rendering, so there is no injection risk — titles just display wrong. Fix: decode `&amp;` **last**.
 
-5. **Legacy `vintage_cameras.html` is still tracked and deployed.** It's the old hand-made page (uses `retro.css`/`styles.css`) with stale listings and affiliate links, publicly reachable and crawlable. Delete it, or keep it only locally.
+5. **Legacy `vintage_cameras.html` is still tracked.** ✅ **Deploy side fixed 2026-06-13** — the `dist/`-only artifact (finding #2) no longer publishes it, so it's not publicly reachable or crawlable. It remains in the repo for reference; delete it if you want it gone entirely.
 
-6. **GoatCounter code mismatch.** GROWTH-PLAN.md says to register the code `stare-aparaty` and warns it "must match the script URL in the template", but the template loads `https://kc-it.goatcounter.com/count`. If the active account is `kc-it`, update the plan; if it's `stare-aparaty`, the site is currently sending events into the void. Verify which dashboard actually shows traffic.
+6. ~~**GoatCounter code mismatch.**~~ ✅ **Fixed 2026-06-13.** GROWTH-PLAN.md told you to register the code `stare-aparaty`, but the template loads `https://kc-it.goatcounter.com/count`. Aligned the docs to the deployed reality: GROWTH-PLAN now references the live `kc-it` account (changing the template instead would risk breaking working analytics). ⚠️ Still worth a one-time manual check that the `kc-it` dashboard is actually receiving events.
 
-7. **README is stale in several places.** The project-structure table claims `styles.css` is "Main layout and visual styles" and lists `retro.css` — but `index.html` styles are inline in the template; those CSS files are used only by the legacy page. The table also lists `refresh-amazon.yml` while the real file is `refresh-amazon.yml.disabled`, and the template-placeholder list misses `{{PRICE_*}}`/`{{IMAGE_*}}`/`{{LAST_REFRESHED}}`.
+7. ~~**README is stale in several places.**~~ ✅ **Fixed 2026-06-13.** Corrected the `styles.css`/`retro.css` rows (now flagged as legacy-only, since `index.html` styles are inline in the template), fixed the `refresh-amazon.yml` → `.yml.disabled` name, completed the template-placeholder list (`{{PRICE_*}}`/`{{IMAGE_*}}`/`{{LAST_REFRESHED}}`), documented the `dist/`-only deploy and the `stareaparaty.com` custom domain, and added the missing public files to the structure table.
 
 ### Low priority / by design (verified OK, documenting the edge)
 

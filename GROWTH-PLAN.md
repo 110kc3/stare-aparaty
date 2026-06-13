@@ -37,10 +37,10 @@ Suggested move: keep Amazon links for now (sunk setup, some users prefer it), ad
 
 ## 4. Measure (unblocked today)
 
-GoatCounter + outbound click events are now in the template. To activate:
+GoatCounter + outbound click events are wired into the template, pointing at the **`kc-it`** account (`https://kc-it.goatcounter.com/count`). To use it:
 
-1. Register at https://www.goatcounter.com with code **stare-aparaty** (must match the script URL in the template; if taken, pick another and update the template).
-2. Done — no cookie banner needed, it's cookieless.
+1. Log in at https://kc-it.goatcounter.com — events already flow there, no further setup needed. (If you'd rather use a dedicated `stare-aparaty` code, register it at https://www.goatcounter.com and update the `data-goatcounter` URL in `templates/index.template.html` to match, then rebuild.)
+2. No cookie banner needed — it's cookieless.
 3. Watch: visits/day, `out-olx-*` events (which cameras get interest) and `out-amazon-*` events (which products get clicks).
 
 ## What changed in this session
@@ -53,7 +53,7 @@ GoatCounter + outbound click events are now in the template. To activate:
 
 ## Your action items
 
-1. Register the GoatCounter code `stare-aparaty`.
+1. Confirm the `kc-it` GoatCounter dashboard is collecting events (the template already points to it).
 2. Add the site to Google Search Console, submit the sitemap.
 3. Pick one camera and write the first guide page — validate the traffic thesis before scaling.
 4. Apply to Allegro Affiliate Business.
