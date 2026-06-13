@@ -11,9 +11,9 @@ Ideas to improve Stare Aparaty. Ordered roughly by impact-per-effort within each
 ## Discoverability / SEO
 
 - [x] **Open Graph + Twitter card meta.** Done — full OG/Twitter set + canonical + branded `og-image.png` in the template `<head>` (URLs now point to `stareaparaty.com`).
-- [ ] **Favicon + apple-touch-icon + web manifest.** `favicon.svg` is done. Still pending: an `apple-touch-icon` and a `site.webmanifest` for "add to home screen" — both want a square PNG icon (e.g. 192×192 + 512×512) that doesn't exist yet, so this needs an icon asset created first.
+- [~] **Favicon + apple-touch-icon + web manifest.** `favicon.svg` done; `site.webmanifest` + `theme-color` added (SVG icon — accepted by Android/Chrome). Still pending: a square raster **`apple-touch-icon.png`** (iOS ignores SVG for home-screen icons) and 192/512 PNGs for the manifest — needs a PNG asset created first.
 - [x] **`robots.txt` + `sitemap.xml`.** Done — both present, referencing the `stareaparaty.com` domain.
-- [ ] **Product JSON-LD.** Each camera card could emit `Product` / `Offer` structured data (price, availability, image, URL). Enables rich results in Google Shopping tabs.
+- [x] **Product JSON-LD.** Done — `build-catalog.js` emits a schema.org `Product`/`Offer` graph for the whole catalog (name, image, listing URL, used-condition, InStock/SoldOut, PLN price when known), injected via the `{{CAMERA_JSONLD}}` template placeholder.
 
 ## UX polish
 

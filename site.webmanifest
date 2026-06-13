@@ -1,0 +1,17 @@
+{
+  "name": "Stare Aparaty",
+  "short_name": "Stare Aparaty",
+  "description": "Aparaty analogowe, filmy i akcesoria w spokojnym, filmowym klimacie.",
+  "lang": "pl",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0e0b08",
+  "theme_color": "#0e0b08",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

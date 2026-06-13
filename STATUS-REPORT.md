@@ -22,6 +22,10 @@
 - Added `.gitattributes` (`* text=auto eol=lf`) to stop the recurring LF→CRLF warnings on generated files (#11).
 - Added `:focus-visible` rings for keyboard navigation and a `prefers-reduced-motion` block to the template; `index.html` rebuilt (#12 + two TODO/UX items).
 
+**Session 5 — SEO structured data + PWA manifest**
+- Added schema.org **Product/Offer JSON-LD** for the whole camera catalog (`build-catalog.js` → `renderProductJsonLd`, new `{{CAMERA_JSONLD}}` template placeholder). Each camera emits name, image, listing URL, used-condition, InStock/SoldOut, and price (PLN) when known; `<` is escaped so a title can't break out of the `<script>`. Validated: 17 products parse cleanly.
+- Added a **web manifest** (`site.webmanifest`) + `theme-color` meta and `rel="manifest"` link; added `site.webmanifest` to both workflows' `dist/` copy lists. (Apple-touch-icon still needs a square PNG — see open items.)
+
 ---
 
 ## Bug check findings
@@ -30,7 +34,7 @@
 
 1. ~~**`404.html` "back" link goes to the wrong site.**~~ ✅ **Fixed 2026-06-13.** The button linked to `href="/"`, which on a GitHub Pages *project* site resolves to `https://110kc3.github.io/` — not the catalog. Now links to `/stare-aparaty/`.
 
-2. ~~**Internal docs are published to the public site.**~~ ✅ **Fixed 2026-06-13.** Both workflows uploaded the Pages artifact with `path: .`, so `GROWTH-PLAN.md` (revenue numbers, monetization strategy), `TODO.md`, `scripts/`, and `templates/` were all fetchable on the live site. Both workflows now assemble a `dist/` folder containing only the public files (`index.html`, `404.html`, `favicon.svg`, `og-image.png`, `robots.txt`, `sitemap.xml`) and upload that. This also stops deploying the legacy `vintage_cameras.html` (finding #5).
+2. ~~**Internal docs are published to the public site.**~~ ✅ **Fixed 2026-06-13.** Both workflows uploaded the Pages artifact with `path: .`, so `GROWTH-PLAN.md` (revenue numbers, monetization strategy), `TODO.md`, `scripts/`, and `templates/` were all fetchable on the live site. Both workflows now assemble a `dist/` folder containing only the public files (`index.html`, `404.html`, `favicon.svg`, `og-image.png`, `robots.txt`, `sitemap.xml`, `site.webmanifest`) and upload that. This also stops deploying the legacy `vintage_cameras.html` (finding #5).
 
 3. **Domain mismatch: email vs. site.** ✅ **Code side done 2026-06-13** — canonical, OG/Twitter URLs, sitemap, robots, and the 404 home link now point to `https://stareaparaty.com/` (owner confirmed). ⚠️ **Remaining manual steps (repo settings + DNS, can't be done from the repo):**
    1. At the DNS provider: apex `A` records → `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`; plus `CNAME` record `www` → `110kc3.github.io`.
@@ -86,12 +90,13 @@ Also stale: the **prefers-reduced-motion** item references the `.retro` hover st
 - `:focus-visible` keyboard focus styles ✅
 - `prefers-reduced-motion` support ✅
 - `decodeHtmlEntities` ordering (#4), `formatPrice` hardening (#10), `.gitattributes` for line endings (#11) ✅
+- **Product/Offer JSON-LD** structured data for the camera catalog ✅
+- **Web manifest** (`site.webmanifest`) + `theme-color` ✅ (apple-touch-icon PNG still open)
 
 ### Genuinely open (validated as still-relevant)
 
 **Small / self-contained (no external dependency):**
-- **Product JSON-LD structured data** — emit `Product`/`Offer` per camera card for Google rich results. Deferred deliberately: it touches rendered output and needs careful correctness (price/availability/escaping), so it deserves its own focused change + verification pass.
-- **Apple-touch-icon + web manifest** — blocked on a square PNG icon asset (e.g. 192×192 / 512×512) that doesn't exist yet; create the icon first, then wire up the manifest.
+- **Apple-touch-icon (PNG).** The web manifest now ships with the SVG favicon as its icon, which Android/Chrome accept, but iOS Safari ignores SVG for home-screen icons. A square raster PNG (e.g. 180×180 `apple-touch-icon.png`, plus 192/512 for the manifest) is needed for a proper iOS icon. Blocked on producing that PNG asset.
 - **Group cameras by type** (SLR / rangefinder / compact / instant) once the list grows past ~10.
 - **Validate discovered URLs in the workflow**; **cache OLX fetches**; **ESLint + Prettier** on `scripts/`; **Lighthouse CI** on PRs.
 

@@ -339,7 +339,8 @@ function renderIndex(items) {
   rendered = rendered
     .replace('{{COUNT}}', String(items.length))
     .replace('{{LAST_UPDATED}}', escapeHtml(lastUpdated))
-    .replace('{{CAMERA_CARDS}}', renderedCards);
+    .replace('{{CAMERA_CARDS}}', renderedCards)
+    .replace('{{CAMERA_JSONLD}}', renderProductJsonLd(items));
 
   // Inject Amazon prices + images (managed by scripts/refresh-amazon.js).
   const amazon = loadAmazonProducts();
@@ -358,6 +359,52 @@ function renderIndex(items) {
     .join(escapeHtml(amazon.lastRefreshed));
 
   return rendered;
+}
+
+// Emit schema.org Product/Offer structured data for the camera catalog so the
+// listings are eligible for Google rich results. One JSON-LD graph holds every
+// camera; sold listings advertise SoldOut, the rest InStock.
+function renderProductJsonLd(items) {
+  if (items.length === 0) {
+    return '';
+  }
+
+  const products = items.map((item) => {
+    const offer = {
+      '@type': 'Offer',
+      url: item.url,
+      itemCondition: 'https://schema.org/UsedCondition',
+      availability: item.sold
+        ? 'https://schema.org/SoldOut'
+        : 'https://schema.org/InStock',
+    };
+    const priceNumber = priceToNumber(item.price);
+    if (priceNumber) {
+      offer.price = priceNumber;
+      offer.priceCurrency = 'PLN';
+    }
+    return {
+      '@type': 'Product',
+      name: item.title,
+      image: item.image,
+      offers: offer,
+    };
+  });
+
+  const graph = { '@context': 'https://schema.org', '@graph': products };
+  // Escape "<" so a listing title can never break out of the <script> element.
+  const json = JSON.stringify(graph, null, 2).replace(/</g, '\\u003c');
+  return `<script type="application/ld+json">\n${json}\n  </script>`;
+}
+
+// Pull a bare numeric value ("120", "1234.56") out of a formatted price like
+// "120 zł" or "1 234,56 zł", for the JSON-LD price field. Returns '' if none.
+function priceToNumber(formatted) {
+  if (!formatted) {
+    return '';
+  }
+  const match = String(formatted).replace(/\s/g, '').match(/\d+(?:[.,]\d{1,2})?/);
+  return match ? match[0].replace(',', '.') : '';
 }
 
 function loadAmazonProducts() {

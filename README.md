@@ -73,7 +73,7 @@ For copy, styling, or template changes: push to one of the branches above and `d
 | Path | Purpose |
 | --- | --- |
 | `index.html` | Generated static page published on GitHub Pages |
-| `templates/index.template.html` | Source template. Placeholders: `{{COUNT}}`, `{{LAST_UPDATED}}`, `{{CAMERA_CARDS}}` (filled from OLX data) and `{{PRICE_<ASIN>}}`, `{{IMAGE_<ASIN>}}`, `{{LAST_REFRESHED}}` (filled from `amazon-products.json`) |
+| `templates/index.template.html` | Source template. Placeholders: `{{COUNT}}`, `{{LAST_UPDATED}}`, `{{CAMERA_CARDS}}`, `{{CAMERA_JSONLD}}` (filled from OLX data) and `{{PRICE_<ASIN>}}`, `{{IMAGE_<ASIN>}}`, `{{LAST_REFRESHED}}` (filled from `amazon-products.json`) |
 | `scripts/discover-listings.js` | Auto-discovers my OLX offers and writes `product-links.txt` |
 | `scripts/build-catalog.js` | Node script that fetches metadata and renders the template |
 | `scripts/refresh-amazon.js` | Headless-browser scraper that updates Amazon prices + images in `amazon-products.json` |
@@ -82,6 +82,7 @@ For copy, styling, or template changes: push to one of the branches above and `d
 | `olx_meta.json` | Cached camera metadata (title / image / host / price) |
 | `404.html` | Styled 404 page served by GitHub Pages |
 | `favicon.svg`, `og-image.png` | Tab icon and social-share preview image |
+| `site.webmanifest` | PWA manifest (name, theme color, icon) linked from the template `<head>` |
 | `robots.txt`, `sitemap.xml` | SEO basics; both reference the `stareaparaty.com` domain |
 | `styles.css`, `retro.css`, `vintage_cameras.html` | Legacy hand-made page and its stylesheets. Not part of the generated site and no longer deployed — `index.html` carries all its styles inline in the template |
 | `.github/workflows/discover-cameras.yml` | Scheduled/push workflow: auto-discover cameras, rebuild, and deploy |
