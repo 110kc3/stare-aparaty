@@ -4,9 +4,23 @@
 
 > Note: bug #2 below (whole repo published as the Pages artifact) is fixed — internal docs like this file no longer ship to the live site.
 
-## What changed today
+## Change log (all 2026-06-13)
 
-- Added contact email **support@stareaparaty.com** to the page: a `Kontakt` link in the masthead nav and a `mailto:` line in the footer (`templates/index.template.html`), plus footer link styling. `index.html` regenerated via `node scripts/build-catalog.js` (17 listings, all metadata unchanged).
+**Session 1 — contact email**
+- Added **support@stareaparaty.com** to the page: a `Kontakt` link in the masthead nav and a `mailto:` line in the footer (`templates/index.template.html`), plus footer link styling. `index.html` regenerated.
+
+**Session 2 — deploy hardening + domain**
+- Fixed the `404.html` home link (finding #1) and switched both deploy workflows to a `dist/`-only artifact so internal docs/scripts/templates no longer publish (#2, also resolves the deploy half of #5).
+- Migrated all site URLs (canonical, OG/Twitter, sitemap, robots, 404 link) to the `stareaparaty.com` custom domain (#3 — code side).
+
+**Session 3 — docs accuracy**
+- Aligned GROWTH-PLAN's GoatCounter instructions to the live `kc-it` account (#6); refreshed the stale README structure table, workflow name, placeholder list, and added the `dist/`/custom-domain docs (#7).
+
+**Session 4 — code + a11y + housekeeping**
+- `decodeHtmlEntities()` now decodes `&amp;` last, fixing double-decode of nested entities (#4).
+- `formatPrice()` strips whitespace thousands separators before parsing, so prices like `1 234,56` no longer drop out (#10).
+- Added `.gitattributes` (`* text=auto eol=lf`) to stop the recurring LF→CRLF warnings on generated files (#11).
+- Added `:focus-visible` rings for keyboard navigation and a `prefers-reduced-motion` block to the template; `index.html` rebuilt (#12 + two TODO/UX items).
 
 ---
 
@@ -25,7 +39,7 @@
 
 ### Medium priority
 
-4. **`decodeHtmlEntities()` decodes in the wrong order** (`scripts/build-catalog.js:437`). `&amp;` is replaced first, so a listing title containing a double-encoded entity (e.g. `&amp;lt;`) decodes twice into a raw `<`. The decoded string is later re-escaped before rendering, so there is no injection risk — titles just display wrong. Fix: decode `&amp;` **last**.
+4. ~~**`decodeHtmlEntities()` decodes in the wrong order.**~~ ✅ **Fixed 2026-06-13.** `&amp;` was replaced first, so a double-encoded entity (e.g. `&amp;lt;`) decoded twice into a raw `<`. Reordered so `&amp;` is decoded **last**.
 
 5. **Legacy `vintage_cameras.html` is still tracked.** ✅ **Deploy side fixed 2026-06-13** — the `dist/`-only artifact (finding #2) no longer publishes it, so it's not publicly reachable or crawlable. It remains in the repo for reference; delete it if you want it gone entirely.
 
@@ -37,9 +51,9 @@
 
 8. **`discover-listings.js` regex depends on OLX's exact JSON key order** (`"title"…"status"…"url"…"user":{"id"`). If OLX reorders fields, discovery finds 0 offers and the workflow fails loudly while leaving `product-links.txt` untouched — safe failure mode, but expect an occasional red daily run.
 9. **HTTP 404 from OLX marks a listing as sold** (`build-catalog.js:125`). Deliberate, but a transient 404 (CDN hiccup) would stamp SPRZEDANE until the next successful daily run self-heals it.
-10. **`formatPrice()` drops prices with thousands separators in string form** (`"1 234,56"` → NaN → no chip). OLX JSON-LD emits plain numbers today, so currently unreachable.
-11. **Line endings**: git warns LF→CRLF on generated files. A small `.gitattributes` (`*.html text eol=lf` etc.) would silence this on Windows.
-12. **No `:focus-visible` styles** in the template — keyboard users get no focus indication on camera cards (hover-only outline). Small a11y win, already implied by a TODO item.
+10. ~~**`formatPrice()` drops prices with thousands separators in string form**~~ ✅ **Fixed 2026-06-13.** (`"1 234,56"` → NaN → no chip). Now strips whitespace (incl. NBSP/thin space) before parsing. Was unreachable with today's OLX data; hardened defensively.
+11. ~~**Line endings**: git warns LF→CRLF on generated files.~~ ✅ **Fixed 2026-06-13.** Added `.gitattributes` with `* text=auto eol=lf` (and `*.png binary`).
+12. ~~**No `:focus-visible` styles** in the template~~ ✅ **Fixed 2026-06-13.** Keyboard users got no focus indication (hover-only outline). Added `:focus-visible` rings for links, buttons, and both card types. Also added a `prefers-reduced-motion` block (separate TODO/UX item).
 
 ### Verified clean
 
@@ -67,27 +81,47 @@
 
 Also stale: the **prefers-reduced-motion** item references the `.retro` hover styles, which only exist on the legacy page — rewrite or drop it.
 
+### Done since the audit (2026-06-13)
+
+- `:focus-visible` keyboard focus styles ✅
+- `prefers-reduced-motion` support ✅
+- `decodeHtmlEntities` ordering (#4), `formatPrice` hardening (#10), `.gitattributes` for line endings (#11) ✅
+
 ### Genuinely open (validated as still-relevant)
 
-- Apple-touch-icon + web manifest
-- Product JSON-LD structured data
-- Self-host fonts (Google Fonts is still a render-blocking third-party request)
-- Lightbox for camera photos; `:focus-visible` styles; group cameras by type
-- PA-API price refresh (blocked on Amazon Associates approval — see deadline below)
-- Validate discovered URLs in workflow; cache OLX fetches; ESLint/Prettier; Lighthouse CI
-- Per-camera guide pages (GROWTH-PLAN's highest-leverage traffic item — none exist yet)
+**Small / self-contained (no external dependency):**
+- **Product JSON-LD structured data** — emit `Product`/`Offer` per camera card for Google rich results. Deferred deliberately: it touches rendered output and needs careful correctness (price/availability/escaping), so it deserves its own focused change + verification pass.
+- **Apple-touch-icon + web manifest** — blocked on a square PNG icon asset (e.g. 192×192 / 512×512) that doesn't exist yet; create the icon first, then wire up the manifest.
+- **Group cameras by type** (SLR / rangefinder / compact / instant) once the list grows past ~10.
+- **Validate discovered URLs in the workflow**; **cache OLX fetches**; **ESLint + Prettier** on `scripts/`; **Lighthouse CI** on PRs.
+
+**Larger / needs design or content work:**
+- **Self-host fonts** (Inter + Cormorant Garamond + Press Start 2P) to drop the render-blocking Google Fonts request.
+- **Lightbox for camera photos.**
+- **Per-camera guide pages** — GROWTH-PLAN's highest-leverage traffic item; none exist yet. Content work.
+
+**Blocked on external approval:**
+- **PA-API price refresh** — needs Amazon Associates approval (see deadline below); the Playwright scraper stays disabled until then.
+- **Allegro Affiliate** second button on film cards — needs an approved Allegro Affiliate account.
 
 ### GROWTH-PLAN action items — current state
 
-1. **GoatCounter registration** — ⚠️ unverifiable from the repo, and the code mismatch (#6 above) must be resolved first.
-2. **Google Search Console + sitemap submission** — not verifiable from the repo; sitemap is ready. Do this before writing guide pages so indexing data exists.
+1. **GoatCounter** — docs now point at the `kc-it` account (#6 resolved). ⚠️ Still do a one-time manual check that the `kc-it` dashboard is actually receiving events.
+2. **Google Search Console + sitemap submission** — not verifiable from the repo; sitemap is ready (and now points at `stareaparaty.com`). Do this once the custom domain is live, before writing guide pages.
 3. **First per-camera guide page** — not started. Still the single highest-leverage item.
 4. **Allegro Affiliate application** — not verifiable from the repo; no Allegro links present yet.
 5. **⏰ Amazon Associates deadline** — the plan (dated June 2026) warns the account closes with <3 qualifying sales in 180 days, killing the PA-API path. If nothing has sold by **autumn 2026**, expect to re-apply.
 
+### Manual steps still pending on your side (cannot be done from the repo)
+
+1. **Custom domain DNS + Pages setting** for `stareaparaty.com` (finding #3): apex `A` records → `185.199.108.153`, `.109.153`, `.110.153`, `.111.153`; `CNAME` `www` → `110kc3.github.io`; then **Settings → Pages → Custom domain** + **Enforce HTTPS**. Until this is done, the live github.io site carries canonical/OG tags pointing at a domain that isn't serving yet.
+2. **Verify the `kc-it` GoatCounter dashboard** is collecting events.
+3. **Google Search Console** property + sitemap submission (after the domain is live).
+
 ### Recommended order of attack
 
 1. ~~Fix the 404 link and the artifact `path: .` exposure.~~ ✅ Done 2026-06-13.
-2. Decide the domain question (#3) — it affects canonical/OG/sitemap and every future SEO step.
-3. Resolve the GoatCounter mismatch so measurement is trustworthy.
-4. Check off completed TODO items and write the first camera guide page.
+2. ~~Decide the domain question (#3).~~ ✅ Code migrated to `stareaparaty.com`; only DNS + Pages settings remain (manual, above).
+3. ~~Resolve the GoatCounter mismatch.~~ ✅ Docs aligned to `kc-it`; verify the dashboard.
+4. Finish the DNS/Pages cutover, then write the first camera guide page (highest-leverage growth item).
+5. Optional code follow-ups: Product JSON-LD, then font self-hosting and the CI niceties (ESLint/Prettier, Lighthouse, URL validation).

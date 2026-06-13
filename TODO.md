@@ -4,24 +4,24 @@ Ideas to improve Stare Aparaty. Ordered roughly by impact-per-effort within each
 
 ## Revenue & conversion
 
-- [ ] **Specific ASINs for the accessories section.** The three links under "Akcesoria" still go to Amazon search pages (`/s?k=...`). Search-result clicks convert far worse than product-page clicks. Pick one good item per category (strap, bag, film cartridge) and link to its `/dp/{ASIN}` page, same as the film section.
-- [ ] **Track affiliate click-through.** Drop in Plausible, GoatCounter, or GA4 and fire a `click` event with the camera/product name. Without this it's impossible to tell which listings or film cards are actually pulling weight.
-- [ ] **Show listing price on camera cards.** The OLX listing page already contains the price in its meta / JSON-LD — extend `build-catalog.js` to pull it and render as a small chip on the card. Lets visitors pre-qualify before clicking out.
+- [x] **Specific ASINs for the accessories section.** ~~The three links under "Akcesoria" still go to Amazon search pages.~~ Done — every product card links to a `/dp/{ASIN}` page.
+- [x] **Track affiliate click-through.** Done — GoatCounter (`kc-it` account) + outbound `out-olx-*` / `out-amazon-*` events fire from the template.
+- [x] **Show listing price on camera cards.** Done — `build-catalog.js` pulls price from OLX JSON-LD and renders a chip (cached in `olx_meta.json`).
 
 ## Discoverability / SEO
 
-- [ ] **Open Graph + Twitter card meta.** Currently if someone shares `stare-aparaty` on Messenger/FB/Slack, the preview is blank. Add `og:title`, `og:description`, `og:image` (a branded hero image), `og:url`, `twitter:card=summary_large_image` to the template `<head>`.
-- [ ] **Favicon + apple-touch-icon + web manifest.** Tab icon is currently the browser default. A simple pixelated camera icon would carry the retro vibe. Also unlocks "add to home screen" if a manifest is added.
-- [ ] **`robots.txt` + `sitemap.xml`.** Static, tiny, and a free SEO win. The site has only one canonical URL so the sitemap is ~6 lines.
+- [x] **Open Graph + Twitter card meta.** Done — full OG/Twitter set + canonical + branded `og-image.png` in the template `<head>` (URLs now point to `stareaparaty.com`).
+- [ ] **Favicon + apple-touch-icon + web manifest.** `favicon.svg` is done. Still pending: an `apple-touch-icon` and a `site.webmanifest` for "add to home screen" — both want a square PNG icon (e.g. 192×192 + 512×512) that doesn't exist yet, so this needs an icon asset created first.
+- [x] **`robots.txt` + `sitemap.xml`.** Done — both present, referencing the `stareaparaty.com` domain.
 - [ ] **Product JSON-LD.** Each camera card could emit `Product` / `Offer` structured data (price, availability, image, URL). Enables rich results in Google Shopping tabs.
 
 ## UX polish
 
-- [ ] **`loading="lazy"` on images.** The catalog fetches a lot of large OLX/Lomography images up front. Lazy-loading below-the-fold images speeds up initial paint on mobile.
-- [ ] **Preload the two Google Fonts stylesheets.** Or — safer — self-host Inter + Cormorant Garamond + Press Start 2P under `fonts/` with `woff2` and `font-display: swap`. Removes a third-party render-blocking request.
-- [ ] **Lightbox for camera photos.** Film cards already have a click-to-zoom. Cameras don't — clicking the image goes straight to OLX. Offering a quick zoom on the camera image lets visitors inspect wear/condition without leaving the page.
-- [ ] **Respect `prefers-reduced-motion`.** The `.retro` hover state animates a `translate` on buttons — wrap those transitions in `@media (prefers-reduced-motion: no-preference)`.
-- [ ] **Keyboard focus styles.** The custom `box-shadow: 0 10px 24px` on buttons blows away the browser's default focus ring. Add an explicit `:focus-visible` outline (2px solid `var(--accent)`, 2px offset).
+- [x] **`loading="lazy"` on images.** Done — below-the-fold images lazy-load (first row stays eager for fast above-the-fold paint).
+- [ ] **Preload the two Google Fonts stylesheets.** Or — safer — self-host Inter + Cormorant Garamond + Press Start 2P under `fonts/` with `woff2` and `font-display: swap`. Removes a third-party render-blocking request. *(Still open.)*
+- [ ] **Lightbox for camera photos.** Film cards already have a click-to-zoom. Cameras don't — clicking the image goes straight to OLX. Offering a quick zoom on the camera image lets visitors inspect wear/condition without leaving the page. *(Still open.)*
+- [x] **Respect `prefers-reduced-motion`.** Done — added a `@media (prefers-reduced-motion: reduce)` block that drops hover transforms, near-instant transitions, and smooth scrolling. (Note: the original `.retro` reference was the legacy page; the live template's `.product-card`/`.cam-card` hover transforms are what's now guarded.)
+- [x] **Keyboard focus styles.** Done — explicit `:focus-visible` outline (2px solid `var(--gold)`, 2px offset) on links, buttons, and both card types.
 - [ ] **Group cameras by type (SLR / Rangefinder / Compact / Instant).** Once the list grows past ~10 items a single grid starts feeling like a pile. Section headings mirror the B&W / Kolorowe split in the film area. (The grid itself already shows 4 per row with a centered short last row, so all discovered cameras display.)
 
 ## Build & workflow

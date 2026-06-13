@@ -1,0 +1,7 @@
+# Normalize line endings to LF everywhere. The build script (Node) writes
+# index.html / olx_meta.json with LF; without this, Windows checkouts rewrite
+# them to CRLF, producing noisy diffs and "LF will be replaced by CRLF" warnings.
+* text=auto eol=lf
+
+# Binary assets must never be line-ending converted.
+*.png binary

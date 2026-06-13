@@ -200,7 +200,9 @@ function extractJsonLdPrice(html) {
 }
 
 function formatPrice(amount, currency) {
-  const value = Number(String(amount).replace(',', '.'));
+  // Strip whitespace thousands separators (incl. NBSP/thin space) and treat a
+  // comma as the decimal point, so "1 234,56" parses instead of becoming NaN.
+  const value = Number(String(amount).replace(/\s/g, '').replace(',', '.'));
   if (!Number.isFinite(value) || value <= 0) {
     return '';
   }
@@ -435,12 +437,14 @@ function cleanupText(value) {
 }
 
 function decodeHtmlEntities(value) {
+  // &amp; is decoded last so a double-encoded entity (e.g. "&amp;lt;") becomes
+  // "&lt;" rather than collapsing all the way to a raw "<".
   return value
-    .replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>');
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&');
 }
 
 function escapeHtml(value) {

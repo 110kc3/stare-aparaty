@@ -365,6 +365,16 @@
     .footer a { color: var(--gold-dim); text-decoration: none; }
     .footer a:hover { color: var(--gold); text-decoration: underline; }
 
+    /* Keyboard focus — the hover outline never shows for keyboard users, so
+       give every interactive element a visible focus ring of its own. */
+    a:focus-visible,
+    button:focus-visible,
+    .cam-card:focus-visible,
+    .product-card:focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: 2px;
+    }
+
     @media (max-width: 900px) {
       .product-grid { grid-template-columns: repeat(2, 1fr); }
       .cam-card { flex-basis: calc((100% - 3px) / 2); }
@@ -375,6 +385,18 @@
       .shell { width: calc(100% - 16px); }
       .masthead { padding: 16px 18px; }
       .masthead__topline { flex-direction: column; align-items: flex-start; }
+    }
+
+    /* Respect users who ask for less motion — drop hover transforms,
+       near-instant transitions, and smooth scrolling. */
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+      }
+      .product-card:hover { transform: none; }
+      .cam-card:hover .cam-card__img { transform: none; }
     }
   </style>
 </head>
@@ -409,7 +431,7 @@
         <h2>Aparaty w ofercie</h2>
         <p>Kliknij kartę, aby przejść do ogłoszenia na OLX</p>
       </div>
-      <span class="label label--soft">Aktualizacja: 13 cze 2026, 18:28</span>
+      <span class="label label--soft">Aktualizacja: 13 cze 2026, 19:49</span>
     </div>
 
     <div class="camera-grid" aria-label="Katalog aparatów">
