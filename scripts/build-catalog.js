@@ -7,25 +7,24 @@ const ROOT_DIR = path.resolve(__dirname, '..');
 const LINKS_FILE = path.join(ROOT_DIR, 'product-links.txt');
 const TEMPLATE_FILE = path.join(ROOT_DIR, 'templates', 'index.template.html');
 const AMAZON_PRODUCTS_FILE = path.join(__dirname, 'amazon-products.json');
+const CAMERA_TYPES_FILE = path.join(__dirname, 'camera-types.json');
 const OUTPUT_HTML = path.join(ROOT_DIR, 'index.html');
 const OUTPUT_JSON = path.join(ROOT_DIR, 'olx_meta.json');
 
-const args = parseArgs(process.argv.slice(2));
-
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+// Up to this many listings are fetched at once. OLX tolerates a handful of
+// concurrent requests fine, and a bounded pool keeps the whole catalog from
+// rebuilding strictly one-at-a-time.
+const FETCH_CONCURRENCY = 5;
 
 async function main() {
+  const args = parseArgs(process.argv.slice(2));
   const links = loadLinks(args);
   const previousMetadata = loadPreviousMetadata();
-  const items = [];
 
-  for (const link of links) {
-    const item = await buildItem(link, previousMetadata.get(link));
-    items.push(item);
-  }
+  // Fetch listings concurrently (bounded) but keep the original link order.
+  const items = await mapWithConcurrency(links, FETCH_CONCURRENCY, (link) =>
+    buildItem(link, previousMetadata.get(link)),
+  );
 
   const normalizedItems = items.map((item, index) => ({
     id: index + 1,
@@ -41,10 +40,66 @@ async function main() {
     fs.writeFileSync(LINKS_FILE, `${links.join('\n')}\n`, 'utf8');
   }
 
+  const html = renderIndex(normalizedItems);
+  assertRenderedOutput(html, normalizedItems.length);
+
   fs.writeFileSync(OUTPUT_JSON, `${JSON.stringify(normalizedItems, null, 2)}\n`, 'utf8');
-  fs.writeFileSync(OUTPUT_HTML, renderIndex(normalizedItems), 'utf8');
+  fs.writeFileSync(OUTPUT_HTML, html, 'utf8');
 
   console.log(`Built catalog with ${normalizedItems.length} item(s).`);
+}
+
+// Run `fn` over `items` with at most `limit` in flight, preserving input order
+// in the returned results array.
+async function mapWithConcurrency(items, limit, fn) {
+  const results = new Array(items.length);
+  let cursor = 0;
+
+  async function worker() {
+    while (cursor < items.length) {
+      const index = cursor;
+      cursor += 1;
+      results[index] = await fn(items[index], index);
+    }
+  }
+
+  const workerCount = Math.max(1, Math.min(limit, items.length));
+  await Promise.all(Array.from({ length: workerCount }, () => worker()));
+  return results;
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// fetch() with a hard timeout and one retry. Without this a single hung OLX
+// connection would stall the entire build (and the daily CI job) indefinitely.
+async function fetchWithRetry(url, options = {}, { timeoutMs = 10000, retries = 1 } = {}) {
+  let lastError;
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    try {
+      return await fetch(url, { ...options, signal: AbortSignal.timeout(timeoutMs) });
+    } catch (error) {
+      lastError = error;
+      if (attempt < retries) {
+        await delay(300 * (attempt + 1));
+      }
+    }
+  }
+  throw lastError;
+}
+
+// Guard against shipping a half-rendered page: any leftover {{PLACEHOLDER}} or
+// (when we have links) a card-less grid means the template/data drifted.
+function assertRenderedOutput(html, itemCount) {
+  const leftover = html.match(/\{\{[A-Z0-9_]+\}\}/g);
+  if (leftover) {
+    const unique = [...new Set(leftover)].join(', ');
+    throw new Error(`Refusing to write index.html: unresolved placeholders (${unique}).`);
+  }
+  if (itemCount > 0 && !html.includes('cam-card')) {
+    throw new Error('Refusing to write index.html: expected camera cards but none were rendered.');
+  }
 }
 
 function parseArgs(argv) {
@@ -111,7 +166,7 @@ function loadPreviousMetadata() {
 
 async function buildItem(url, fallbackItem) {
   try {
-    const response = await fetch(url, {
+    const response = await fetchWithRetry(url, {
       headers: {
         'user-agent': 'Mozilla/5.0 (compatible; StareAparatyBot/1.0; +https://github.com/110kc3/stare-aparaty)',
         'accept-language': 'pl-PL,pl;q=0.9,en;q=0.8',
@@ -119,10 +174,13 @@ async function buildItem(url, fallbackItem) {
       redirect: 'follow',
     });
 
-    // OLX returns 410 (Gone) — and sometimes 404 — when a listing is removed,
-    // which almost always means the camera was sold. Mark the card so the
-    // template can render a SPRZEDANE state instead of a broken click.
-    if (response.status === 410 || response.status === 404) {
+    // OLX returns 410 (Gone) when a listing is permanently removed, which
+    // almost always means the camera was sold. Mark the card so the template
+    // can render a SPRZEDANE state instead of a broken click. A 404, by
+    // contrast, can be a transient CDN hiccup, so we deliberately do NOT flip
+    // to sold on it — it falls through to the !response.ok path below, which
+    // preserves whatever sold state we already knew.
+    if (response.status === 410) {
       console.warn(`Listing gone (HTTP ${response.status}) — marking sold: ${url}`);
       return {
         title: fallbackItem?.title || buildFallbackTitle(url),
@@ -326,9 +384,6 @@ function createPlaceholderImage(title) {
 
 function renderIndex(items) {
   let rendered = fs.readFileSync(TEMPLATE_FILE, 'utf8');
-  const renderedCards = items.length > 0
-    ? items.map((item, index) => renderCard(item, index)).join('\n')
-    : '      <p style="grid-column:1/-1;padding:24px;color:var(--ink-soft);text-align:center;">Brak ofert do wyświetlenia w tej chwili.</p>';
 
   const lastUpdated = new Intl.DateTimeFormat('pl-PL', {
     dateStyle: 'medium',
@@ -339,7 +394,7 @@ function renderIndex(items) {
   rendered = rendered
     .replace('{{COUNT}}', String(items.length))
     .replace('{{LAST_UPDATED}}', escapeHtml(lastUpdated))
-    .replace('{{CAMERA_CARDS}}', renderedCards)
+    .replace('{{CAMERA_CARDS}}', renderCameraCatalog(items))
     .replace('{{CAMERA_JSONLD}}', renderProductJsonLd(items));
 
   // Inject Amazon prices + images (managed by scripts/refresh-amazon.js).
@@ -425,6 +480,111 @@ function loadAmazonProducts() {
   }
 }
 
+function loadTypeConfig() {
+  const fallbackConfig = { rules: [], fallback: 'Inne', order: [] };
+  if (!fs.existsSync(CAMERA_TYPES_FILE)) {
+    return fallbackConfig;
+  }
+  try {
+    const config = JSON.parse(fs.readFileSync(CAMERA_TYPES_FILE, 'utf8'));
+    return {
+      rules: Array.isArray(config.rules) ? config.rules : [],
+      fallback: config.fallback || 'Inne',
+      order: Array.isArray(config.order) ? config.order : [],
+    };
+  } catch (error) {
+    console.warn(`Could not read ${CAMERA_TYPES_FILE}: ${error.message}`);
+    return fallbackConfig;
+  }
+}
+
+// First matching keyword rule wins; otherwise the configured fallback type.
+// A needle prefixed with "^" must match the START of the title rather than
+// appear anywhere — this distinguishes a standalone "Obiektyw ..." (a lens)
+// from a camera listed "... z obiektywem ..." (with a lens).
+function classifyType(title, config) {
+  const haystack = String(title).toLowerCase().trimStart();
+  for (const rule of config.rules || []) {
+    const needles = Array.isArray(rule.match) ? rule.match : [];
+    if (needles.some((needle) => matchesNeedle(haystack, needle))) {
+      return rule.type;
+    }
+  }
+  return config.fallback;
+}
+
+function matchesNeedle(haystack, needle) {
+  const n = String(needle).toLowerCase();
+  return n.startsWith('^') ? haystack.startsWith(n.slice(1)) : haystack.includes(n);
+}
+
+// Bucket items by type, returning [type, items[]] pairs in the configured
+// order. Non-empty buckets only; any type not named in `order` is appended in
+// first-seen order so a newly added label still shows up.
+function groupByType(items, config) {
+  const buckets = new Map();
+  for (const item of items) {
+    const type = classifyType(item.title, config);
+    if (!buckets.has(type)) {
+      buckets.set(type, []);
+    }
+    buckets.get(type).push(item);
+  }
+
+  const ordered = [];
+  const placed = new Set();
+  for (const type of config.order || []) {
+    if (buckets.has(type)) {
+      ordered.push([type, buckets.get(type)]);
+      placed.add(type);
+    }
+  }
+  for (const [type, group] of buckets) {
+    if (!placed.has(type)) {
+      ordered.push([type, group]);
+    }
+  }
+  return ordered;
+}
+
+// Render the camera section's inner markup. With a single (or zero) type the
+// grid stays flat — no point in a lone heading. With several types, each gets a
+// labelled sub-section so a long list reads as groups instead of one pile.
+function renderCameraCatalog(items) {
+  if (items.length === 0) {
+    return '    <div class="camera-grid" aria-label="Katalog aparatów">\n'
+      + '      <p style="flex:1;padding:24px;color:var(--ink-soft);text-align:center;">'
+      + 'Brak ofert do wyświetlenia w tej chwili.</p>\n'
+      + '    </div>';
+  }
+
+  const groups = groupByType(items, loadTypeConfig());
+
+  // A single global counter so only the first 4 images across the whole
+  // catalog load eagerly (above-the-fold), regardless of grouping.
+  let imageIndex = 0;
+  const renderGroupCards = (group) =>
+    group.map((item) => renderCard(item, imageIndex++)).join('\n');
+
+  if (groups.length <= 1) {
+    return '    <div class="camera-grid" aria-label="Katalog aparatów">'
+      + `${renderGroupCards(groups[0][1])}\n    </div>`;
+  }
+
+  const sections = groups
+    .map(([type, group]) =>
+      '      <div class="cam-group">\n'
+      + '        <div class="cam-group__head">'
+      + `<span class="label">${escapeHtml(type)}</span>`
+      + `<span class="cam-group__count">${group.length} szt.</span></div>\n`
+      + '        <div class="camera-grid">'
+      + `${renderGroupCards(group)}\n        </div>\n`
+      + '      </div>')
+    .join('\n');
+
+  return `    <div class="camera-catalog" aria-label="Katalog aparatów">\n${sections}\n    </div>`;
+}
+
 function renderCard(item, index = 0) {
   // First row (4 cards) loads eagerly for fast above-the-fold paint;
   // everything below lazy-loads.
@@ -433,34 +593,55 @@ function renderCard(item, index = 0) {
     ? `\n          <span class="cam-card__price">${escapeHtml(item.price)}</span>`
     : '';
 
-  if (item.sold) {
-    return `
-      <div class="cam-card cam-card--sold" aria-label="Sprzedane">
-        <div class="cam-card__img-wrap">
-          <img class="cam-card__img"${loadingAttrs} src="${escapeAttribute(item.image)}" alt="${escapeAttribute(item.title)}">
-          <div class="cam-card__sold-badge"><span class="cam-card__sold-stamp">SPRZEDANE</span></div>
-        </div>
-        <div class="cam-card__strip">
-          <div>
-            <p class="cam-card__name">${escapeHtml(item.title)}</p>
-            <p class="cam-card__detail">${escapeHtml(item.host)} · sprzedane</p>
+  // The card itself stays a single link to OLX (the conversion path). The zoom
+  // button is a SIBLING of that link inside the shell — not nested in the <a>
+  // (which would be invalid HTML) — so a click on it opens the lightbox without
+  // navigating to OLX and without tripping the outbound-link tracker.
+  const zoom = renderZoomButton(item);
+
+  const card = item.sold
+    ? `<div class="cam-card cam-card--sold" aria-label="Sprzedane">
+          <div class="cam-card__img-wrap">
+            <img class="cam-card__img"${loadingAttrs} src="${escapeAttribute(item.image)}" alt="${escapeAttribute(item.title)}">
+            <div class="cam-card__sold-badge"><span class="cam-card__sold-stamp">SPRZEDANE</span></div>
           </div>
-        </div>
-      </div>`;
-  }
+          <div class="cam-card__strip">
+            <div>
+              <p class="cam-card__name">${escapeHtml(item.title)}</p>
+              <p class="cam-card__detail">${escapeHtml(item.host)} · sprzedane</p>
+            </div>
+          </div>
+        </div>`
+    : `<a class="cam-card" href="${escapeAttribute(item.url)}" target="_blank" rel="noopener noreferrer">
+          <div class="cam-card__img-wrap">
+            <img class="cam-card__img"${loadingAttrs} src="${escapeAttribute(item.image)}" alt="${escapeAttribute(item.title)}">${priceChip}
+            <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
+          </div>
+          <div class="cam-card__strip">
+            <div>
+              <p class="cam-card__name">${escapeHtml(item.title)}</p>
+              <p class="cam-card__detail">${escapeHtml(item.host)}</p>
+            </div>
+          </div>
+        </a>`;
+
   return `
-      <a class="cam-card" href="${escapeAttribute(item.url)}" target="_blank" rel="noopener noreferrer">
-        <div class="cam-card__img-wrap">
-          <img class="cam-card__img"${loadingAttrs} src="${escapeAttribute(item.image)}" alt="${escapeAttribute(item.title)}">${priceChip}
-          <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
-        </div>
-        <div class="cam-card__strip">
-          <div>
-            <p class="cam-card__name">${escapeHtml(item.title)}</p>
-            <p class="cam-card__detail">${escapeHtml(item.host)}</p>
-          </div>
-        </div>
-      </a>`;
+      <div class="cam-card-shell">
+        ${card}${zoom}
+      </div>`;
+}
+
+// A magnifier button overlaid on the card image that opens the lightbox.
+// Skipped for the generated SVG placeholder (nothing useful to enlarge).
+function renderZoomButton(item) {
+  if (!item.image || item.image.startsWith('data:')) {
+    return '';
+  }
+  const icon = '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false">'
+    + '<path fill="currentColor" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/>'
+    + '</svg>';
+  return `
+        <button type="button" class="cam-card__zoom" data-full="${escapeAttribute(item.image)}" aria-label="Powiększ zdjęcie: ${escapeAttribute(item.title)}">${icon}</button>`;
 }
 
 function absolutizeUrl(value, baseUrl) {
@@ -514,3 +695,24 @@ function escapeXml(value) {
 function escapeRegex(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
+
+if (require.main === module) {
+  main().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
+}
+
+module.exports = {
+  formatPrice,
+  decodeHtmlEntities,
+  priceToNumber,
+  cleanupText,
+  normalizeLinks,
+  assertRenderedOutput,
+  mapWithConcurrency,
+  classifyType,
+  groupByType,
+  escapeHtml,
+  escapeAttribute,
+};
