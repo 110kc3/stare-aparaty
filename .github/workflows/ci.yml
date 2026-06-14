@@ -1,0 +1,31 @@
+name: CI
+
+# Runs the unit tests for the build/discovery scripts on every PR and on pushes
+# to the working branches. No dependencies are installed: the scripts and tests
+# use only Node's built-in modules (node:test, node:assert), matching the repo's
+# deliberately dependency-free build path.
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+      - update-film-info
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run unit tests
+        run: node --test

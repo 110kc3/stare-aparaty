@@ -53,8 +53,8 @@
 
 ### Low priority / by design (verified OK, documenting the edge)
 
-8. **`discover-listings.js` regex depends on OLX's exact JSON key order** (`"title"…"status"…"url"…"user":{"id"`). If OLX reorders fields, discovery finds 0 offers and the workflow fails loudly while leaving `product-links.txt` untouched — safe failure mode, but expect an occasional red daily run.
-9. **HTTP 404 from OLX marks a listing as sold** (`build-catalog.js:125`). Deliberate, but a transient 404 (CDN hiccup) would stamp SPRZEDANE until the next successful daily run self-heals it.
+8. ~~**`discover-listings.js` regex depends on OLX's exact JSON key order**~~ ✅ **Hardened 2026-06-14.** The strict order-dependent regex is still tried first, but `extractOffers` now falls back to an order-independent parser (`extractOffersLoose`: anchor on each offer URL, attach the nearest title/status/owner) when the strict pass returns 0 — so a key reorder degrades gracefully instead of producing a red daily run.
+9. ~~**HTTP 404 from OLX marks a listing as sold**~~ ✅ **Fixed 2026-06-14.** Only a definitive **410 Gone** now marks a card SPRZEDANE; a 404 falls through to the transient-error path, which preserves the previously-known sold state instead of stamping SPRZEDANE on a CDN hiccup.
 10. ~~**`formatPrice()` drops prices with thousands separators in string form**~~ ✅ **Fixed 2026-06-13.** (`"1 234,56"` → NaN → no chip). Now strips whitespace (incl. NBSP/thin space) before parsing. Was unreachable with today's OLX data; hardened defensively.
 11. ~~**Line endings**: git warns LF→CRLF on generated files.~~ ✅ **Fixed 2026-06-13.** Added `.gitattributes` with `* text=auto eol=lf` (and `*.png binary`).
 12. ~~**No `:focus-visible` styles** in the template~~ ✅ **Fixed 2026-06-13.** Keyboard users got no focus indication (hover-only outline). Added `:focus-visible` rings for links, buttons, and both card types. Also added a `prefers-reduced-motion` block (separate TODO/UX item).
@@ -96,13 +96,16 @@ Also stale: the **prefers-reduced-motion** item references the `.retro` hover st
 ### Genuinely open (validated as still-relevant)
 
 **Small / self-contained (no external dependency):**
-- **Apple-touch-icon (PNG).** The web manifest now ships with the SVG favicon as its icon, which Android/Chrome accept, but iOS Safari ignores SVG for home-screen icons. A square raster PNG (e.g. 180×180 `apple-touch-icon.png`, plus 192/512 for the manifest) is needed for a proper iOS icon. Blocked on producing that PNG asset.
-- **Group cameras by type** (SLR / rangefinder / compact / instant) once the list grows past ~10.
+- ~~**Apple-touch-icon (PNG).**~~ ✅ **Done 2026-06-14.** `scripts/generate-icons.js` rasterizes the pixel-art favicon into `apple-touch-icon.png` (180×180, linked in `<head>`) plus `icon-192/512.png` (added to the manifest); all three ship in both workflows' `dist/`.
+- ~~**Group cameras by type** (SLR / rangefinder / compact / instant)~~ ✅ **Done 2026-06-14.** Title-based classification (`scripts/camera-types.json`) renders a labelled sub-section per non-empty type; flat grid when only one type.
 - **Validate discovered URLs in the workflow**; **cache OLX fetches**; **ESLint + Prettier** on `scripts/`; **Lighthouse CI** on PRs.
 
+**Reliability hardening (done 2026-06-14):**
+- Fetch timeout + retry in both scrapers; bounded-concurrency listing fetches; 410-only sold detection; order-independent OLX offer fallback parser; `assertRenderedOutput` build guard; `node:test` suite + `ci.yml`.
+
 **Larger / needs design or content work:**
-- **Self-host fonts** (Inter + Cormorant Garamond + Press Start 2P) to drop the render-blocking Google Fonts request.
-- **Lightbox for camera photos.**
+- ~~**Self-host fonts**~~ ✅ **Done 2026-06-14.** `scripts/fetch-fonts.js` → `fonts/` (woff2, latin + latin-ext) + `fonts/fonts.css`; template drops the Google Fonts request.
+- ~~**Lightbox for camera photos.**~~ ✅ **Done 2026-06-14.** Magnifier button (sibling of the OLX link) opens an accessible lightbox; card still links to OLX.
 - **Per-camera guide pages** — GROWTH-PLAN's highest-leverage traffic item; none exist yet. Content work.
 
 **Blocked on external approval:**
@@ -120,6 +123,7 @@ Also stale: the **prefers-reduced-motion** item references the `.retro` hover st
 ### Manual steps still pending on your side (cannot be done from the repo)
 
 1. **Custom domain DNS + Pages setting** for `stareaparaty.com` (finding #3): apex `A` records → `185.199.108.153`, `.109.153`, `.110.153`, `.111.153`; `CNAME` `www` → `110kc3.github.io`; then **Settings → Pages → Custom domain** + **Enforce HTTPS**. Until this is done, the live github.io site carries canonical/OG tags pointing at a domain that isn't serving yet.
+   - ⚠️ **`CNAME` file gap (do this as part of the cutover, not before).** Both deploy workflows publish a `dist/`-only artifact via `actions/deploy-pages`. With the Actions deploy path the custom domain set in Settings is not reliably retained across deploys unless a `CNAME` file is included in the uploaded artifact — each deploy can otherwise clear the custom-domain setting. So when you do the cutover: add a repo-root `CNAME` file containing `stareaparaty.com` **and** add `CNAME` to the `cp … dist/` line in *both* `.github/workflows/deploy-pages.yml` and `.github/workflows/discover-cameras.yml`. Do **not** add it earlier: with DNS not yet pointed at Pages, a live `CNAME` would make Pages serve on a domain that 404s and break the working github.io site.
 2. **Verify the `kc-it` GoatCounter dashboard** is collecting events.
 3. **Google Search Console** property + sitemap submission (after the domain is live).
 

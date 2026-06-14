@@ -21,12 +21,14 @@
 
   <!-- Favicon + PWA manifest -->
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="manifest" href="site.webmanifest">
   <meta name="theme-color" content="#0e0b08">
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <!-- Self-hosted fonts (latin + latin-ext) — no render-blocking third-party
+       request. Regenerate with: node scripts/fetch-fonts.js -->
+  <link rel="preload" as="font" type="font/woff2" href="fonts/inter-400-latin.woff2" crossorigin>
+  <link rel="stylesheet" href="fonts/fonts.css">
   <script>
     (function(){
       try {
@@ -196,17 +198,67 @@
       padding: 3px;
     }
 
-    .cam-card {
-      /* 4 per row; the 3 gaps of 3px are subtracted so widths stay exact.
-         flex-wrap + justify-content:center keeps a short last row centered. */
+    /* Grouped catalog: a vertical stack of labelled type sections, each its
+       own .camera-grid. Falls back to a single flat grid when there is only
+       one type. */
+    .camera-catalog { display: flex; flex-direction: column; gap: 26px; }
+    .cam-group__head {
+      display: flex; align-items: baseline; gap: 12px; margin: 0 0 10px;
+    }
+    .cam-group__count {
+      font-size: 12px; color: var(--ink-soft); letter-spacing: 0.04em;
+    }
+
+    .cam-card-shell {
+      /* The flex item: 4 per row; the 3 gaps of 3px are subtracted so widths
+         stay exact. flex-wrap + justify-content:center keeps a short last row
+         centered. Positioned so the zoom button can overlay the image. */
       flex: 0 0 calc((100% - 9px) / 4);
+      position: relative;
+    }
+    .cam-card {
       display: block; text-decoration: none; color: inherit;
       background: var(--bg-card);
-      overflow: hidden;
+      overflow: hidden; height: 100%;
       transition: outline 120ms;
       outline: 2px solid transparent;
     }
     .cam-card:hover { outline: 2px solid var(--gold); z-index: 2; position: relative; }
+
+    /* Zoom button: overlays the image top-right, opens the lightbox. Hidden
+       until hover/focus on pointer devices; always visible on touch. */
+    .cam-card__zoom {
+      position: absolute; top: 6px; right: 6px; z-index: 4;
+      width: 30px; height: 30px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border: 1px solid var(--line-gold);
+      background: rgba(14, 11, 8, 0.72); color: var(--gold);
+      cursor: zoom-in; padding: 0;
+      opacity: 0; transition: opacity 160ms, background 160ms;
+    }
+    .cam-card-shell:hover .cam-card__zoom,
+    .cam-card__zoom:focus-visible { opacity: 1; }
+    .cam-card__zoom:hover { background: rgba(14, 11, 8, 0.92); }
+    @media (hover: none) { .cam-card__zoom { opacity: 1; } }
+
+    /* Lightbox overlay for enlarging a camera photo without leaving the page. */
+    .lightbox {
+      position: fixed; inset: 0; z-index: 100;
+      display: none; align-items: center; justify-content: center;
+      background: rgba(8, 6, 4, 0.92); padding: 24px; cursor: zoom-out;
+    }
+    .lightbox.is-open { display: flex; }
+    .lightbox__img {
+      max-width: min(1100px, 100%); max-height: 100%; object-fit: contain;
+      border: 2px solid var(--line-gold); box-shadow: 0 8px 40px var(--shadow);
+      cursor: default;
+    }
+    .lightbox__close {
+      position: absolute; top: 14px; right: 18px;
+      background: none; border: 1px solid var(--line-gold); color: var(--gold);
+      font-family: var(--retro); font-size: 9px; letter-spacing: 0.1em;
+      padding: 8px 10px; cursor: pointer;
+    }
     .cam-card__img-wrap {
       position: relative; overflow: hidden; aspect-ratio: 4/3;
       background: #111;
@@ -436,9 +488,7 @@
       <span class="label label--soft">Aktualizacja: {{LAST_UPDATED}}</span>
     </div>
 
-    <div class="camera-grid" aria-label="Katalog aparatów">
 {{CAMERA_CARDS}}
-    </div>
   </section>
 
   <div class="filmstrip" style="margin-top: 32px;" aria-hidden="true"></div>
@@ -602,7 +652,55 @@
 
 </div><!-- /.shell -->
 
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Podgląd zdjęcia" hidden>
+  <button type="button" class="lightbox__close" id="lightbox-close" aria-label="Zamknij podgląd">✕ ZAMKNIJ</button>
+  <img class="lightbox__img" id="lightbox-img" src="" alt="">
+</div>
+
 {{CAMERA_JSONLD}}
+
+<script>
+  // Camera-photo lightbox. The zoom buttons are siblings of the OLX link, so
+  // opening a photo never navigates away or fires an outbound-click event.
+  (function () {
+    var box = document.getElementById('lightbox');
+    var img = document.getElementById('lightbox-img');
+    var closeBtn = document.getElementById('lightbox-close');
+    if (!box || !img) return;
+    var lastFocus = null;
+
+    function open(src, alt) {
+      lastFocus = document.activeElement;
+      img.setAttribute('src', src);
+      img.setAttribute('alt', alt || '');
+      box.hidden = false;
+      box.classList.add('is-open');
+      if (closeBtn) closeBtn.focus();
+    }
+
+    function close() {
+      box.classList.remove('is-open');
+      box.hidden = true;
+      img.setAttribute('src', '');
+      if (lastFocus && lastFocus.focus) lastFocus.focus();
+    }
+
+    document.addEventListener('click', function (event) {
+      var trigger = event.target.closest ? event.target.closest('.cam-card__zoom') : null;
+      if (trigger) {
+        event.preventDefault();
+        open(trigger.getAttribute('data-full'), trigger.getAttribute('aria-label'));
+        return;
+      }
+      // A click on the backdrop or the close button (but not the image) closes.
+      if (!box.hidden && event.target !== img) close();
+    });
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && !box.hidden) close();
+    });
+  })();
+</script>
 
 <script>
   (function () {

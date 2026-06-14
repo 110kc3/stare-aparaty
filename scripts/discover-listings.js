@@ -72,19 +72,44 @@ function parseArgs(argv) {
   return out;
 }
 
-async function fetchHtml(url) {
-  const res = await fetch(url, {
-    headers: { 'User-Agent': USER_AGENT, 'Accept-Language': 'pl-PL,pl;q=0.9' },
-    redirect: 'follow',
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.text();
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchHtml(url, { timeoutMs = 10000, retries = 1 } = {}) {
+  let lastError;
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    try {
+      const res = await fetch(url, {
+        headers: { 'User-Agent': USER_AGENT, 'Accept-Language': 'pl-PL,pl;q=0.9' },
+        redirect: 'follow',
+        signal: AbortSignal.timeout(timeoutMs),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.text();
+    } catch (err) {
+      lastError = err;
+      if (attempt < retries) await delay(300 * (attempt + 1));
+    }
+  }
+  throw lastError;
 }
 
 // Pull every offer (title, status, url, ownerId) out of one page's embedded
-// JSON.
+// JSON. Tries a tight key-order-dependent regex first; if OLX ever reorders
+// those keys (which would otherwise yield zero offers and fail the run), falls
+// back to a looser, order-independent scan.
 function extractOffers(html) {
-  const text = html.replace(/\\+u002F/gi, '/').replace(/\\+"/g, '"');
+  const strict = extractOffersStrict(html);
+  return strict.length > 0 ? strict : extractOffersLoose(html);
+}
+
+function unescapeBlob(html) {
+  return html.replace(/\\+u002F/gi, '/').replace(/\\+"/g, '"');
+}
+
+function extractOffersStrict(html) {
+  const text = unescapeBlob(html);
   const re =
     /"title":"([^"]*)","status":"([^"]*)","url":"(https:\/\/www\.olx\.pl\/d\/oferta\/[A-Za-z0-9-]+\.html)","user":\{"id":(\d+)/g;
   const offers = [];
@@ -98,6 +123,62 @@ function extractOffers(html) {
     });
   }
   return offers;
+}
+
+// Order-independent recovery parser: anchor on each offer URL, then attach the
+// title / status / owner id whose position is *nearest* to that URL. Less
+// precise than the strict parser (a field could in theory bleed from a
+// neighbouring offer), but within a single offer object the fields sit a few
+// hundred chars apart, so nearest-wins resolves them reliably — and the
+// downstream owner-frequency filter mops up any stray cross-bleed. "Roughly
+// right" beats "zero offers, red run" when OLX changes its key order.
+function extractOffersLoose(html) {
+  const text = unescapeBlob(html);
+  const urlRe = /"url":"(https:\/\/www\.olx\.pl\/d\/oferta\/[A-Za-z0-9-]+\.html)"/g;
+  const titles = collectMatches(text, /"title":"([^"]*)"/g);
+  const owners = collectMatches(text, /"user":\{[^}]*?"id":(\d+)/g);
+  const statuses = collectMatches(text, /"status":"([^"]*)"/g);
+
+  const offers = [];
+  const seen = new Set();
+  let m;
+  while ((m = urlRe.exec(text)) !== null) {
+    const url = m[1];
+    if (seen.has(url)) continue;
+    const title = nearestValue(titles, m.index);
+    const ownerId = nearestValue(owners, m.index);
+    if (title === undefined || ownerId === undefined) continue;
+    seen.add(url);
+    offers.push({
+      title: decodeUnicode(title),
+      status: nearestValue(statuses, m.index) || '',
+      url,
+      ownerId,
+    });
+  }
+  return offers;
+}
+
+function collectMatches(text, re) {
+  const out = [];
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    out.push({ index: m.index, value: m[1] });
+  }
+  return out;
+}
+
+function nearestValue(matches, anchorIndex) {
+  let best;
+  let bestDistance = Infinity;
+  for (const match of matches) {
+    const distance = Math.abs(match.index - anchorIndex);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = match.value;
+    }
+  }
+  return best;
 }
 
 function decodeUnicode(value) {
@@ -204,7 +285,18 @@ async function main() {
   console.log(`\nWrote ${kept.length} link(s) to ${args.outFile}`);
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exitCode = 1;
-});
+if (require.main === module) {
+  main().catch((err) => {
+    console.error(err);
+    process.exitCode = 1;
+  });
+}
+
+module.exports = {
+  extractOffers,
+  extractOffersStrict,
+  extractOffersLoose,
+  decodeUnicode,
+  matchesKeyword,
+  withPage,
+};

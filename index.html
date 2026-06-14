@@ -21,12 +21,14 @@
 
   <!-- Favicon + PWA manifest -->
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="manifest" href="site.webmanifest">
   <meta name="theme-color" content="#0e0b08">
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <!-- Self-hosted fonts (latin + latin-ext) — no render-blocking third-party
+       request. Regenerate with: node scripts/fetch-fonts.js -->
+  <link rel="preload" as="font" type="font/woff2" href="fonts/inter-400-latin.woff2" crossorigin>
+  <link rel="stylesheet" href="fonts/fonts.css">
   <script>
     (function(){
       try {
@@ -196,17 +198,67 @@
       padding: 3px;
     }
 
-    .cam-card {
-      /* 4 per row; the 3 gaps of 3px are subtracted so widths stay exact.
-         flex-wrap + justify-content:center keeps a short last row centered. */
+    /* Grouped catalog: a vertical stack of labelled type sections, each its
+       own .camera-grid. Falls back to a single flat grid when there is only
+       one type. */
+    .camera-catalog { display: flex; flex-direction: column; gap: 26px; }
+    .cam-group__head {
+      display: flex; align-items: baseline; gap: 12px; margin: 0 0 10px;
+    }
+    .cam-group__count {
+      font-size: 12px; color: var(--ink-soft); letter-spacing: 0.04em;
+    }
+
+    .cam-card-shell {
+      /* The flex item: 4 per row; the 3 gaps of 3px are subtracted so widths
+         stay exact. flex-wrap + justify-content:center keeps a short last row
+         centered. Positioned so the zoom button can overlay the image. */
       flex: 0 0 calc((100% - 9px) / 4);
+      position: relative;
+    }
+    .cam-card {
       display: block; text-decoration: none; color: inherit;
       background: var(--bg-card);
-      overflow: hidden;
+      overflow: hidden; height: 100%;
       transition: outline 120ms;
       outline: 2px solid transparent;
     }
     .cam-card:hover { outline: 2px solid var(--gold); z-index: 2; position: relative; }
+
+    /* Zoom button: overlays the image top-right, opens the lightbox. Hidden
+       until hover/focus on pointer devices; always visible on touch. */
+    .cam-card__zoom {
+      position: absolute; top: 6px; right: 6px; z-index: 4;
+      width: 30px; height: 30px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border: 1px solid var(--line-gold);
+      background: rgba(14, 11, 8, 0.72); color: var(--gold);
+      cursor: zoom-in; padding: 0;
+      opacity: 0; transition: opacity 160ms, background 160ms;
+    }
+    .cam-card-shell:hover .cam-card__zoom,
+    .cam-card__zoom:focus-visible { opacity: 1; }
+    .cam-card__zoom:hover { background: rgba(14, 11, 8, 0.92); }
+    @media (hover: none) { .cam-card__zoom { opacity: 1; } }
+
+    /* Lightbox overlay for enlarging a camera photo without leaving the page. */
+    .lightbox {
+      position: fixed; inset: 0; z-index: 100;
+      display: none; align-items: center; justify-content: center;
+      background: rgba(8, 6, 4, 0.92); padding: 24px; cursor: zoom-out;
+    }
+    .lightbox.is-open { display: flex; }
+    .lightbox__img {
+      max-width: min(1100px, 100%); max-height: 100%; object-fit: contain;
+      border: 2px solid var(--line-gold); box-shadow: 0 8px 40px var(--shadow);
+      cursor: default;
+    }
+    .lightbox__close {
+      position: absolute; top: 14px; right: 18px;
+      background: none; border: 1px solid var(--line-gold); color: var(--gold);
+      font-family: var(--retro); font-size: 9px; letter-spacing: 0.1em;
+      padding: 8px 10px; cursor: pointer;
+    }
     .cam-card__img-wrap {
       position: relative; overflow: hidden; aspect-ratio: 4/3;
       background: #111;
@@ -433,248 +485,319 @@
         <h2>Aparaty w ofercie</h2>
         <p>Kliknij kartę, aby przejść do ogłoszenia na OLX</p>
       </div>
-      <span class="label label--soft">Aktualizacja: 14 cze 2026, 10:53</span>
+      <span class="label label--soft">Aktualizacja: 14 cze 2026, 19:45</span>
     </div>
 
-    <div class="camera-grid" aria-label="Katalog aparatów">
-
-      <a class="cam-card" href="https://www.olx.pl/d/oferta/analogowy-aparat-yashica-35w-sprawny-w-bardzo-dobrym-stanie-na-film-CID99-ID130b45.html" target="_blank" rel="noopener noreferrer">
-        <div class="cam-card__img-wrap">
-          <img class="cam-card__img" src="https://ireland.apollo.olxcdn.com/v1/files/rnqroaquzckm2-PL/image;s=2000x1333" alt="Analogowy aparat Yashica 35W, sprawny w bardzo dobrym stanie, na film Gliwice Wojska Polskiego">
-          <span class="cam-card__price">390 zł</span>
-          <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
-        </div>
-        <div class="cam-card__strip">
-          <div>
-            <p class="cam-card__name">Analogowy aparat Yashica 35W, sprawny w bardzo dobrym stanie, na film Gliwice Wojska Polskiego</p>
-            <p class="cam-card__detail">olx.pl</p>
-          </div>
-        </div>
-      </a>
-
-      <a class="cam-card" href="https://www.olx.pl/d/oferta/aparat-analogowy-minolta-5000-CID99-ID13N2w7.html" target="_blank" rel="noopener noreferrer">
-        <div class="cam-card__img-wrap">
-          <img class="cam-card__img" src="https://ireland.apollo.olxcdn.com/v1/files/zdog99s8x909-PL/image;s=2000x1333" alt="Aparat analogowy Minolta 5000 Gliwice Wojska Polskiego">
+    <div class="camera-catalog" aria-label="Katalog aparatów">
+      <div class="cam-group">
+        <div class="cam-group__head"><span class="label">Lustrzanki (SLR)</span><span class="cam-group__count">10 szt.</span></div>
+        <div class="camera-grid">
+      <div class="cam-card-shell">
+        <a class="cam-card" href="https://www.olx.pl/d/oferta/aparat-analogowy-minolta-5000-CID99-ID13N2w7.html" target="_blank" rel="noopener noreferrer">
+          <div class="cam-card__img-wrap">
+            <img class="cam-card__img" src="https://ireland.apollo.olxcdn.com/v1/files/zdog99s8x909-PL/image;s=2000x1333" alt="Aparat analogowy Minolta 5000 Gliwice Wojska Polskiego">
           <span class="cam-card__price">70 zł</span>
-          <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
-        </div>
-        <div class="cam-card__strip">
-          <div>
-            <p class="cam-card__name">Aparat analogowy Minolta 5000 Gliwice Wojska Polskiego</p>
-            <p class="cam-card__detail">olx.pl</p>
+            <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
           </div>
-        </div>
-      </a>
-
-      <a class="cam-card" href="https://www.olx.pl/d/oferta/aparat-kompaktowy-analogowy-na-film-minolta-f25-retro-CID99-ID13Azpl.html" target="_blank" rel="noopener noreferrer">
-        <div class="cam-card__img-wrap">
-          <img class="cam-card__img" src="https://ireland.apollo.olxcdn.com/v1/files/gntgkhngqf073-PL/image;s=2000x1333" alt="Aparat kompaktowy analogowy na film Minolta F25, retro Gliwice Sikornik">
-          <span class="cam-card__price">80 zł</span>
-          <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
-        </div>
-        <div class="cam-card__strip">
-          <div>
-            <p class="cam-card__name">Aparat kompaktowy analogowy na film Minolta F25, retro Gliwice Sikornik</p>
-            <p class="cam-card__detail">olx.pl</p>
+          <div class="cam-card__strip">
+            <div>
+              <p class="cam-card__name">Aparat analogowy Minolta 5000 Gliwice Wojska Polskiego</p>
+              <p class="cam-card__detail">olx.pl</p>
+            </div>
           </div>
-        </div>
-      </a>
+        </a>
+        <button type="button" class="cam-card__zoom" data-full="https://ireland.apollo.olxcdn.com/v1/files/zdog99s8x909-PL/image;s=2000x1333" aria-label="Powiększ zdjęcie: Aparat analogowy Minolta 5000 Gliwice Wojska Polskiego"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg></button>
+      </div>
 
-      <a class="cam-card" href="https://www.olx.pl/d/oferta/aparat-na-film-chinon-ce-5-z-auto-chinon-50mm-f-1-9-chinon-pw-530-CID99-ID12T9tS.html" target="_blank" rel="noopener noreferrer">
-        <div class="cam-card__img-wrap">
-          <img class="cam-card__img" src="https://ireland.apollo.olxcdn.com/v1/files/cabn09tzjb9o-PL/image;s=2000x1333" alt="Aparat na film Chinon CE-5 z Auto Chinon 50mm f/1.9 Chinon PW-530 Gliwice Sikornik">
+      <div class="cam-card-shell">
+        <a class="cam-card" href="https://www.olx.pl/d/oferta/aparat-na-film-chinon-ce-5-z-auto-chinon-50mm-f-1-9-chinon-pw-530-CID99-ID12T9tS.html" target="_blank" rel="noopener noreferrer">
+          <div class="cam-card__img-wrap">
+            <img class="cam-card__img" src="https://ireland.apollo.olxcdn.com/v1/files/cabn09tzjb9o-PL/image;s=2000x1333" alt="Aparat na film Chinon CE-5 z Auto Chinon 50mm f/1.9 Chinon PW-530 Gliwice Sikornik">
           <span class="cam-card__price">500 zł</span>
-          <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
-        </div>
-        <div class="cam-card__strip">
-          <div>
-            <p class="cam-card__name">Aparat na film Chinon CE-5 z Auto Chinon 50mm f/1.9 Chinon PW-530 Gliwice Sikornik</p>
-            <p class="cam-card__detail">olx.pl</p>
+            <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
           </div>
-        </div>
-      </a>
-
-      <a class="cam-card" href="https://www.olx.pl/d/oferta/aparat-na-film-chinon-auto-gx-motorized-focus-free-z-futeralem-CID99-ID13I4Bv.html" target="_blank" rel="noopener noreferrer">
-        <div class="cam-card__img-wrap">
-          <img class="cam-card__img" loading="lazy" decoding="async" src="https://ireland.apollo.olxcdn.com/v1/files/bjbogbf885k9-PL/image;s=2000x1333" alt="Aparat na film: Chinon Auto GX Motorized Focus Free z futerałem Gliwice Sikornik">
-          <span class="cam-card__price">60 zł</span>
-          <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
-        </div>
-        <div class="cam-card__strip">
-          <div>
-            <p class="cam-card__name">Aparat na film: Chinon Auto GX Motorized Focus Free z futerałem Gliwice Sikornik</p>
-            <p class="cam-card__detail">olx.pl</p>
+          <div class="cam-card__strip">
+            <div>
+              <p class="cam-card__name">Aparat na film Chinon CE-5 z Auto Chinon 50mm f/1.9 Chinon PW-530 Gliwice Sikornik</p>
+              <p class="cam-card__detail">olx.pl</p>
+            </div>
           </div>
-        </div>
-      </a>
+        </a>
+        <button type="button" class="cam-card__zoom" data-full="https://ireland.apollo.olxcdn.com/v1/files/cabn09tzjb9o-PL/image;s=2000x1333" aria-label="Powiększ zdjęcie: Aparat na film Chinon CE-5 z Auto Chinon 50mm f/1.9 Chinon PW-530 Gliwice Sikornik"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg></button>
+      </div>
 
-      <a class="cam-card" href="https://www.olx.pl/d/oferta/aparat-petri-ft-ee-fully-automatic-z-petri-c-c-auto-55mm-f-1-8-na-film-CID99-ID12T8Az.html" target="_blank" rel="noopener noreferrer">
-        <div class="cam-card__img-wrap">
-          <img class="cam-card__img" loading="lazy" decoding="async" src="https://ireland.apollo.olxcdn.com/v1/files/e4cc3z1i2d033-PL/image;s=2000x1333" alt="Aparat PETRI FT EE FULLY AUTOMATIC z Petri C.C Auto 55mm F/1.8 na film Gliwice Sikornik">
+      <div class="cam-card-shell">
+        <a class="cam-card" href="https://www.olx.pl/d/oferta/aparat-petri-ft-ee-fully-automatic-z-petri-c-c-auto-55mm-f-1-8-na-film-CID99-ID12T8Az.html" target="_blank" rel="noopener noreferrer">
+          <div class="cam-card__img-wrap">
+            <img class="cam-card__img" src="https://ireland.apollo.olxcdn.com/v1/files/e4cc3z1i2d033-PL/image;s=2000x1333" alt="Aparat PETRI FT EE FULLY AUTOMATIC z Petri C.C Auto 55mm F/1.8 na film Gliwice Sikornik">
           <span class="cam-card__price">499 zł</span>
-          <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
-        </div>
-        <div class="cam-card__strip">
-          <div>
-            <p class="cam-card__name">Aparat PETRI FT EE FULLY AUTOMATIC z Petri C.C Auto 55mm F/1.8 na film Gliwice Sikornik</p>
-            <p class="cam-card__detail">olx.pl</p>
+            <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
           </div>
-        </div>
-      </a>
+          <div class="cam-card__strip">
+            <div>
+              <p class="cam-card__name">Aparat PETRI FT EE FULLY AUTOMATIC z Petri C.C Auto 55mm F/1.8 na film Gliwice Sikornik</p>
+              <p class="cam-card__detail">olx.pl</p>
+            </div>
+          </div>
+        </a>
+        <button type="button" class="cam-card__zoom" data-full="https://ireland.apollo.olxcdn.com/v1/files/e4cc3z1i2d033-PL/image;s=2000x1333" aria-label="Powiększ zdjęcie: Aparat PETRI FT EE FULLY AUTOMATIC z Petri C.C Auto 55mm F/1.8 na film Gliwice Sikornik"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg></button>
+      </div>
 
-      <a class="cam-card" href="https://www.olx.pl/d/oferta/aparat-praktica-super-tl-2-z-obiektywem-hanimex-auto-mc-28mm-f-2-8-CID4042-ID13N3el.html" target="_blank" rel="noopener noreferrer">
-        <div class="cam-card__img-wrap">
-          <img class="cam-card__img" loading="lazy" decoding="async" src="https://ireland.apollo.olxcdn.com/v1/files/i1q05ohptq6g1-PL/image;s=2000x1333" alt="Aparat Praktica Super TL 2 z obiektywem Hanimex Auto MC 28mm f/2.8 Gliwice Wojska Polskiego">
+      <div class="cam-card-shell">
+        <a class="cam-card" href="https://www.olx.pl/d/oferta/aparat-praktica-super-tl-2-z-obiektywem-hanimex-auto-mc-28mm-f-2-8-CID4042-ID13N3el.html" target="_blank" rel="noopener noreferrer">
+          <div class="cam-card__img-wrap">
+            <img class="cam-card__img" src="https://ireland.apollo.olxcdn.com/v1/files/i1q05ohptq6g1-PL/image;s=2000x1333" alt="Aparat Praktica Super TL 2 z obiektywem Hanimex Auto MC 28mm f/2.8 Gliwice Wojska Polskiego">
           <span class="cam-card__price">130 zł</span>
-          <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
-        </div>
-        <div class="cam-card__strip">
-          <div>
-            <p class="cam-card__name">Aparat Praktica Super TL 2 z obiektywem Hanimex Auto MC 28mm f/2.8 Gliwice Wojska Polskiego</p>
-            <p class="cam-card__detail">olx.pl</p>
+            <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
           </div>
-        </div>
-      </a>
+          <div class="cam-card__strip">
+            <div>
+              <p class="cam-card__name">Aparat Praktica Super TL 2 z obiektywem Hanimex Auto MC 28mm f/2.8 Gliwice Wojska Polskiego</p>
+              <p class="cam-card__detail">olx.pl</p>
+            </div>
+          </div>
+        </a>
+        <button type="button" class="cam-card__zoom" data-full="https://ireland.apollo.olxcdn.com/v1/files/i1q05ohptq6g1-PL/image;s=2000x1333" aria-label="Powiększ zdjęcie: Aparat Praktica Super TL 2 z obiektywem Hanimex Auto MC 28mm f/2.8 Gliwice Wojska Polskiego"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg></button>
+      </div>
 
-      <a class="cam-card" href="https://www.olx.pl/d/oferta/aparat-yashica-fx-2-z-obiektywem-super-paragon-pmc-ii-auto-tele-zoom-CID4042-ID13GFxk.html" target="_blank" rel="noopener noreferrer">
-        <div class="cam-card__img-wrap">
-          <img class="cam-card__img" loading="lazy" decoding="async" src="https://ireland.apollo.olxcdn.com/v1/files/501kkrcm1zqf2-PL/image;s=2000x1333" alt="Aparat Yashica FX-2 z obiektywem Super Paragon PMC II Auto Tele Zoom Gliwice Wojska Polskiego">
+      <div class="cam-card-shell">
+        <a class="cam-card" href="https://www.olx.pl/d/oferta/aparat-yashica-fx-2-z-obiektywem-super-paragon-pmc-ii-auto-tele-zoom-CID4042-ID13GFxk.html" target="_blank" rel="noopener noreferrer">
+          <div class="cam-card__img-wrap">
+            <img class="cam-card__img" loading="lazy" decoding="async" src="https://ireland.apollo.olxcdn.com/v1/files/501kkrcm1zqf2-PL/image;s=2000x1333" alt="Aparat Yashica FX-2 z obiektywem Super Paragon PMC II Auto Tele Zoom Gliwice Wojska Polskiego">
           <span class="cam-card__price">180 zł</span>
-          <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
-        </div>
-        <div class="cam-card__strip">
-          <div>
-            <p class="cam-card__name">Aparat Yashica FX-2 z obiektywem Super Paragon PMC II Auto Tele Zoom Gliwice Wojska Polskiego</p>
-            <p class="cam-card__detail">olx.pl</p>
+            <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
           </div>
-        </div>
-      </a>
+          <div class="cam-card__strip">
+            <div>
+              <p class="cam-card__name">Aparat Yashica FX-2 z obiektywem Super Paragon PMC II Auto Tele Zoom Gliwice Wojska Polskiego</p>
+              <p class="cam-card__detail">olx.pl</p>
+            </div>
+          </div>
+        </a>
+        <button type="button" class="cam-card__zoom" data-full="https://ireland.apollo.olxcdn.com/v1/files/501kkrcm1zqf2-PL/image;s=2000x1333" aria-label="Powiększ zdjęcie: Aparat Yashica FX-2 z obiektywem Super Paragon PMC II Auto Tele Zoom Gliwice Wojska Polskiego"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg></button>
+      </div>
 
-      <a class="cam-card" href="https://www.olx.pl/d/oferta/aparat-zenit-b-z-obiektywem-helios-44-2-58mm-f-2-futeral-CID99-ID17h1LI.html" target="_blank" rel="noopener noreferrer">
-        <div class="cam-card__img-wrap">
-          <img class="cam-card__img" loading="lazy" decoding="async" src="https://ireland.apollo.olxcdn.com/v1/files/4rmr5gjcluyn2-PL/image;s=2000x1333" alt="Aparat Zenit-B z obiektywem Helios-44-2 58mm f/2 + Futerał Gliwice Sikornik">
+      <div class="cam-card-shell">
+        <a class="cam-card" href="https://www.olx.pl/d/oferta/aparat-zenit-b-z-obiektywem-helios-44-2-58mm-f-2-futeral-CID99-ID17h1LI.html" target="_blank" rel="noopener noreferrer">
+          <div class="cam-card__img-wrap">
+            <img class="cam-card__img" loading="lazy" decoding="async" src="https://ireland.apollo.olxcdn.com/v1/files/4rmr5gjcluyn2-PL/image;s=2000x1333" alt="Aparat Zenit-B z obiektywem Helios-44-2 58mm f/2 + Futerał Gliwice Sikornik">
           <span class="cam-card__price">280 zł</span>
-          <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
-        </div>
-        <div class="cam-card__strip">
-          <div>
-            <p class="cam-card__name">Aparat Zenit-B z obiektywem Helios-44-2 58mm f/2 + Futerał Gliwice Sikornik</p>
-            <p class="cam-card__detail">olx.pl</p>
+            <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
           </div>
-        </div>
-      </a>
-
-      <a class="cam-card" href="https://www.olx.pl/d/oferta/kolekcja-aparatow-canon-eos-analogi-cyfrowe-i-manualne-CID99-ID14b1Zp.html" target="_blank" rel="noopener noreferrer">
-        <div class="cam-card__img-wrap">
-          <img class="cam-card__img" loading="lazy" decoding="async" src="https://ireland.apollo.olxcdn.com/v1/files/f5llzuuxtw86-PL/image;s=4032x3024" alt="Kolekcja aparatów Canon EOS analogi cyfrowe i manualne Gierałtowice">
-          <span class="cam-card__price">1700 zł</span>
-          <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
-        </div>
-        <div class="cam-card__strip">
-          <div>
-            <p class="cam-card__name">Kolekcja aparatów Canon EOS analogi cyfrowe i manualne Gierałtowice</p>
-            <p class="cam-card__detail">olx.pl</p>
+          <div class="cam-card__strip">
+            <div>
+              <p class="cam-card__name">Aparat Zenit-B z obiektywem Helios-44-2 58mm f/2 + Futerał Gliwice Sikornik</p>
+              <p class="cam-card__detail">olx.pl</p>
+            </div>
           </div>
-        </div>
-      </a>
+        </a>
+        <button type="button" class="cam-card__zoom" data-full="https://ireland.apollo.olxcdn.com/v1/files/4rmr5gjcluyn2-PL/image;s=2000x1333" aria-label="Powiększ zdjęcie: Aparat Zenit-B z obiektywem Helios-44-2 58mm f/2 + Futerał Gliwice Sikornik"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg></button>
+      </div>
 
-      <a class="cam-card" href="https://www.olx.pl/d/oferta/obiektyw-manualny-osawa-mc-80-200mm-f-4-5-mocowanie-pentax-k-CID99-ID13N85v.html" target="_blank" rel="noopener noreferrer">
-        <div class="cam-card__img-wrap">
-          <img class="cam-card__img" loading="lazy" decoding="async" src="https://ireland.apollo.olxcdn.com/v1/files/w9806yo20fhq-PL/image;s=2000x3000" alt="Obiektyw manualny Osawa MC 80-200mm f/4.5 (mocowanie pentax K) Gliwice Wojska Polskiego">
-          <span class="cam-card__price">79 zł</span>
-          <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
-        </div>
-        <div class="cam-card__strip">
-          <div>
-            <p class="cam-card__name">Obiektyw manualny Osawa MC 80-200mm f/4.5 (mocowanie pentax K) Gliwice Wojska Polskiego</p>
-            <p class="cam-card__detail">olx.pl</p>
-          </div>
-        </div>
-      </a>
-
-      <a class="cam-card" href="https://www.olx.pl/d/oferta/olympus-am-100-quartzdate-analog-kompaktowy-na-film-CID99-ID12VaGV.html" target="_blank" rel="noopener noreferrer">
-        <div class="cam-card__img-wrap">
-          <img class="cam-card__img" loading="lazy" decoding="async" src="https://ireland.apollo.olxcdn.com/v1/files/95v9hc576o9n-PL/image;s=2000x1333" alt="Olympus AM-100 Quartzdate, analog kompaktowy na film Gliwice Sikornik">
-          <span class="cam-card__price">200 zł</span>
-          <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
-        </div>
-        <div class="cam-card__strip">
-          <div>
-            <p class="cam-card__name">Olympus AM-100 Quartzdate, analog kompaktowy na film Gliwice Sikornik</p>
-            <p class="cam-card__detail">olx.pl</p>
-          </div>
-        </div>
-      </a>
-
-      <a class="cam-card" href="https://www.olx.pl/d/oferta/pentax-me-z-obiektywem-takumar-a-zoom-70-200mm-f-4-analog-na-film-CID99-ID12ZaNi.html" target="_blank" rel="noopener noreferrer">
-        <div class="cam-card__img-wrap">
-          <img class="cam-card__img" loading="lazy" decoding="async" src="https://ireland.apollo.olxcdn.com/v1/files/ndq70k7ucr7o1-PL/image;s=2000x1333" alt="Pentax ME z obiektywem Takumar-A Zoom 70-200mm f/4, analog na film Gliwice Wojska Polskiego">
+      <div class="cam-card-shell">
+        <a class="cam-card" href="https://www.olx.pl/d/oferta/pentax-me-z-obiektywem-takumar-a-zoom-70-200mm-f-4-analog-na-film-CID99-ID12ZaNi.html" target="_blank" rel="noopener noreferrer">
+          <div class="cam-card__img-wrap">
+            <img class="cam-card__img" loading="lazy" decoding="async" src="https://ireland.apollo.olxcdn.com/v1/files/ndq70k7ucr7o1-PL/image;s=2000x1333" alt="Pentax ME z obiektywem Takumar-A Zoom 70-200mm f/4, analog na film Gliwice Wojska Polskiego">
           <span class="cam-card__price">330 zł</span>
-          <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
-        </div>
-        <div class="cam-card__strip">
-          <div>
-            <p class="cam-card__name">Pentax ME z obiektywem Takumar-A Zoom 70-200mm f/4, analog na film Gliwice Wojska Polskiego</p>
-            <p class="cam-card__detail">olx.pl</p>
+            <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
           </div>
-        </div>
-      </a>
+          <div class="cam-card__strip">
+            <div>
+              <p class="cam-card__name">Pentax ME z obiektywem Takumar-A Zoom 70-200mm f/4, analog na film Gliwice Wojska Polskiego</p>
+              <p class="cam-card__detail">olx.pl</p>
+            </div>
+          </div>
+        </a>
+        <button type="button" class="cam-card__zoom" data-full="https://ireland.apollo.olxcdn.com/v1/files/ndq70k7ucr7o1-PL/image;s=2000x1333" aria-label="Powiększ zdjęcie: Pentax ME z obiektywem Takumar-A Zoom 70-200mm f/4, analog na film Gliwice Wojska Polskiego"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg></button>
+      </div>
 
-      <a class="cam-card" href="https://www.olx.pl/d/oferta/pentax-mv-sunagor-auto-zoom-80-200mm-f-4-5-5-5-aparat-analogowy-CID99-ID12T1Be.html" target="_blank" rel="noopener noreferrer">
-        <div class="cam-card__img-wrap">
-          <img class="cam-card__img" loading="lazy" decoding="async" src="https://ireland.apollo.olxcdn.com/v1/files/1idwe1b0ignn-PL/image;s=2000x1333" alt="Pentax MV Sunagor Auto Zoom 80-200mm f/4.5-5.5, aparat analogowy Gliwice Sikornik">
+      <div class="cam-card-shell">
+        <a class="cam-card" href="https://www.olx.pl/d/oferta/pentax-mv-sunagor-auto-zoom-80-200mm-f-4-5-5-5-aparat-analogowy-CID99-ID12T1Be.html" target="_blank" rel="noopener noreferrer">
+          <div class="cam-card__img-wrap">
+            <img class="cam-card__img" loading="lazy" decoding="async" src="https://ireland.apollo.olxcdn.com/v1/files/1idwe1b0ignn-PL/image;s=2000x1333" alt="Pentax MV Sunagor Auto Zoom 80-200mm f/4.5-5.5, aparat analogowy Gliwice Sikornik">
           <span class="cam-card__price">520 zł</span>
-          <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
-        </div>
-        <div class="cam-card__strip">
-          <div>
-            <p class="cam-card__name">Pentax MV Sunagor Auto Zoom 80-200mm f/4.5-5.5, aparat analogowy Gliwice Sikornik</p>
-            <p class="cam-card__detail">olx.pl</p>
+            <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
           </div>
-        </div>
-      </a>
+          <div class="cam-card__strip">
+            <div>
+              <p class="cam-card__name">Pentax MV Sunagor Auto Zoom 80-200mm f/4.5-5.5, aparat analogowy Gliwice Sikornik</p>
+              <p class="cam-card__detail">olx.pl</p>
+            </div>
+          </div>
+        </a>
+        <button type="button" class="cam-card__zoom" data-full="https://ireland.apollo.olxcdn.com/v1/files/1idwe1b0ignn-PL/image;s=2000x1333" aria-label="Powiększ zdjęcie: Pentax MV Sunagor Auto Zoom 80-200mm f/4.5-5.5, aparat analogowy Gliwice Sikornik"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg></button>
+      </div>
 
-      <a class="cam-card" href="https://www.olx.pl/d/oferta/pentax-sf7-z-obiektywami-pentax-f-zoom-28-80mm-i-smc-pentax-f-35-80mm-CID99-ID15n0RK.html" target="_blank" rel="noopener noreferrer">
-        <div class="cam-card__img-wrap">
-          <img class="cam-card__img" loading="lazy" decoding="async" src="https://ireland.apollo.olxcdn.com/v1/files/llewrszjpci72-PL/image;s=2000x1333" alt="Pentax SF7 z obiektywami Pentax-F Zoom 28-80mm i SMC Pentax-F 35-80mm Gliwice Sikornik">
+      <div class="cam-card-shell">
+        <a class="cam-card" href="https://www.olx.pl/d/oferta/pentax-sf7-z-obiektywami-pentax-f-zoom-28-80mm-i-smc-pentax-f-35-80mm-CID99-ID15n0RK.html" target="_blank" rel="noopener noreferrer">
+          <div class="cam-card__img-wrap">
+            <img class="cam-card__img" loading="lazy" decoding="async" src="https://ireland.apollo.olxcdn.com/v1/files/llewrszjpci72-PL/image;s=2000x1333" alt="Pentax SF7 z obiektywami Pentax-F Zoom 28-80mm i SMC Pentax-F 35-80mm Gliwice Sikornik">
           <span class="cam-card__price">320 zł</span>
-          <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
-        </div>
-        <div class="cam-card__strip">
-          <div>
-            <p class="cam-card__name">Pentax SF7 z obiektywami Pentax-F Zoom 28-80mm i SMC Pentax-F 35-80mm Gliwice Sikornik</p>
-            <p class="cam-card__detail">olx.pl</p>
+            <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
           </div>
-        </div>
-      </a>
+          <div class="cam-card__strip">
+            <div>
+              <p class="cam-card__name">Pentax SF7 z obiektywami Pentax-F Zoom 28-80mm i SMC Pentax-F 35-80mm Gliwice Sikornik</p>
+              <p class="cam-card__detail">olx.pl</p>
+            </div>
+          </div>
+        </a>
+        <button type="button" class="cam-card__zoom" data-full="https://ireland.apollo.olxcdn.com/v1/files/llewrszjpci72-PL/image;s=2000x1333" aria-label="Powiększ zdjęcie: Pentax SF7 z obiektywami Pentax-F Zoom 28-80mm i SMC Pentax-F 35-80mm Gliwice Sikornik"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg></button>
+      </div>
 
-      <a class="cam-card" href="https://www.olx.pl/d/oferta/praktica-bca-z-obiektywem-prakticar-pb-80-200mm-f-4-5-5-6-mc-pentacon-CID99-ID13N2HX.html" target="_blank" rel="noopener noreferrer">
-        <div class="cam-card__img-wrap">
-          <img class="cam-card__img" loading="lazy" decoding="async" src="https://ireland.apollo.olxcdn.com/v1/files/2eoq6p1rgvfc1-PL/image;s=2000x1333" alt="Praktica BCA z obiektywem Prakticar PB 80-200mm f/4.5-5.6 MC Pentacon Gliwice Wojska Polskiego">
+      <div class="cam-card-shell">
+        <a class="cam-card" href="https://www.olx.pl/d/oferta/praktica-bca-z-obiektywem-prakticar-pb-80-200mm-f-4-5-5-6-mc-pentacon-CID99-ID13N2HX.html" target="_blank" rel="noopener noreferrer">
+          <div class="cam-card__img-wrap">
+            <img class="cam-card__img" loading="lazy" decoding="async" src="https://ireland.apollo.olxcdn.com/v1/files/2eoq6p1rgvfc1-PL/image;s=2000x1333" alt="Praktica BCA z obiektywem Prakticar PB 80-200mm f/4.5-5.6 MC Pentacon Gliwice Wojska Polskiego">
           <span class="cam-card__price">180 zł</span>
-          <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
-        </div>
-        <div class="cam-card__strip">
-          <div>
-            <p class="cam-card__name">Praktica BCA z obiektywem Prakticar PB 80-200mm f/4.5-5.6 MC Pentacon Gliwice Wojska Polskiego</p>
-            <p class="cam-card__detail">olx.pl</p>
+            <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
           </div>
+          <div class="cam-card__strip">
+            <div>
+              <p class="cam-card__name">Praktica BCA z obiektywem Prakticar PB 80-200mm f/4.5-5.6 MC Pentacon Gliwice Wojska Polskiego</p>
+              <p class="cam-card__detail">olx.pl</p>
+            </div>
+          </div>
+        </a>
+        <button type="button" class="cam-card__zoom" data-full="https://ireland.apollo.olxcdn.com/v1/files/2eoq6p1rgvfc1-PL/image;s=2000x1333" aria-label="Powiększ zdjęcie: Praktica BCA z obiektywem Prakticar PB 80-200mm f/4.5-5.6 MC Pentacon Gliwice Wojska Polskiego"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg></button>
+      </div>
         </div>
-      </a>
+      </div>
+      <div class="cam-group">
+        <div class="cam-group__head"><span class="label">Kompaktowe</span><span class="cam-group__count">4 szt.</span></div>
+        <div class="camera-grid">
+      <div class="cam-card-shell">
+        <a class="cam-card" href="https://www.olx.pl/d/oferta/aparat-kompaktowy-analogowy-na-film-minolta-f25-retro-CID99-ID13Azpl.html" target="_blank" rel="noopener noreferrer">
+          <div class="cam-card__img-wrap">
+            <img class="cam-card__img" loading="lazy" decoding="async" src="https://ireland.apollo.olxcdn.com/v1/files/gntgkhngqf073-PL/image;s=2000x1333" alt="Aparat kompaktowy analogowy na film Minolta F25, retro Gliwice Sikornik">
+          <span class="cam-card__price">80 zł</span>
+            <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
+          </div>
+          <div class="cam-card__strip">
+            <div>
+              <p class="cam-card__name">Aparat kompaktowy analogowy na film Minolta F25, retro Gliwice Sikornik</p>
+              <p class="cam-card__detail">olx.pl</p>
+            </div>
+          </div>
+        </a>
+        <button type="button" class="cam-card__zoom" data-full="https://ireland.apollo.olxcdn.com/v1/files/gntgkhngqf073-PL/image;s=2000x1333" aria-label="Powiększ zdjęcie: Aparat kompaktowy analogowy na film Minolta F25, retro Gliwice Sikornik"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg></button>
+      </div>
 
-      <a class="cam-card" href="https://www.olx.pl/d/oferta/quasar-smart-klasyczny-aparat-analogowy-na-film-sprawny-CID99-ID13GEOp.html" target="_blank" rel="noopener noreferrer">
-        <div class="cam-card__img-wrap">
-          <img class="cam-card__img" loading="lazy" decoding="async" src="https://ireland.apollo.olxcdn.com/v1/files/32khczd9e9zo3-PL/image;s=2000x1333" alt="Quasar Smart - klasyczny aparat analogowy na film, sprawny Gliwice Wojska Polskiego">
-          <span class="cam-card__price">39 zł</span>
-          <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
-        </div>
-        <div class="cam-card__strip">
-          <div>
-            <p class="cam-card__name">Quasar Smart - klasyczny aparat analogowy na film, sprawny Gliwice Wojska Polskiego</p>
-            <p class="cam-card__detail">olx.pl</p>
+      <div class="cam-card-shell">
+        <a class="cam-card" href="https://www.olx.pl/d/oferta/aparat-na-film-chinon-auto-gx-motorized-focus-free-z-futeralem-CID99-ID13I4Bv.html" target="_blank" rel="noopener noreferrer">
+          <div class="cam-card__img-wrap">
+            <img class="cam-card__img" loading="lazy" decoding="async" src="https://ireland.apollo.olxcdn.com/v1/files/bjbogbf885k9-PL/image;s=2000x1333" alt="Aparat na film: Chinon Auto GX Motorized Focus Free z futerałem Gliwice Sikornik">
+          <span class="cam-card__price">60 zł</span>
+            <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
           </div>
+          <div class="cam-card__strip">
+            <div>
+              <p class="cam-card__name">Aparat na film: Chinon Auto GX Motorized Focus Free z futerałem Gliwice Sikornik</p>
+              <p class="cam-card__detail">olx.pl</p>
+            </div>
+          </div>
+        </a>
+        <button type="button" class="cam-card__zoom" data-full="https://ireland.apollo.olxcdn.com/v1/files/bjbogbf885k9-PL/image;s=2000x1333" aria-label="Powiększ zdjęcie: Aparat na film: Chinon Auto GX Motorized Focus Free z futerałem Gliwice Sikornik"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg></button>
+      </div>
+
+      <div class="cam-card-shell">
+        <a class="cam-card" href="https://www.olx.pl/d/oferta/olympus-am-100-quartzdate-analog-kompaktowy-na-film-CID99-ID12VaGV.html" target="_blank" rel="noopener noreferrer">
+          <div class="cam-card__img-wrap">
+            <img class="cam-card__img" loading="lazy" decoding="async" src="https://ireland.apollo.olxcdn.com/v1/files/95v9hc576o9n-PL/image;s=2000x1333" alt="Olympus AM-100 Quartzdate, analog kompaktowy na film Gliwice Sikornik">
+          <span class="cam-card__price">200 zł</span>
+            <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
+          </div>
+          <div class="cam-card__strip">
+            <div>
+              <p class="cam-card__name">Olympus AM-100 Quartzdate, analog kompaktowy na film Gliwice Sikornik</p>
+              <p class="cam-card__detail">olx.pl</p>
+            </div>
+          </div>
+        </a>
+        <button type="button" class="cam-card__zoom" data-full="https://ireland.apollo.olxcdn.com/v1/files/95v9hc576o9n-PL/image;s=2000x1333" aria-label="Powiększ zdjęcie: Olympus AM-100 Quartzdate, analog kompaktowy na film Gliwice Sikornik"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg></button>
+      </div>
+
+      <div class="cam-card-shell">
+        <a class="cam-card" href="https://www.olx.pl/d/oferta/quasar-smart-klasyczny-aparat-analogowy-na-film-sprawny-CID99-ID13GEOp.html" target="_blank" rel="noopener noreferrer">
+          <div class="cam-card__img-wrap">
+            <img class="cam-card__img" loading="lazy" decoding="async" src="https://ireland.apollo.olxcdn.com/v1/files/32khczd9e9zo3-PL/image;s=2000x1333" alt="Quasar Smart - klasyczny aparat analogowy na film, sprawny Gliwice Wojska Polskiego">
+          <span class="cam-card__price">39 zł</span>
+            <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
+          </div>
+          <div class="cam-card__strip">
+            <div>
+              <p class="cam-card__name">Quasar Smart - klasyczny aparat analogowy na film, sprawny Gliwice Wojska Polskiego</p>
+              <p class="cam-card__detail">olx.pl</p>
+            </div>
+          </div>
+        </a>
+        <button type="button" class="cam-card__zoom" data-full="https://ireland.apollo.olxcdn.com/v1/files/32khczd9e9zo3-PL/image;s=2000x1333" aria-label="Powiększ zdjęcie: Quasar Smart - klasyczny aparat analogowy na film, sprawny Gliwice Wojska Polskiego"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg></button>
+      </div>
         </div>
-      </a>
+      </div>
+      <div class="cam-group">
+        <div class="cam-group__head"><span class="label">Dalmierzowe</span><span class="cam-group__count">1 szt.</span></div>
+        <div class="camera-grid">
+      <div class="cam-card-shell">
+        <a class="cam-card" href="https://www.olx.pl/d/oferta/analogowy-aparat-yashica-35w-sprawny-w-bardzo-dobrym-stanie-na-film-CID99-ID130b45.html" target="_blank" rel="noopener noreferrer">
+          <div class="cam-card__img-wrap">
+            <img class="cam-card__img" loading="lazy" decoding="async" src="https://ireland.apollo.olxcdn.com/v1/files/rnqroaquzckm2-PL/image;s=2000x1333" alt="Analogowy aparat Yashica 35W, sprawny w bardzo dobrym stanie, na film Gliwice Wojska Polskiego">
+          <span class="cam-card__price">390 zł</span>
+            <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
+          </div>
+          <div class="cam-card__strip">
+            <div>
+              <p class="cam-card__name">Analogowy aparat Yashica 35W, sprawny w bardzo dobrym stanie, na film Gliwice Wojska Polskiego</p>
+              <p class="cam-card__detail">olx.pl</p>
+            </div>
+          </div>
+        </a>
+        <button type="button" class="cam-card__zoom" data-full="https://ireland.apollo.olxcdn.com/v1/files/rnqroaquzckm2-PL/image;s=2000x1333" aria-label="Powiększ zdjęcie: Analogowy aparat Yashica 35W, sprawny w bardzo dobrym stanie, na film Gliwice Wojska Polskiego"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg></button>
+      </div>
+        </div>
+      </div>
+      <div class="cam-group">
+        <div class="cam-group__head"><span class="label">Zestawy</span><span class="cam-group__count">1 szt.</span></div>
+        <div class="camera-grid">
+      <div class="cam-card-shell">
+        <a class="cam-card" href="https://www.olx.pl/d/oferta/kolekcja-aparatow-canon-eos-analogi-cyfrowe-i-manualne-CID99-ID14b1Zp.html" target="_blank" rel="noopener noreferrer">
+          <div class="cam-card__img-wrap">
+            <img class="cam-card__img" loading="lazy" decoding="async" src="https://ireland.apollo.olxcdn.com/v1/files/f5llzuuxtw86-PL/image;s=4032x3024" alt="Kolekcja aparatów Canon EOS analogi cyfrowe i manualne Gierałtowice">
+          <span class="cam-card__price">1700 zł</span>
+            <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
+          </div>
+          <div class="cam-card__strip">
+            <div>
+              <p class="cam-card__name">Kolekcja aparatów Canon EOS analogi cyfrowe i manualne Gierałtowice</p>
+              <p class="cam-card__detail">olx.pl</p>
+            </div>
+          </div>
+        </a>
+        <button type="button" class="cam-card__zoom" data-full="https://ireland.apollo.olxcdn.com/v1/files/f5llzuuxtw86-PL/image;s=4032x3024" aria-label="Powiększ zdjęcie: Kolekcja aparatów Canon EOS analogi cyfrowe i manualne Gierałtowice"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg></button>
+      </div>
+        </div>
+      </div>
+      <div class="cam-group">
+        <div class="cam-group__head"><span class="label">Obiektywy i akcesoria</span><span class="cam-group__count">1 szt.</span></div>
+        <div class="camera-grid">
+      <div class="cam-card-shell">
+        <a class="cam-card" href="https://www.olx.pl/d/oferta/obiektyw-manualny-osawa-mc-80-200mm-f-4-5-mocowanie-pentax-k-CID99-ID13N85v.html" target="_blank" rel="noopener noreferrer">
+          <div class="cam-card__img-wrap">
+            <img class="cam-card__img" loading="lazy" decoding="async" src="https://ireland.apollo.olxcdn.com/v1/files/w9806yo20fhq-PL/image;s=2000x3000" alt="Obiektyw manualny Osawa MC 80-200mm f/4.5 (mocowanie pentax K) Gliwice Wojska Polskiego">
+          <span class="cam-card__price">79 zł</span>
+            <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
+          </div>
+          <div class="cam-card__strip">
+            <div>
+              <p class="cam-card__name">Obiektyw manualny Osawa MC 80-200mm f/4.5 (mocowanie pentax K) Gliwice Wojska Polskiego</p>
+              <p class="cam-card__detail">olx.pl</p>
+            </div>
+          </div>
+        </a>
+        <button type="button" class="cam-card__zoom" data-full="https://ireland.apollo.olxcdn.com/v1/files/w9806yo20fhq-PL/image;s=2000x3000" aria-label="Powiększ zdjęcie: Obiektyw manualny Osawa MC 80-200mm f/4.5 (mocowanie pentax K) Gliwice Wojska Polskiego"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg></button>
+      </div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -838,6 +961,11 @@
   </footer>
 
 </div><!-- /.shell -->
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Podgląd zdjęcia" hidden>
+  <button type="button" class="lightbox__close" id="lightbox-close" aria-label="Zamknij podgląd">✕ ZAMKNIJ</button>
+  <img class="lightbox__img" id="lightbox-img" src="" alt="">
+</div>
 
 <script type="application/ld+json">
 {
@@ -1067,6 +1195,49 @@
   ]
 }
   </script>
+
+<script>
+  // Camera-photo lightbox. The zoom buttons are siblings of the OLX link, so
+  // opening a photo never navigates away or fires an outbound-click event.
+  (function () {
+    var box = document.getElementById('lightbox');
+    var img = document.getElementById('lightbox-img');
+    var closeBtn = document.getElementById('lightbox-close');
+    if (!box || !img) return;
+    var lastFocus = null;
+
+    function open(src, alt) {
+      lastFocus = document.activeElement;
+      img.setAttribute('src', src);
+      img.setAttribute('alt', alt || '');
+      box.hidden = false;
+      box.classList.add('is-open');
+      if (closeBtn) closeBtn.focus();
+    }
+
+    function close() {
+      box.classList.remove('is-open');
+      box.hidden = true;
+      img.setAttribute('src', '');
+      if (lastFocus && lastFocus.focus) lastFocus.focus();
+    }
+
+    document.addEventListener('click', function (event) {
+      var trigger = event.target.closest ? event.target.closest('.cam-card__zoom') : null;
+      if (trigger) {
+        event.preventDefault();
+        open(trigger.getAttribute('data-full'), trigger.getAttribute('aria-label'));
+        return;
+      }
+      // A click on the backdrop or the close button (but not the image) closes.
+      if (!box.hidden && event.target !== img) close();
+    });
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && !box.hidden) close();
+    });
+  })();
+</script>
 
 <script>
   (function () {
