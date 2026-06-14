@@ -120,6 +120,7 @@ Also stale: the **prefers-reduced-motion** item references the `.retro` hover st
 ### Manual steps still pending on your side (cannot be done from the repo)
 
 1. **Custom domain DNS + Pages setting** for `stareaparaty.com` (finding #3): apex `A` records → `185.199.108.153`, `.109.153`, `.110.153`, `.111.153`; `CNAME` `www` → `110kc3.github.io`; then **Settings → Pages → Custom domain** + **Enforce HTTPS**. Until this is done, the live github.io site carries canonical/OG tags pointing at a domain that isn't serving yet.
+   - ⚠️ **`CNAME` file gap (do this as part of the cutover, not before).** Both deploy workflows publish a `dist/`-only artifact via `actions/deploy-pages`. With the Actions deploy path the custom domain set in Settings is not reliably retained across deploys unless a `CNAME` file is included in the uploaded artifact — each deploy can otherwise clear the custom-domain setting. So when you do the cutover: add a repo-root `CNAME` file containing `stareaparaty.com` **and** add `CNAME` to the `cp … dist/` line in *both* `.github/workflows/deploy-pages.yml` and `.github/workflows/discover-cameras.yml`. Do **not** add it earlier: with DNS not yet pointed at Pages, a live `CNAME` would make Pages serve on a domain that 404s and break the working github.io site.
 2. **Verify the `kc-it` GoatCounter dashboard** is collecting events.
 3. **Google Search Console** property + sitemap submission (after the domain is live).
 
