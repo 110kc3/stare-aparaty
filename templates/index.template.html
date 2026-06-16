@@ -318,6 +318,16 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.25);
       white-space: nowrap;
     }
+    /* Original price shown struck through when a listing has been marked down. */
+    .cam-card__price-was {
+      font-size: 10px;
+      font-weight: 600;
+      color: #7a1505;
+      opacity: 0.75;
+      text-decoration: line-through;
+      text-decoration-thickness: 1.5px;
+      margin-right: 1px;
+    }
 
     /* Sold-out state — listing was removed from OLX (HTTP 410/404). */
     .cam-card--sold { cursor: default; outline: 2px solid transparent; pointer-events: none; }

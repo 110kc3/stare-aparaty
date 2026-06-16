@@ -34,6 +34,7 @@ async function main() {
     host: item.host,
     sold: !!item.sold,
     price: item.price || '',
+    oldPrice: item.oldPrice || '',
   }));
 
   if (args.writeLinksFile) {
@@ -189,6 +190,7 @@ async function buildItem(url, fallbackItem) {
         host: new URL(url).hostname.replace(/^www\./, ''),
         sold: true,
         price: fallbackItem?.price || '',
+        oldPrice: fallbackItem?.oldPrice || '',
       };
     }
 
@@ -198,13 +200,15 @@ async function buildItem(url, fallbackItem) {
 
     const html = await response.text();
     const extracted = extractMetadata(html, url);
+    const price = extracted.price || fallbackItem?.price || '';
     return {
       title: extracted.title || fallbackItem?.title || buildFallbackTitle(url),
       image: extracted.image || fallbackItem?.image || createPlaceholderImage(buildFallbackTitle(url)),
       url,
       host: new URL(url).hostname.replace(/^www\./, ''),
       sold: false,
-      price: extracted.price || fallbackItem?.price || '',
+      price,
+      oldPrice: resolveOldPrice(price, fallbackItem),
     };
   } catch (error) {
     // Transient errors (timeout, DNS, etc.) shouldn't unset a previously-detected sold state.
@@ -216,6 +220,7 @@ async function buildItem(url, fallbackItem) {
       host: new URL(url).hostname.replace(/^www\./, ''),
       sold: !!fallbackItem?.sold,
       price: fallbackItem?.price || '',
+      oldPrice: fallbackItem?.oldPrice || '',
     };
   }
 }
@@ -268,6 +273,42 @@ function formatPrice(amount, currency) {
     maximumFractionDigits: Number.isInteger(value) ? 0 : 2,
   }).format(value);
   return currency === 'PLN' ? `${formatted} zł` : `${formatted} ${currency}`;
+}
+
+// --- Old-price tracking ----------------------------------------------------
+
+// Bare numeric value of a formatted price ("1 234,56 zł" -> 1234.56); 0 if none.
+function priceNumber(formatted) {
+  const n = Number(priceToNumber(formatted));
+  return Number.isFinite(n) ? n : 0;
+}
+
+// Track a listing's all-time HIGH price and surface it as the struck-through
+// "old" price only while the current price sits below that high — i.e. a
+// genuine markdown. `currentPrice` is the freshly-fetched formatted price;
+// `fallbackItem` is the listing's previous olx_meta.json snapshot, which carries
+// forward both the last `price` and the last stored high in `oldPrice`. Returns
+// the formatted old price to store/show, or '' when there is no active drop.
+function resolveOldPrice(currentPrice, fallbackItem) {
+  const curNum = priceNumber(currentPrice);
+  // Unknown current price: don't recompute — keep whatever old price we had.
+  if (curNum <= 0) return fallbackItem?.oldPrice || '';
+
+  // Highest price seen so far = the larger of the last current and last high.
+  let highStr = '';
+  let highNum = 0;
+  for (const candidate of [fallbackItem?.price, fallbackItem?.oldPrice]) {
+    const n = priceNumber(candidate);
+    if (n > highNum) {
+      highNum = n;
+      highStr = candidate;
+    }
+  }
+
+  // Current is at/above the previous high -> it's a new high, nothing to strike.
+  if (curNum >= highNum) return '';
+  // Current sits below a previously seen higher price -> show that original high.
+  return highStr;
 }
 
 function getMetaContent(html, attributeName, attributeValue) {
@@ -589,8 +630,13 @@ function renderCard(item, index = 0) {
   // First row (4 cards) loads eagerly for fast above-the-fold paint;
   // everything below lazy-loads.
   const loadingAttrs = index < 4 ? '' : ' loading="lazy" decoding="async"';
+  // On a price drop, prefix the chip with the original (higher) price struck
+  // through, so a markdown reads "390 zł 320 zł" at a glance.
+  const oldPriceMark = item.oldPrice && !item.sold
+    ? `<s class="cam-card__price-was">${escapeHtml(item.oldPrice)}</s> `
+    : '';
   const priceChip = item.price && !item.sold
-    ? `\n          <span class="cam-card__price">${escapeHtml(item.price)}</span>`
+    ? `\n          <span class="cam-card__price">${oldPriceMark}${escapeHtml(item.price)}</span>`
     : '';
 
   // The card itself stays a single link to OLX (the conversion path). The zoom
@@ -707,12 +753,15 @@ module.exports = {
   formatPrice,
   decodeHtmlEntities,
   priceToNumber,
+  priceNumber,
+  resolveOldPrice,
   cleanupText,
   normalizeLinks,
   assertRenderedOutput,
   mapWithConcurrency,
   classifyType,
   groupByType,
+  renderCard,
   escapeHtml,
   escapeAttribute,
 };
