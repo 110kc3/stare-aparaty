@@ -62,6 +62,8 @@ test('decodeUnicode turns \\uXXXX escapes into characters', () => {
 test('matchesKeyword filters by the camera keyword list', () => {
   assert.ok(matchesKeyword('Aparat analogowy Zenit'));
   assert.ok(matchesKeyword('Pentax SF7')); // brand-only title
+  assert.ok(matchesKeyword('Obiektyw manualny Osawa MC 80-200mm')); // standalone lens
+  assert.ok(matchesKeyword('Praktica z obiektywem Hanimex')); // inflected "obiektywem"
   assert.ok(!matchesKeyword('Rower górski'));
 });
 

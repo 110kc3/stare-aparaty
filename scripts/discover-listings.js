@@ -31,20 +31,24 @@ const path = require('node:path');
 
 // Your OLX user listing page(s). List only the FIRST page of each view — pages
 // 2, 3, ... are fetched automatically until a page adds nothing new.
-// categoryId=99 is OLX's "Foto" category; a user URL with no categoryId
-// returns every category (the KEYWORDS filter still keeps only cameras).
+// No categoryId is set on purpose: a bare user URL returns offers from EVERY
+// category, so listings posted outside OLX's "Foto" category (e.g. a lens filed
+// under accessories) are no longer missed. The KEYWORDS text filter below is
+// what keeps only cameras/lenses, replacing the old category restriction.
 const USER_PAGES = [
-  'https://www.olx.pl/oferty/uzytkownik/273W5/?categoryId=99',
+  'https://www.olx.pl/oferty/uzytkownik/273W5/',
   'https://www.olx.pl/oferty/uzytkownik/vNQAM/',
   'https://www.olx.pl/oferty/uzytkownik/2OYKZ/',
 ];
 
 // Keep an offer only if its title contains one of these (case-insensitive).
-// This is the "is it actually a camera" safety net. Edit freely — note that
-// some cameras are titled by brand/model only (e.g. "Pentax SF7"), so brand
-// names are included on purpose. Set to [] to keep every offer.
+// This is the "is it actually a camera/lens" safety net and — now that no OLX
+// category filter is applied — the sole thing deciding what counts. Edit freely.
+// 'obiektyw' matches lens listings (incl. inflections like "obiektywem").
+// Note some cameras are titled by brand/model only (e.g. "Pentax SF7"), so
+// brand names are included on purpose. Set to [] to keep every offer.
 const KEYWORDS = [
-  'aparat', 'analog',
+  'aparat', 'analog', 'obiektyw',
   // common analog-camera brands, so model-named listings aren't dropped:
   'pentax', 'canon', 'nikon', 'minolta', 'olympus', 'zenit', 'praktica',
   'zorki', 'fed', 'smena', 'lubitel', 'mamiya', 'chinon', 'petri', 'yashica',

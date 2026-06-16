@@ -7,12 +7,14 @@ const {
   formatPrice,
   decodeHtmlEntities,
   priceToNumber,
+  resolveOldPrice,
   cleanupText,
   normalizeLinks,
   assertRenderedOutput,
   mapWithConcurrency,
   classifyType,
   groupByType,
+  renderCard,
 } = require('../scripts/build-catalog.js');
 
 const TYPE_CONFIG = {
@@ -136,4 +138,83 @@ test('mapWithConcurrency preserves order and bounds in-flight work', async () =>
   });
   assert.deepEqual(out, [10, 20, 30, 40, 50, 60, 70]);
   assert.ok(maxInFlight <= 2, `expected <=2 in flight, saw ${maxInFlight}`);
+});
+
+test('resolveOldPrice: no previous snapshot means no struck price', () => {
+  assert.equal(resolveOldPrice('320 zł', undefined), '');
+  assert.equal(resolveOldPrice('320 zł', {}), '');
+});
+
+test('resolveOldPrice: a first drop surfaces the previous price', () => {
+  // Last build saw 390; now it is 320 -> strike 390.
+  assert.equal(resolveOldPrice('320 zł', { price: '390 zł' }), '390 zł');
+});
+
+test('resolveOldPrice: the original (highest) price persists across rebuilds', () => {
+  // Price unchanged at 320 while a drop from 390 is already recorded.
+  assert.equal(
+    resolveOldPrice('320 zł', { price: '320 zł', oldPrice: '390 zł' }),
+    '390 zł',
+  );
+  // A further drop to 300 still shows the original 390, not the interim 320.
+  assert.equal(
+    resolveOldPrice('300 zł', { price: '320 zł', oldPrice: '390 zł' }),
+    '390 zł',
+  );
+  // A partial rebound (still below the all-time high) keeps the high.
+  assert.equal(
+    resolveOldPrice('350 zł', { price: '320 zł', oldPrice: '390 zł' }),
+    '390 zł',
+  );
+});
+
+test('resolveOldPrice: a new all-time high clears the struck price', () => {
+  assert.equal(resolveOldPrice('400 zł', { price: '320 zł', oldPrice: '390 zł' }), '');
+  // Equal to the prior high (no drop) also clears it.
+  assert.equal(resolveOldPrice('390 zł', { price: '390 zł' }), '');
+});
+
+test('resolveOldPrice: an unknown current price preserves the stored high', () => {
+  assert.equal(resolveOldPrice('', { price: '320 zł', oldPrice: '390 zł' }), '390 zł');
+});
+
+test('renderCard: a marked-down listing strikes the original price', () => {
+  const html = renderCard({
+    title: 'Aparat Zenit-B',
+    image: 'https://example.com/z.jpg',
+    url: 'https://www.olx.pl/d/oferta/zenit-b.html',
+    host: 'olx.pl',
+    sold: false,
+    price: '320 zł',
+    oldPrice: '390 zł',
+  });
+  assert.match(html, /<s class="cam-card__price-was">390 zł<\/s>/);
+  assert.match(html, /320 zł<\/span>/);
+});
+
+test('renderCard: no old price renders a plain price chip', () => {
+  const html = renderCard({
+    title: 'Aparat Zenit-B',
+    image: 'https://example.com/z.jpg',
+    url: 'https://www.olx.pl/d/oferta/zenit-b.html',
+    host: 'olx.pl',
+    sold: false,
+    price: '320 zł',
+    oldPrice: '',
+  });
+  assert.ok(!html.includes('cam-card__price-was'));
+  assert.match(html, /<span class="cam-card__price">320 zł<\/span>/);
+});
+
+test('renderCard: a sold listing shows neither price chip nor struck price', () => {
+  const html = renderCard({
+    title: 'Aparat Zenit-B',
+    image: 'https://example.com/z.jpg',
+    url: 'https://www.olx.pl/d/oferta/zenit-b.html',
+    host: 'olx.pl',
+    sold: true,
+    price: '320 zł',
+    oldPrice: '390 zł',
+  });
+  assert.ok(!html.includes('cam-card__price'));
 });
