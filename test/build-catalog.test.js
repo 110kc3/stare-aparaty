@@ -218,3 +218,18 @@ test('renderCard: a sold listing shows neither price chip nor struck price', () 
   });
   assert.ok(!html.includes('cam-card__price'));
 });
+
+test('camera-types.json: a plural "Aparaty …" multi-camera listing is a Zestaw', () => {
+  const config = require('../scripts/camera-types.json');
+  assert.equal(
+    classifyType(
+      'Aparaty na film Kodak Duaflex II, Brownie Cresta 3, Retina If Gliwice Sikornik',
+      config,
+    ),
+    'Zestawy',
+  );
+  // The existing "Kolekcja …" set still groups as a Zestaw.
+  assert.equal(classifyType('Kolekcja aparatów Canon EOS', config), 'Zestawy');
+  // A single camera (singular "Aparat") must NOT be pulled into Zestawy.
+  assert.equal(classifyType('Aparat Zenit-B z obiektywem Helios-44', config), 'Lustrzanki (SLR)');
+});

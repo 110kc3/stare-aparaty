@@ -2,7 +2,7 @@
   "_comment": "Classifies each camera into a display section by matching keywords against its (lowercased) OLX title. Rules are checked top to bottom; the first rule with a matching keyword wins. A keyword starting with `^` must match the START of the title (e.g. `^obiektyw` tags a standalone lens but NOT a camera listed `... z obiektywem ...`). Anything unmatched uses `fallback` (most listings here are SLRs, so that is the safe default). `order` controls the on-page section order; a type that appears here but has no cameras is skipped, and a type not listed is shown last. Edit freely — the `type` strings are the headings shown to visitors.",
   "rules": [
     { "match": ["^obiektyw"], "type": "Obiektywy i akcesoria" },
-    { "match": ["kolekcja", "zestaw", "zestawy"], "type": "Zestawy" },
+    { "match": ["^aparaty", "kolekcja", "zestaw", "zestawy"], "type": "Zestawy" },
     { "match": ["instax", "polaroid", "natychmiast"], "type": "Natychmiastowe" },
     { "match": ["dalmierz", "rangefinder", "35w"], "type": "Dalmierzowe" },
     { "match": ["kompakt", "focus free", "point", "quasar"], "type": "Kompaktowe" }
