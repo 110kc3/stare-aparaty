@@ -2,6 +2,8 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const {
   formatPrice,
@@ -15,6 +17,7 @@ const {
   classifyType,
   groupByType,
   renderCard,
+  loadAllegroProducts,
 } = require('../scripts/build-catalog.js');
 
 const TYPE_CONFIG = {
@@ -232,4 +235,47 @@ test('camera-types.json: a plural "Aparaty …" multi-camera listing is a Zestaw
   assert.equal(classifyType('Kolekcja aparatów Canon EOS', config), 'Zestawy');
   // A single camera (singular "Aparat") must NOT be pulled into Zestawy.
   assert.equal(classifyType('Aparat Zenit-B z obiektywem Helios-44', config), 'Lustrzanki (SLR)');
+});
+
+// --- Allegro manual price data -------------------------------------------
+// Allegro card prices are data-driven from scripts/allegro-products.json the
+// same way Amazon prices come from amazon-products.json. These guard that the
+// data file and the template never drift apart (a mismatch would either leave
+// a {{ALLEGRO_PRICE_*}} placeholder in the page or silently drop a price).
+
+const TEMPLATE_HTML = fs.readFileSync(
+  path.join(__dirname, '..', 'templates', 'index.template.html'),
+  'utf8',
+);
+const ALLEGRO_PRODUCTS = require('../scripts/allegro-products.json');
+
+test('allegro-products.json entries are well-formed', () => {
+  const keys = Object.keys(ALLEGRO_PRODUCTS);
+  assert.ok(keys.length > 0, 'expected at least one Allegro product');
+  for (const key of keys) {
+    const data = ALLEGRO_PRODUCTS[key];
+    assert.ok(
+      typeof data.price === 'string' && data.price.trim().length > 0,
+      `${key}: price must be a non-empty string`,
+    );
+    assert.match(data.url, /^https:\/\/(www\.|business\.)?allegro\.pl\//, `${key}: url`);
+    assert.match(data.lastChecked, /^\d{4}-\d{2}-\d{2}$/, `${key}: lastChecked`);
+  }
+});
+
+test('template {{ALLEGRO_PRICE_*}} placeholders match the JSON keys exactly', () => {
+  const placeholderKeys = [...TEMPLATE_HTML.matchAll(/\{\{ALLEGRO_PRICE_([a-z0-9-]+)\}\}/g)]
+    .map((m) => m[1])
+    .sort();
+  const jsonKeys = Object.keys(ALLEGRO_PRODUCTS).sort();
+  // Every placeholder has a data entry, every data entry is used once, no dupes.
+  assert.deepEqual(placeholderKeys, jsonKeys);
+});
+
+test('loadAllegroProducts returns products and the oldest lastChecked date', () => {
+  const loaded = loadAllegroProducts();
+  assert.ok(Object.keys(loaded.products).length > 0);
+  assert.match(loaded.lastRefreshed, /^\d{4}-\d{2}-\d{2}$/);
+  const allDates = Object.values(loaded.products).map((p) => p.lastChecked).sort();
+  assert.equal(loaded.lastRefreshed, allDates[0]);
 });

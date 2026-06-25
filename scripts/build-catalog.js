@@ -7,6 +7,7 @@ const ROOT_DIR = path.resolve(__dirname, '..');
 const LINKS_FILE = path.join(ROOT_DIR, 'product-links.txt');
 const TEMPLATE_FILE = path.join(ROOT_DIR, 'templates', 'index.template.html');
 const AMAZON_PRODUCTS_FILE = path.join(__dirname, 'amazon-products.json');
+const ALLEGRO_PRODUCTS_FILE = path.join(__dirname, 'allegro-products.json');
 const CAMERA_TYPES_FILE = path.join(__dirname, 'camera-types.json');
 const OUTPUT_HTML = path.join(ROOT_DIR, 'index.html');
 const OUTPUT_JSON = path.join(ROOT_DIR, 'olx_meta.json');
@@ -438,7 +439,7 @@ function renderIndex(items) {
     .replace('{{CAMERA_CARDS}}', renderCameraCatalog(items))
     .replace('{{CAMERA_JSONLD}}', renderProductJsonLd(items));
 
-  // Inject Amazon prices + images (managed by scripts/refresh-amazon.js).
+  // Inject Amazon prices + images (managed by scripts/amazon-products.json).
   const amazon = loadAmazonProducts();
   for (const [asin, data] of Object.entries(amazon.products)) {
     rendered = rendered
@@ -450,9 +451,29 @@ function renderIndex(items) {
         .join(escapeAttribute(data.image));
     }
   }
+
+  // Inject Allegro prices + images (managed by scripts/allegro-products.json).
+  // Same manual workflow as Amazon: edit the JSON, rebuild, the cards update.
+  const allegro = loadAllegroProducts();
+  for (const [key, data] of Object.entries(allegro.products)) {
+    rendered = rendered
+      .split(`{{ALLEGRO_PRICE_${key}}}`)
+      .join(escapeHtml(data.price || ''));
+    if (data.image) {
+      rendered = rendered
+        .split(`{{ALLEGRO_IMAGE_${key}}}`)
+        .join(escapeAttribute(data.image));
+    }
+  }
+
+  // "Sprawdzone" date = the OLDEST lastChecked across BOTH marketplaces, so it
+  // only advances once every displayed price (Amazon and Allegro) is current.
+  const lastRefreshed = [amazon.lastRefreshed, allegro.lastRefreshed]
+    .filter(Boolean)
+    .sort()[0] || '';
   rendered = rendered
     .split('{{LAST_REFRESHED}}')
-    .join(escapeHtml(amazon.lastRefreshed));
+    .join(escapeHtml(lastRefreshed));
 
   return rendered;
 }
@@ -517,6 +538,24 @@ function loadAmazonProducts() {
     return { products, lastRefreshed: dates[0] || '' };
   } catch (error) {
     console.warn(`Could not read ${AMAZON_PRODUCTS_FILE}: ${error.message}`);
+    return { products: {}, lastRefreshed: '' };
+  }
+}
+
+function loadAllegroProducts() {
+  if (!fs.existsSync(ALLEGRO_PRODUCTS_FILE)) {
+    return { products: {}, lastRefreshed: '' };
+  }
+  try {
+    const products = JSON.parse(fs.readFileSync(ALLEGRO_PRODUCTS_FILE, 'utf8'));
+    // Oldest lastChecked across the Allegro cards is their honest "as of" date.
+    const dates = Object.values(products)
+      .map((p) => p && p.lastChecked)
+      .filter(Boolean)
+      .sort();
+    return { products, lastRefreshed: dates[0] || '' };
+  } catch (error) {
+    console.warn(`Could not read ${ALLEGRO_PRODUCTS_FILE}: ${error.message}`);
     return { products: {}, lastRefreshed: '' };
   }
 }
@@ -764,4 +803,5 @@ module.exports = {
   renderCard,
   escapeHtml,
   escapeAttribute,
+  loadAllegroProducts,
 };
