@@ -33,19 +33,14 @@ Amazon.pl is a weak place to send Polish film buyers — selection and prices fo
 | **webePartners network** | 3–4% typical | Polish e-commerce affiliate network; check which photo shops are currently listed. |
 | Fotoforma | cashback only (Fonia) | No classic affiliate program — not useful here. |
 
-Suggested move: keep Amazon links for now (sunk setup, some users prefer it), add an Allegro link as a second button on each film card once the Allegro Affiliate account is approved. Measure both with the new click tracking and drop the loser.
+Suggested move: keep Amazon links for now (sunk setup, some users prefer it), add an Allegro link as a second button on each film card once the Allegro Affiliate account is approved.
 
 ## 4. Measure (unblocked today)
 
-GoatCounter + outbound click events are wired into the template, pointing at the **`kc-it`** account (`https://kc-it.goatcounter.com/count`). To use it:
-
-1. Log in at https://kc-it.goatcounter.com — events already flow there, no further setup needed. (If you'd rather use a dedicated `stare-aparaty` code, register it at https://www.goatcounter.com and update the `data-goatcounter` URL in `templates/index.template.html` to match, then rebuild.)
-2. No cookie banner needed — it's cookieless.
-3. Watch: visits/day, `out-olx-*` events (which cameras get interest) and `out-amazon-*` events (which products get clicks).
+Analytics = **Cloudflare Web Analytics (RUM)**, auto-injected via the Cloudflare dashboard (no snippet in the repo). Cookieless, no consent banner needed. Note: no custom events — the former GoatCounter per-link outbound click tracking was removed 2026-07-02.
 
 ## What changed in this session
 
-- GoatCounter analytics + per-link outbound click events (template)
 - OG/Twitter meta, canonical URL, branded `og-image.png`, `favicon.svg` (template + new files)
 - `robots.txt` + `sitemap.xml`
 - OLX price extraction in `build-catalog.js` → price chip on camera cards, cached in `olx_meta.json`
@@ -53,7 +48,6 @@ GoatCounter + outbound click events are wired into the template, pointing at the
 
 ## Your action items
 
-1. Confirm the `kc-it` GoatCounter dashboard is collecting events (the template already points to it).
-2. Add the site to Google Search Console, submit the sitemap.
-3. Pick one camera and write the first guide page — validate the traffic thesis before scaling.
-4. Apply to Allegro Affiliate Business.
+1. Add the site to Google Search Console, submit the sitemap.
+2. Pick one camera and write the first guide page — validate the traffic thesis before scaling.
+3. Apply to Allegro Affiliate Business.

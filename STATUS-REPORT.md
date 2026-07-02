@@ -47,7 +47,7 @@
 
 5. **Legacy `vintage_cameras.html` is still tracked.** ✅ **Deploy side fixed 2026-06-13** — the `dist/`-only artifact (finding #2) no longer publishes it, so it's not publicly reachable or crawlable. It remains in the repo for reference; delete it if you want it gone entirely.
 
-6. ~~**GoatCounter code mismatch.**~~ ✅ **Fixed 2026-06-13.** GROWTH-PLAN.md told you to register the code `stare-aparaty`, but the template loads `https://kc-it.goatcounter.com/count`. Aligned the docs to the deployed reality: GROWTH-PLAN now references the live `kc-it` account (changing the template instead would risk breaking working analytics). ⚠️ Still worth a one-time manual check that the `kc-it` dashboard is actually receiving events.
+6. ~~**GoatCounter code mismatch.**~~ ✅ **Fixed 2026-06-13.** GROWTH-PLAN.md told you to register the code `stare-aparaty`, but the template loads `https://kc-it.goatcounter.com/count`. Aligned the docs to the deployed reality: GROWTH-PLAN now references the live `kc-it` account. **Superseded 2026-07-02:** GoatCounter removed entirely; analytics is now Cloudflare Web Analytics (RUM), auto-injected from the Cloudflare dashboard.
 
 7. ~~**README is stale in several places.**~~ ✅ **Fixed 2026-06-13.** Corrected the `styles.css`/`retro.css` rows (now flagged as legacy-only, since `index.html` styles are inline in the template), fixed the `refresh-amazon.yml` → `.yml.disabled` name, completed the template-placeholder list (`{{PRICE_*}}`/`{{IMAGE_*}}`/`{{LAST_REFRESHED}}`), documented the `dist/`-only deploy and the `stareaparaty.com` custom domain, and added the missing public files to the structure table.
 
@@ -76,7 +76,7 @@
 | TODO item | Evidence |
 |---|---|
 | Specific ASINs for accessories | All product cards link to `/dp/{ASIN}`; the search-page section no longer exists |
-| Track affiliate click-through | GoatCounter + outbound `out-olx-*` / `out-amazon-*` events live in the template |
+| Track affiliate click-through | ~~GoatCounter outbound events~~ (removed 2026-07-02; Cloudflare Web Analytics now, no custom events) |
 | Show listing price on camera cards | JSON-LD price extraction + price chip implemented |
 | OG + Twitter card meta | Full set in template `<head>` incl. branded `og-image.png` |
 | Favicon | `favicon.svg` linked (apple-touch-icon + manifest still missing) |
@@ -114,7 +114,7 @@ Also stale: the **prefers-reduced-motion** item references the `.retro` hover st
 
 ### GROWTH-PLAN action items — current state
 
-1. **GoatCounter** — docs now point at the `kc-it` account (#6 resolved). ⚠️ Still do a one-time manual check that the `kc-it` dashboard is actually receiving events.
+1. **Analytics** — GoatCounter removed 2026-07-02; Cloudflare Web Analytics (RUM) enabled instead, auto-injected via the Cloudflare dashboard.
 2. **Google Search Console + sitemap submission** — not verifiable from the repo; sitemap is ready (and now points at `stareaparaty.com`). Do this once the custom domain is live, before writing guide pages.
 3. **First per-camera guide page** — not started. Still the single highest-leverage item.
 4. **Allegro Affiliate application** — not verifiable from the repo; no Allegro links present yet.
@@ -124,13 +124,12 @@ Also stale: the **prefers-reduced-motion** item references the `.retro` hover st
 
 1. **Custom domain DNS + Pages setting** for `stareaparaty.com` (finding #3): apex `A` records → `185.199.108.153`, `.109.153`, `.110.153`, `.111.153`; `CNAME` `www` → `110kc3.github.io`; then **Settings → Pages → Custom domain** + **Enforce HTTPS**. Until this is done, the live github.io site carries canonical/OG tags pointing at a domain that isn't serving yet.
    - ⚠️ **`CNAME` file gap (do this as part of the cutover, not before).** Both deploy workflows publish a `dist/`-only artifact via `actions/deploy-pages`. With the Actions deploy path the custom domain set in Settings is not reliably retained across deploys unless a `CNAME` file is included in the uploaded artifact — each deploy can otherwise clear the custom-domain setting. So when you do the cutover: add a repo-root `CNAME` file containing `stareaparaty.com` **and** add `CNAME` to the `cp … dist/` line in *both* `.github/workflows/deploy-pages.yml` and `.github/workflows/discover-cameras.yml`. Do **not** add it earlier: with DNS not yet pointed at Pages, a live `CNAME` would make Pages serve on a domain that 404s and break the working github.io site.
-2. **Verify the `kc-it` GoatCounter dashboard** is collecting events.
-3. **Google Search Console** property + sitemap submission (after the domain is live).
+2. **Google Search Console** property + sitemap submission (after the domain is live).
 
 ### Recommended order of attack
 
 1. ~~Fix the 404 link and the artifact `path: .` exposure.~~ ✅ Done 2026-06-13.
 2. ~~Decide the domain question (#3).~~ ✅ Code migrated to `stareaparaty.com`; only DNS + Pages settings remain (manual, above).
-3. ~~Resolve the GoatCounter mismatch.~~ ✅ Docs aligned to `kc-it`; verify the dashboard.
+3. ~~Resolve the GoatCounter mismatch.~~ ✅ Moot — GoatCounter removed 2026-07-02 in favour of Cloudflare Web Analytics.
 4. Finish the DNS/Pages cutover, then write the first camera guide page (highest-leverage growth item).
 5. Optional code follow-ups: Product JSON-LD, then font self-hosting and the CI niceties (ESLint/Prettier, Lighthouse, URL validation).

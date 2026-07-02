@@ -779,41 +779,5 @@
   })();
 </script>
 
-<!-- GoatCounter analytics (free, cookieless, no consent banner needed). -->
-<script data-goatcounter="https://kc-it.goatcounter.com/count"
-        async src="//gc.zgo.at/count.js"></script>
-<script>
-  // Outbound click tracking: fires a GoatCounter event for every OLX / Amazon
-  // click so we can see which cameras and products actually pull weight.
-  (function () {
-    function slug(text) {
-      return (text || '').toLowerCase().trim()
-        .replace(/[^a-z0-9ąćęłńóśźż]+/gi, '-')
-        .replace(/^-+|-+$/g, '')
-        .slice(0, 60);
-    }
-    document.addEventListener('click', function (event) {
-      var link = event.target && event.target.closest ? event.target.closest('a[href]') : null;
-      if (!link || !window.goatcounter || !window.goatcounter.count) return;
-      var href = link.href || '';
-      var name = '';
-      if (href.indexOf('olx.pl') !== -1) {
-        var camName = link.querySelector('.cam-card__name');
-        name = 'out-olx-' + slug(camName ? camName.textContent : href);
-      } else if (href.indexOf('amazon.') !== -1) {
-        var prodName = link.querySelector('h3');
-        var asin = (href.match(/\/dp\/([A-Z0-9]{10})/) || [])[1] || '';
-        name = 'out-amazon-' + slug(prodName ? prodName.textContent : asin);
-      } else if (href.indexOf('allegro.') !== -1) {
-        var prodNameAllegro = link.querySelector('h3');
-        name = 'out-allegro-' + slug(prodNameAllegro ? prodNameAllegro.textContent : href);
-      } else {
-        return;
-      }
-      window.goatcounter.count({ path: name, title: name, event: true });
-    });
-  })();
-</script>
-
 </body>
 </html>
