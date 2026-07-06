@@ -1,8 +1,15 @@
-# Normalize line endings to LF everywhere. The build script (Node) writes
-# index.html / olx_meta.json with LF; without this, Windows checkouts rewrite
-# them to CRLF, producing noisy diffs and "LF will be replaced by CRLF" warnings.
-* text=auto eol=lf
+# Shell scripts must stay LF — the CI runners are Linux, and a Windows checkout
+# that flips build-site.sh to CRLF breaks `bash build-site.sh` ("set: pipefail:
+# invalid option name") and therefore the OVH deploy. eol=lf forces LF on checkout
+# regardless of the local git autocrlf setting.
+*.sh text eol=lf
 
-# Binary assets must never be line-ending converted.
+# Normalise line endings repo-wide: store LF and check out LF everywhere, so a
+# CRLF working tree (Windows / some mounts) stops showing every file as
+# "modified". This project is Linux-first (CI + OVH deploy) and wants LF
+# throughout. Binaries are pinned so they are never touched. After adding this,
+# run once to clear any already-CRLF blobs:  git add --renormalize . && commit.
+* text=auto eol=lf
 *.png binary
-*.woff2 binary
+*.ico binary
+*.zip binary
