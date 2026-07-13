@@ -11,6 +11,9 @@ const ALLEGRO_PRODUCTS_FILE = path.join(__dirname, 'allegro-products.json');
 const CAMERA_TYPES_FILE = path.join(__dirname, 'camera-types.json');
 const OUTPUT_HTML = path.join(ROOT_DIR, 'index.html');
 const OUTPUT_JSON = path.join(ROOT_DIR, 'olx_meta.json');
+const OUTPUT_SITEMAP = path.join(ROOT_DIR, 'sitemap.xml');
+
+const SITE_URL = 'https://stareaparaty.com/';
 
 // Up to this many listings are fetched at once. OLX tolerates a handful of
 // concurrent requests fine, and a bounded pool keeps the whole catalog from
@@ -47,6 +50,7 @@ async function main() {
 
   fs.writeFileSync(OUTPUT_JSON, `${JSON.stringify(normalizedItems, null, 2)}\n`, 'utf8');
   fs.writeFileSync(OUTPUT_HTML, html, 'utf8');
+  fs.writeFileSync(OUTPUT_SITEMAP, renderSitemap(), 'utf8');
 
   console.log(`Built catalog with ${normalizedItems.length} item(s).`);
 }
@@ -433,14 +437,18 @@ function renderIndex(items) {
     timeZone: 'Europe/Warsaw',
   }).format(new Date());
 
+  // Amazon/Allegro data is loaded up front because it feeds both the price
+  // placeholders below and the film/accessory Product nodes in the JSON-LD.
+  const amazon = loadAmazonProducts();
+  const allegro = loadAllegroProducts();
+
   rendered = rendered
     .replace('{{COUNT}}', String(items.length))
     .replace('{{LAST_UPDATED}}', escapeHtml(lastUpdated))
     .replace('{{CAMERA_CARDS}}', renderCameraCatalog(items))
-    .replace('{{CAMERA_JSONLD}}', renderProductJsonLd(items));
+    .replace('{{CAMERA_JSONLD}}', renderProductJsonLd(items, amazon.products, allegro.products));
 
   // Inject Amazon prices + images (managed by scripts/amazon-products.json).
-  const amazon = loadAmazonProducts();
   for (const [asin, data] of Object.entries(amazon.products)) {
     rendered = rendered
       .split(`{{PRICE_${asin}}}`)
@@ -454,7 +462,6 @@ function renderIndex(items) {
 
   // Inject Allegro prices + images (managed by scripts/allegro-products.json).
   // Same manual workflow as Amazon: edit the JSON, rebuild, the cards update.
-  const allegro = loadAllegroProducts();
   for (const [key, data] of Object.entries(allegro.products)) {
     rendered = rendered
       .split(`{{ALLEGRO_PRICE_${key}}}`)
@@ -478,40 +485,121 @@ function renderIndex(items) {
   return rendered;
 }
 
-// Emit schema.org Product/Offer structured data for the camera catalog so the
-// listings are eligible for Google rich results. One JSON-LD graph holds every
-// camera; sold listings advertise SoldOut, the rest InStock.
-function renderProductJsonLd(items) {
-  if (items.length === 0) {
-    return '';
+// Emit schema.org structured data: a WebSite/Organization identity node, the
+// camera catalog as an ItemList of Product/Offer nodes (sold listings
+// advertise SoldOut, the rest InStock), and one Product per film/accessory
+// card so the whole page — not just the OLX section — is machine-readable.
+function renderProductJsonLd(items, amazonProducts = {}, allegroProducts = {}) {
+  const organization = {
+    '@type': 'Organization',
+    name: 'Stare Aparaty',
+    url: SITE_URL,
+    logo: `${SITE_URL}icon-512.png`,
+  };
+
+  const graph = [
+    {
+      '@type': 'WebSite',
+      name: 'Stare Aparaty',
+      url: SITE_URL,
+      inLanguage: 'pl-PL',
+      description: 'Wybrane aparaty analogowe, filmy i akcesoria w spokojnym, filmowym klimacie.',
+      publisher: organization,
+    },
+  ];
+
+  if (items.length > 0) {
+    graph.push({
+      '@type': 'ItemList',
+      name: 'Aparaty analogowe w ofercie',
+      numberOfItems: items.length,
+      itemListElement: items.map((item, index) => {
+        const offer = {
+          '@type': 'Offer',
+          url: item.url,
+          itemCondition: 'https://schema.org/UsedCondition',
+          availability: item.sold
+            ? 'https://schema.org/SoldOut'
+            : 'https://schema.org/InStock',
+        };
+        const priceNumber = priceToNumber(item.price);
+        if (priceNumber) {
+          offer.price = priceNumber;
+          offer.priceCurrency = 'PLN';
+        }
+        return {
+          '@type': 'ListItem',
+          position: index + 1,
+          item: {
+            '@type': 'Product',
+            name: item.title,
+            image: item.image,
+            offers: offer,
+          },
+        };
+      }),
+    });
   }
 
-  const products = items.map((item) => {
-    const offer = {
-      '@type': 'Offer',
-      url: item.url,
-      itemCondition: 'https://schema.org/UsedCondition',
-      availability: item.sold
-        ? 'https://schema.org/SoldOut'
-        : 'https://schema.org/InStock',
-    };
-    const priceNumber = priceToNumber(item.price);
-    if (priceNumber) {
-      offer.price = priceNumber;
-      offer.priceCurrency = 'PLN';
-    }
-    return {
-      '@type': 'Product',
-      name: item.title,
-      image: item.image,
-      offers: offer,
-    };
-  });
+  // Plain product URLs (no affiliate tag) go into the structured data; the
+  // affiliate links stay in the visible cards only.
+  for (const [asin, data] of Object.entries(amazonProducts)) {
+    graph.push(retailProductNode(data, `https://www.amazon.pl/dp/${asin}`));
+  }
+  for (const data of Object.values(allegroProducts)) {
+    graph.push(retailProductNode(data, data && data.url));
+  }
 
-  const graph = { '@context': 'https://schema.org', '@graph': products };
+  const wrapped = { '@context': 'https://schema.org', '@graph': graph.filter(Boolean) };
   // Escape "<" so a listing title can never break out of the <script> element.
-  const json = JSON.stringify(graph, null, 2).replace(/</g, '\\u003c');
+  const json = JSON.stringify(wrapped, null, 2).replace(/</g, '\\u003c');
   return `<script type="application/ld+json">\n${json}\n  </script>`;
+}
+
+// Product node for a film/accessory card sold new on Amazon/Allegro. Returns
+// null for malformed entries so a bad JSON row degrades to "not in the graph"
+// instead of a broken node.
+function retailProductNode(data, url) {
+  if (!data || !data.label || !url) {
+    return null;
+  }
+  const offer = {
+    '@type': 'Offer',
+    url,
+    itemCondition: 'https://schema.org/NewCondition',
+    availability: 'https://schema.org/InStock',
+  };
+  const priceNumber = priceToNumber(data.price);
+  if (priceNumber) {
+    offer.price = priceNumber;
+    offer.priceCurrency = 'PLN';
+  }
+  const product = {
+    '@type': 'Product',
+    name: data.label,
+    offers: offer,
+  };
+  if (data.image) {
+    product.image = data.image;
+  }
+  return product;
+}
+
+// The site is a single page, so the sitemap's job is just to carry an honest
+// <lastmod> — the catalog rebuilds daily, and this file rebuilds with it.
+function renderSitemap() {
+  const lastmod = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Warsaw' })
+    .format(new Date());
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>${SITE_URL}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>
+`;
 }
 
 // Pull a bare numeric value ("120", "1234.56") out of a formatted price like

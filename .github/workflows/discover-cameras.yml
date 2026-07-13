@@ -54,7 +54,7 @@ jobs:
           if git diff --quiet --exit-code; then
             echo "No changes to commit."
           else
-            git add index.html olx_meta.json product-links.txt
+            git add index.html olx_meta.json product-links.txt sitemap.xml
             git commit -m "chore: auto-discover camera catalog"
             git push
           fi
@@ -69,7 +69,8 @@ jobs:
         run: |
           mkdir dist
           cp index.html 404.html favicon.svg og-image.png robots.txt sitemap.xml site.webmanifest \
-             apple-touch-icon.png icon-192.png icon-512.png dist/
+             apple-touch-icon.png icon-192.png icon-512.png llms.txt CNAME olx_meta.json dist/
+          cp scripts/amazon-products.json scripts/allegro-products.json dist/
           cp -r fonts dist/
 
       - name: Upload Pages artifact
