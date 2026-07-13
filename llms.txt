@@ -1,0 +1,19 @@
+# Stare Aparaty
+
+> Curated Polish-language catalog of second-hand analog (film) cameras sold by the site owner, plus hand-picked film stocks and developing/scanning gear. The camera catalog is refreshed daily from the owner's live OLX listings — each entry carries title, price, availability and a direct purchase link. Page content is in Polish.
+
+## Machine-readable data
+
+- Camera catalog (JSON, rebuilt daily): https://stareaparaty.com/olx_meta.json — array of {id, title, image, url, host, sold, price, oldPrice}; `sold: true` means the listing is no longer available
+- Film price data (JSON): https://stareaparaty.com/amazon-products.json (keyed by Amazon ASIN) and https://stareaparaty.com/allegro-products.json (keyed by slug); both carry label, price in PLN and lastChecked date
+- Structured data: schema.org WebSite + ItemList of Product/Offer nodes embedded as JSON-LD in https://stareaparaty.com/
+- Sitemap: https://stareaparaty.com/sitemap.xml
+
+## Pages
+
+- https://stareaparaty.com/ — the full catalog on one page: analog cameras for sale (#aparaty), black-and-white films (#filmy-bw), color films (#filmy-kolor), developing and scanning gear (#wywolywanie)
+
+## Notes
+
+- Camera links go to live OLX listings by the owner; film and accessory links are Amazon/Allegro affiliate links.
+- Source and build pipeline: https://github.com/110kc3/stare-aparaty
