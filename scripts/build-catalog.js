@@ -317,9 +317,14 @@ function resolveOldPrice(currentPrice, fallbackItem) {
 }
 
 function getMetaContent(html, attributeName, attributeValue) {
-  const pattern = new RegExp(`<meta[^>]*${attributeName}=["']${escapeRegex(attributeValue)}["'][^>]*content=["']([^"']+)["'][^>]*>`, 'i');
-  const alternatePattern = new RegExp(`<meta[^>]*content=["']([^"']+)["'][^>]*${attributeName}=["']${escapeRegex(attributeValue)}["'][^>]*>`, 'i');
-  return decodeHtmlEntities((html.match(pattern) || html.match(alternatePattern) || [])[1] || '');
+  // The content value only ends at a quote MATCHING the opening one, so an
+  // apostrophe inside a double-quoted title ("Canon's AE-1") doesn't cut it off.
+  const attributePart = `${attributeName}=["']${escapeRegex(attributeValue)}["']`;
+  const contentPart = `content=(?:"([^"]+)"|'([^']+)')`;
+  const pattern = new RegExp(`<meta[^>]*${attributePart}[^>]*${contentPart}[^>]*>`, 'i');
+  const alternatePattern = new RegExp(`<meta[^>]*${contentPart}[^>]*${attributePart}[^>]*>`, 'i');
+  const match = html.match(pattern) || html.match(alternatePattern);
+  return decodeHtmlEntities(match ? (match[1] ?? match[2] ?? '') : '');
 }
 
 function extractTitleTag(html) {
@@ -442,11 +447,14 @@ function renderIndex(items) {
   const amazon = loadAmazonProducts();
   const allegro = loadAllegroProducts();
 
+  // split/join instead of String.replace: a listing title containing a `$&`,
+  // `$'` or "$`" sequence would otherwise be expanded as a replacement pattern
+  // and corrupt the page.
   rendered = rendered
-    .replace('{{COUNT}}', String(items.length))
-    .replace('{{LAST_UPDATED}}', escapeHtml(lastUpdated))
-    .replace('{{CAMERA_CARDS}}', renderCameraCatalog(items))
-    .replace('{{CAMERA_JSONLD}}', renderProductJsonLd(items, amazon.products, allegro.products));
+    .split('{{COUNT}}').join(String(items.length))
+    .split('{{LAST_UPDATED}}').join(escapeHtml(lastUpdated))
+    .split('{{CAMERA_CARDS}}').join(renderCameraCatalog(items))
+    .split('{{CAMERA_JSONLD}}').join(renderProductJsonLd(items, amazon.products, allegro.products));
 
   // Inject Amazon prices + images (managed by scripts/amazon-products.json).
   for (const [asin, data] of Object.entries(amazon.products)) {
@@ -878,6 +886,8 @@ if (require.main === module) {
 
 module.exports = {
   formatPrice,
+  getMetaContent,
+  renderIndex,
   decodeHtmlEntities,
   priceToNumber,
   priceNumber,

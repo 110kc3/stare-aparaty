@@ -69,7 +69,11 @@ function parseArgs(argv) {
   for (let i = 0; i < argv.length; i += 1) {
     if (argv[i] === '--dry-run') out.dryRun = true;
     else if (argv[i] === '--out') {
-      out.outFile = path.resolve(process.cwd(), argv[i + 1] || '');
+      const value = argv[i + 1];
+      // Fail fast: `path.resolve(cwd, '')` is the cwd itself, which would only
+      // blow up with EISDIR at the final write — after all the fetching.
+      if (!value) throw new Error('--out requires a file path');
+      out.outFile = path.resolve(process.cwd(), value);
       i += 1;
     }
   }

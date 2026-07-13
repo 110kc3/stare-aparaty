@@ -72,11 +72,14 @@ async function main() {
 
   fs.writeFileSync(DATA_FILE, `${JSON.stringify(products, null, 2)}\n`, 'utf8');
 
-  const failures = Object.values(products).filter(
-    (p) => p.lastFailed && p.lastFailed === today(),
+  // Count only the ASINs this run actually checked — scanning the whole file
+  // would let another product's stale lastFailed/lastChecked (from an earlier
+  // run today) skew the exit code of a single-ASIN run.
+  const failures = asinsToCheck.filter(
+    (asin) => products[asin].lastFailed === today(),
   ).length;
-  const successes = Object.values(products).filter(
-    (p) => p.lastChecked === today(),
+  const successes = asinsToCheck.filter(
+    (asin) => products[asin].lastChecked === today(),
   ).length;
 
   console.log(`\nDone. ${successes} ASIN(s) refreshed today, ${failures} still failing.`);

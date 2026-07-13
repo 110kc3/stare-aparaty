@@ -7,6 +7,8 @@ const path = require('node:path');
 
 const {
   formatPrice,
+  getMetaContent,
+  renderIndex,
   decodeHtmlEntities,
   priceToNumber,
   resolveOldPrice,
@@ -53,6 +55,41 @@ test('decodeHtmlEntities decodes &amp; last (no double-decode)', () => {
   assert.equal(decodeHtmlEntities('&amp;lt;'), '&lt;');
   assert.equal(decodeHtmlEntities('Tom &amp; Jerry'), 'Tom & Jerry');
   assert.equal(decodeHtmlEntities('&quot;hi&quot; &#39;a&#39;'), '"hi" \'a\'');
+});
+
+test('getMetaContent keeps an apostrophe inside a double-quoted value', () => {
+  const html = '<meta property="og:title" content="Canon\'s AE-1 Program">';
+  assert.equal(getMetaContent(html, 'property', 'og:title'), "Canon's AE-1 Program");
+});
+
+test('getMetaContent reads single-quoted and content-first meta tags', () => {
+  assert.equal(
+    getMetaContent('<meta property=\'og:title\' content=\'Aparat "Start"\'>', 'property', 'og:title'),
+    'Aparat "Start"',
+  );
+  assert.equal(
+    getMetaContent('<meta content="Zenit B" property="og:title">', 'property', 'og:title'),
+    'Zenit B',
+  );
+  assert.equal(getMetaContent('<meta property="og:title">', 'property', 'og:title'), '');
+});
+
+test('renderIndex survives $-replacement sequences in listing titles', () => {
+  const items = [{
+    id: 1,
+    title: "Zenit $& $' $` promocja",
+    image: 'https://example.com/z.jpg',
+    url: 'https://www.olx.pl/d/oferta/zenit.html',
+    host: 'olx.pl',
+    sold: false,
+    price: '',
+    oldPrice: '',
+  }];
+  const html = renderIndex(items);
+  // The title must land verbatim (HTML-escaped), not be expanded as a
+  // String.replace pattern — and no placeholder may leak through.
+  assert.ok(html.includes("Zenit $&amp; $' $` promocja"));
+  assert.doesNotThrow(() => assertRenderedOutput(html, items.length));
 });
 
 test('priceToNumber extracts a bare numeric value', () => {
