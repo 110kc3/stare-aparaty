@@ -7,6 +7,8 @@
 - Camera catalog (JSON, rebuilt daily): https://stareaparaty.com/olx_meta.json — array of {id, title, image, url, host, sold, price, oldPrice}; `sold: true` means the listing is no longer available
 - Film price data (JSON): https://stareaparaty.com/amazon-products.json (keyed by Amazon ASIN) and https://stareaparaty.com/allegro-products.json (keyed by slug); both carry label, price in PLN and lastChecked date
 - Structured data: schema.org WebSite + ItemList of Product/Offer nodes embedded as JSON-LD in https://stareaparaty.com/
+- Everything in one fetch: https://stareaparaty.com/llms-full.txt — this file with the full camera catalog (title, price, availability, link) inlined, rebuilt alongside the catalog
+- Agent card: https://stareaparaty.com/.well-known/agent.json
 - Sitemap: https://stareaparaty.com/sitemap.xml
 
 ## Pages

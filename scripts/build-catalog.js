@@ -12,6 +12,8 @@ const CAMERA_TYPES_FILE = path.join(__dirname, 'camera-types.json');
 const OUTPUT_HTML = path.join(ROOT_DIR, 'index.html');
 const OUTPUT_JSON = path.join(ROOT_DIR, 'olx_meta.json');
 const OUTPUT_SITEMAP = path.join(ROOT_DIR, 'sitemap.xml');
+const LLMS_FILE = path.join(ROOT_DIR, 'llms.txt');
+const OUTPUT_LLMS_FULL = path.join(ROOT_DIR, 'llms-full.txt');
 
 const SITE_URL = 'https://stareaparaty.com/';
 
@@ -51,6 +53,7 @@ async function main() {
   fs.writeFileSync(OUTPUT_JSON, `${JSON.stringify(normalizedItems, null, 2)}\n`, 'utf8');
   fs.writeFileSync(OUTPUT_HTML, html, 'utf8');
   fs.writeFileSync(OUTPUT_SITEMAP, renderSitemap(), 'utf8');
+  fs.writeFileSync(OUTPUT_LLMS_FULL, renderLlmsFull(normalizedItems), 'utf8');
 
   console.log(`Built catalog with ${normalizedItems.length} item(s).`);
 }
@@ -595,6 +598,46 @@ function retailProductNode(data, url) {
 
 // The site is a single page, so the sitemap's job is just to carry an honest
 // <lastmod> — the catalog rebuilds daily, and this file rebuilds with it.
+// llms-full.txt = the hand-written llms.txt prose with the live catalog inlined
+// underneath, so an agent gets every camera, price and availability flag in one
+// fetch instead of following a link into JSON.
+//
+// Generated rather than hand-written because the catalog is rebuilt daily: a
+// static copy would be wrong within a day, and a confidently wrong price is
+// worse than no file at all. The prose half is read from llms.txt so there is
+// still only one place to edit it.
+function renderLlmsFull(items) {
+  const intro = fs.existsSync(LLMS_FILE)
+    ? fs.readFileSync(LLMS_FILE, 'utf8').trimEnd()
+    : '# Stare Aparaty';
+  const available = items.filter((item) => !item.sold);
+  const sold = items.filter((item) => item.sold);
+
+  const line = (item) => {
+    const price = item.price ? ` — ${item.price}` : '';
+    const was = item.oldPrice ? ` (wczesniej ${item.oldPrice})` : '';
+    return `- ${item.title}${price}${was} — ${item.url}`;
+  };
+
+  const sections = [
+    intro,
+    '',
+    '## Pelny katalog aparatow',
+    '',
+    `Wygenerowane z olx_meta.json przy ostatnim buildzie. Dostepne: ${available.length}, sprzedane: ${sold.length}.`,
+    '',
+    '### Dostepne',
+    '',
+    available.length ? available.map(line).join('\n') : '- (brak dostepnych pozycji)',
+  ];
+
+  if (sold.length) {
+    sections.push('', '### Sprzedane (archiwum)', '', sold.map(line).join('\n'));
+  }
+
+  return `${sections.join('\n')}\n`;
+}
+
 function renderSitemap() {
   const lastmod = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Warsaw' })
     .format(new Date());

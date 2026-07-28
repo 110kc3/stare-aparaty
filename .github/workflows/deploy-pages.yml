@@ -45,9 +45,10 @@ jobs:
         run: |
           mkdir dist
           cp index.html 404.html favicon.svg og-image.png robots.txt sitemap.xml site.webmanifest \
-             apple-touch-icon.png icon-192.png icon-512.png llms.txt CNAME olx_meta.json dist/
+             apple-touch-icon.png icon-192.png icon-512.png llms.txt llms-full.txt CNAME olx_meta.json dist/
           cp scripts/amazon-products.json scripts/allegro-products.json dist/
           cp -r fonts dist/
+          cp -r .well-known dist/
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

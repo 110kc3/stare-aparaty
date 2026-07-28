@@ -1,0 +1,53 @@
+{
+  "name": "Stare Aparaty",
+  "description": "Polish-language catalog of second-hand analog (film) cameras sold by the site owner, plus hand-picked film stocks and developing/scanning gear. The camera catalog is rebuilt daily from the owner's live OLX listings; every entry carries title, price, availability and a direct purchase link.",
+  "url": "https://stareaparaty.com/",
+  "documentationUrl": "https://stareaparaty.com/llms.txt",
+  "version": "1.0.0",
+  "protocolVersion": "0.3.0",
+  "provider": {
+    "organization": "Stare Aparaty",
+    "url": "https://stareaparaty.com/"
+  },
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false,
+    "stateTransitionHistory": false
+  },
+  "defaultInputModes": ["text/plain"],
+  "defaultOutputModes": ["application/json"],
+  "skills": [
+    {
+      "id": "camera_catalog",
+      "name": "Analog camera catalog",
+      "description": "GET /olx_meta.json returns every listed camera as {id, title, image, url, host, sold, price, oldPrice}. Prices are in PLN; `sold: true` means the listing is no longer available. Rebuilt daily.",
+      "tags": ["catalog", "cameras", "analog", "film", "poland"],
+      "examples": [
+        "What analog cameras are currently for sale?",
+        "Which cameras are under 400 PLN and still available?"
+      ],
+      "inputModes": ["text/plain"],
+      "outputModes": ["application/json"]
+    },
+    {
+      "id": "film_and_gear_prices",
+      "name": "Film stock and developing gear prices",
+      "description": "GET /amazon-products.json (keyed by Amazon ASIN) and /allegro-products.json (keyed by slug) return {label, price in PLN, lastChecked} for the recommended film stocks and developing/scanning equipment.",
+      "tags": ["film", "prices", "accessories"],
+      "examples": [
+        "What black-and-white film does this site recommend and what does it cost?"
+      ],
+      "inputModes": ["text/plain"],
+      "outputModes": ["application/json"]
+    }
+  ],
+  "interfaces": {
+    "llms_txt": "https://stareaparaty.com/llms.txt",
+    "llms_full_txt": "https://stareaparaty.com/llms-full.txt",
+    "camera_catalog_json": "https://stareaparaty.com/olx_meta.json",
+    "amazon_products_json": "https://stareaparaty.com/amazon-products.json",
+    "allegro_products_json": "https://stareaparaty.com/allegro-products.json",
+    "sitemap": "https://stareaparaty.com/sitemap.xml"
+  },
+  "_note": "This is a published data source, not a callable JSON-RPC agent: the skills above describe static JSON documents to fetch, and no transport accepts A2A messages. Declared here so an agent can find the machine-readable catalog without scraping the HTML."
+}
