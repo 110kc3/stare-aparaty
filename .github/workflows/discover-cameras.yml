@@ -73,6 +73,10 @@ jobs:
           cp scripts/amazon-products.json scripts/allegro-products.json dist/
           cp -r fonts dist/
           cp -r .well-known dist/
+          # A2A 1.0 reads /.well-known/agent-card.json; /.well-known/agent.json is
+          # the pre-0.3 path a 1.0 client never looks at. Derived at deploy from the
+          # one committed card so the two paths cannot drift apart.
+          cp .well-known/agent.json dist/.well-known/agent-card.json
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
