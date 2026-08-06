@@ -1,8 +1,10 @@
 {
-  "_comment": "Per-camera-type buyer guides, rendered to poradniki/<slug>.html by build-catalog.js. Each `type` must match a type string from camera-types.json — the build fails otherwise, so a renamed section can't silently orphan its guide. Each guide automatically lists whichever cameras of that type are in the catalog on the day it builds; write the prose here and let the build handle the listings.",
+  "_comment": "Buyer guides, rendered to poradniki/<slug>.html by build-catalog.js. Two kinds. `kind: \"type\"` (the default) covers a whole catalog section — its `type` must match a type string from camera-types.json, and the matching heading on the homepage links to it. `kind: \"model\"` sits underneath a type guide and selects its listings with a `match` keyword list instead, so it survives the specific body it was written about being sold. Every guide automatically lists whichever cameras it matches on the day it builds; write the prose here and let the build handle the listings. `navLabel` is the short text used in the cross-link row.",
   "guides": [
     {
       "slug": "lustrzanki-slr",
+      "kind": "type",
+      "navLabel": "Lustrzanki (SLR)",
       "type": "Lustrzanki (SLR)",
       "title": "Lustrzanka analogowa — poradnik dla początkujących",
       "description": "Jak działa lustrzanka na film, na co zwrócić uwagę kupując używaną i jaki film wybrać na pierwszą rolkę.",
@@ -44,6 +46,8 @@
     },
     {
       "slug": "kompaktowe",
+      "kind": "type",
+      "navLabel": "Kompaktowe",
       "type": "Kompaktowe",
       "title": "Kompakt analogowy — jaki wybrać na start",
       "description": "Kompakty na film: focus free kontra autofocus, na co uważać przy zakupie i jaki film sprawdzi się najlepiej.",
@@ -76,6 +80,8 @@
     },
     {
       "slug": "dalmierzowe",
+      "kind": "type",
+      "navLabel": "Dalmierzowe",
       "type": "Dalmierzowe",
       "title": "Aparat dalmierzowy — ostrzenie na plamkę",
       "description": "Jak działa dalmierz, czym różni się od lustrzanki i co sprawdzić w używanym egzemplarzu.",
@@ -113,6 +119,8 @@
     },
     {
       "slug": "zestawy",
+      "kind": "type",
+      "navLabel": "Zestawy",
       "type": "Zestawy",
       "title": "Zestaw aparatów analogowych — czy warto kupić kilka naraz",
       "description": "Kiedy zestaw kilku aparatów ma sens, a kiedy to worek części. Na co patrzeć w opisie i dla kogo to dobry zakup.",
@@ -144,6 +152,8 @@
     },
     {
       "slug": "obiektywy",
+      "kind": "type",
+      "navLabel": "Obiektywy",
       "type": "Obiektywy i akcesoria",
       "title": "Stary obiektyw — jak dobrać mocowanie i czego unikać",
       "description": "Mocowania M42, Pentax K, Praktica B i Minolta MD, adaptery na cyfrę oraz wady, których nie da się naprawić.",
@@ -178,6 +188,110 @@
           "heading": "Jakie ogniskowe mieć",
           "paragraphs": [
             "50 mm to standard: jasny, tani, najlepiej zbudowany obiektyw w każdym systemie — i najlepszy pierwszy zakup. Potem 28 lub 35 mm do wnętrz i krajobrazu, a na koniec zoom 80–200 mm, jeśli potrzebujesz zbliżeń. Zoomy z tamtej epoki są ciemne i miękkie na brzegach; kupuj je jako dodatek, nie jako podstawę."
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "pentax-me",
+      "kind": "model",
+      "navLabel": "Pentax ME",
+      "type": "Lustrzanki (SLR)",
+      "match": ["pentax me", "pentax mv"],
+      "offersHeading": "Pentax ME i MV w mojej ofercie",
+      "title": "Pentax ME — recenzja i jaki film wybrać",
+      "description": "Pentax ME i bliźniacza MV: czym się różnią, co sprawdzić w używanym egzemplarzu, jakie obiektywy pasują i jaki film do nich dobrać.",
+      "lead": "Pentax ME z 1976 r. to jedna z najmniejszych lustrzanek 35 mm, jakie zbudowano — i najlepszy argument za tym, że aparat, który nosisz przy sobie, bije aparat, który zostaje w domu. Jest w pełni automatyczna: ustawiasz przysłonę, ona dobiera czas.",
+      "sections": [
+        {
+          "heading": "ME, MV, ME Super — co właściwie kupujesz",
+          "paragraphs": [
+            "Wszystkie trzy dzielą ten sam mały korpus i mocowanie Pentax K. Różnica jest w kontroli nad ekspozycją: **ME** ma automatykę przysłony i korektę ekspozycji, **MV** jest jeszcze prostsza — nie pokazuje nawet dobranego czasu, tylko kolorowe diody w wizjerze, a **ME Super** dokłada pełny tryb manualny i czas 1/2000 s.",
+            "Jeśli chcesz uczyć się ekspozycji, szukaj ME Super. Jeśli chcesz lekkiego aparatu na co dzień, ME w zupełności wystarcza. MV kupuj tylko wtedy, gdy jest wyraźnie tańsza — brak odczytu czasu bywa frustrujący, gdy próbujesz zrozumieć, co robi automat."
+          ]
+        },
+        {
+          "heading": "Na co sprawdzić ten konkretny egzemplarz",
+          "paragraphs": [
+            "ME to konstrukcja elektroniczna — bez sprawnych baterii migawka pracuje tylko na jednym awaryjnym czasie. To ważne przy oglądaniu: „nie działa” często znaczy po prostu „puste baterie”."
+          ],
+          "list": [
+            "**Baterie.** Dwie sztuki LR44 / SR44, wciąż powszechnie dostępne — w przeciwieństwie do rtęciowych PX625 z wcześniejszych modeli. To duża zaleta tej serii.",
+            "**Automatyka pod różne światło.** Wyceluj w jasne okno, potem w ciemny kąt — czas w wizjerze musi wyraźnie się zmieniać. Brak reakcji oznacza martwy światłomierz.",
+            "**Guma na spuście i pokrętłach.** Charakterystyczna przypadłość serii M: okładziny twardnieją i się kruszą. Kosmetyka, ale wpływa na cenę.",
+            "**Uszczelki komory.** Jak w każdej lustrzance z tej epoki — rozpadająca się czarna gąbka oznacza zaświetlenia. Tania naprawa.",
+            "**Matówka i lustro.** Zabrudzona matówka to tylko ciemniejszy wizjer, ale plamy na lustrze bywają śladem po rozpadających się uszczelkach."
+          ]
+        },
+        {
+          "heading": "Obiektywy: mocowanie K to jej największa zaleta",
+          "paragraphs": [
+            "Bagnet Pentax K wprowadzono w 1975 r. i Pentax **nigdy go nie porzucił** — te same szkła wchodzą na współczesne lustrzanki cyfrowe tej marki. W praktyce znaczy to dwie rzeczy: używanych obiektywów jest dużo i są tanie, a jeśli kiedyś przesiądziesz się na cyfrę Pentaxa, kolekcja jedzie z Tobą.",
+            "Na start wystarczy standardowa pięćdziesiątka (SMC Pentax-M 50 mm f/1.7 albo f/2) — jasna, ostra i zwykle najtańsza pozycja w ofercie. Zoomy z tej epoki są ciemne; traktuj je jako dodatek."
+          ]
+        },
+        {
+          "heading": "Jaki film do ME",
+          "paragraphs": [
+            "Automatyka przysłony lubi filmy o średniej czułości, bo sama dobiera czas: przy 400 ISO i pięćdziesiątce f/1.7 zrobisz zdjęcie w niemal każdym świetle dziennym bez zastanowienia. Na start weź czarno-biały Kentmere 400 albo Fomapan 400 — obydwa wybaczają błąd o działkę.",
+            "Do koloru w słońcu wystarczy Kodak ColorPlus 200; ziarno będzie drobniejsze, a wywołanie C-41 zrobi każdy lab. Pamiętaj, żeby ustawić czułość na pokrętle aparatu zgodnie z filmem — ME nie czyta kodu DX."
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "zenit-b-helios-44-2",
+      "kind": "model",
+      "navLabel": "Zenit + Helios",
+      "type": "Lustrzanki (SLR)",
+      "match": ["zenit", "helios"],
+      "offersHeading": "Zenity i Heliosy w mojej ofercie",
+      "title": "Zenit B z Heliosem 44-2 — instrukcja dla początkujących",
+      "description": "W pełni mechaniczna radziecka lustrzanka bez światłomierza: jak ustawić ekspozycję bez baterii, na co uważać przy zakupie i skąd bierze się słynne bokeh Heliosa.",
+      "lead": "Zenit B to aparat bez elektroniki. Nie ma baterii, nie ma światłomierza, nie ma automatyki — jest sprężyna, migawka i Ty. To najtańszy sposób, żeby naprawdę zrozumieć ekspozycję, i jeden z najtrudniejszych aparatów do zepsucia.",
+      "sections": [
+        {
+          "heading": "Ekspozycja bez światłomierza: reguła Sunny 16",
+          "paragraphs": [
+            "Skoro aparat nie zmierzy światła, mierzysz je regułą. **Sunny 16**: w pełnym słońcu ustaw przysłonę f/16, a czas na najbliższy odwrotności czułości filmu — dla filmu 200 ISO będzie to 1/250 s. Potem otwierasz przysłonę w miarę pogorszenia pogody:"
+          ],
+          "list": [
+            "**Pełne słońce, ostre cienie** — f/16",
+            "**Lekkie zachmurzenie, miękkie cienie** — f/11",
+            "**Pochmurno, cienie ledwo widoczne** — f/8",
+            "**Ciężkie chmury, brak cieni** — f/5.6",
+            "**Głęboki cień albo zachód słońca** — f/4"
+          ]
+        },
+        {
+          "heading": "Kolejność, o którą łatwo się potknąć",
+          "paragraphs": [
+            "W Zenicie czas naświetlania ustawia się **po** naciągnięciu migawki, nie przed. Zmiana czasu na nienaciągniętym aparacie potrafi uszkodzić mechanizm — to najczęstszy błąd nowego właściciela i najczęstsza przyczyna „zepsutego” Zenita z ogłoszeń.",
+            "Druga rzecz: w Zenicie B lustro w części egzemplarzy nie wraca samo, więc wizjer zostaje czarny aż do następnego naciągu. To cecha konstrukcji, nie usterka."
+          ]
+        },
+        {
+          "heading": "Na co uważać przy zakupie",
+          "list": [
+            "**Migawka na długich czasach.** Naciągnij i przelej 1/30 i 1/60 s. Zacinanie oznacza zaschnięty smar — do przesmarowania, nie do wyrzucenia.",
+            "**Krótkie czasy.** 1/500 s powinno brzmieć wyraźnie inaczej niż 1/250 s. Jednakowy dźwięk sugeruje zmęczone sprężyny.",
+            "**Helios pod światło.** Szukaj grzyba i oleju na listkach. Przysłona Heliosa jest ręczna (preset) — oba pierścienie mają chodzić płynnie.",
+            "**Gwint M42.** Sprawdź, czy obiektyw wkręca się bez oporu; uszkodzony gwint to realny problem."
+          ]
+        },
+        {
+          "heading": "Helios 44-2: wada, która stała się stylem",
+          "paragraphs": [
+            "Helios 44-2 58 mm f/2 to radziecka wariacja na temat przedwojennego Zeissa Biotara. Jego konstrukcja optyczna daje przy szeroko otwartej przysłonie charakterystyczne **wirujące bokeh** — rozmyte tło zdaje się obracać wokół obiektu. Z punktu widzenia optyki to wada odwzorowania; z punktu widzenia zdjęcia to powód, dla którego ten obiektyw kupuje się do dziś.",
+            "Efekt jest najsilniejszy przy f/2, przy bujnym, punktowym tle (liście pod słońce) i obiekcie blisko aparatu. Przymknięcie do f/4 praktycznie go usuwa i daje spokojne, ostre zdjęcie — masz więc dwa obiektywy w jednym.",
+            "Helios ma gwint M42, więc po adapterze za kilkadziesiąt złotych wchodzi także na współczesne bezlusterkowce. Bardzo wielu kupujących bierze cały zestaw właśnie dla tego szkła."
+          ]
+        },
+        {
+          "heading": "Jaki film do Zenita",
+          "paragraphs": [
+            "Bez światłomierza chcesz filmu, który wybaczy pomyłkę. Czarno-biały negatyw 400 ISO (Kentmere 400, Fomapan 400) toleruje prześwietlenie o dwie działki bez większej szkody — dokładnie ten margines, którego potrzebujesz, ucząc się Sunny 16.",
+            "Unikaj na start slajdu (E-6): ma margines błędu rzędu połowy działki i ukarze każdą pomyłkę. Kolorowy negatyw 200 ISO jest bezpieczny do zdjęć w słońcu."
           ]
         }
       ]

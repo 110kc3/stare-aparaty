@@ -80,9 +80,9 @@ For copy, styling, or template changes: push to one of the branches above and `d
 | `templates/index.template.html` | Source template. Placeholders: `{{COUNT}}`, `{{LAST_UPDATED}}`, `{{CAMERA_CARDS}}`, `{{CAMERA_JSONLD}}` (filled from OLX data), `{{PRICE_<ASIN>}}`, `{{IMAGE_<ASIN>}}`, `{{LAST_REFRESHED}}` (filled from `amazon-products.json`) and `{{ADSENSE_HEAD}}`, `{{AD_SLOT_MIDPAGE}}`, `{{AD_SLOT_INGRID}}`, `{{AD_SLOT_FOOTER}}` (filled from `ads-config.json`) |
 | `templates/privacy.template.html` | Source template for the privacy policy — generated, not hand-written, so the AdSense publisher id lives in exactly one place |
 | `polityka-prywatnosci.html` | Generated privacy & cookie policy, linked from the footer |
-| `scripts/guides.json` | Prose for the per-camera-type buyer guides. Each guide's `type` must match a type in `camera-types.json` — the build fails otherwise, so a renamed section can't orphan its guide |
+| `scripts/guides.json` | Prose for the buyer guides. Two kinds: a `type` guide owns a catalog section (its `type` must match `camera-types.json` — the build fails otherwise, so a renamed section can't orphan its guide) and is what the homepage headings link to; a `model` guide sits underneath one and picks its listings with a `match` keyword list, so it survives the specific camera selling |
 | `templates/guide.template.html` | Shared shell for the guide pages |
-| `poradniki/` | Generated guide pages, one per camera type. Each ends with the cameras of that type live in the catalog on build day, so the guides feed the OLX listings instead of dead-ending |
+| `poradniki/` | Generated guide pages (five per type, two per model). Each ends with the cameras it matches, live in the catalog on build day, so the guides feed the OLX listings instead of dead-ending |
 | `scripts/discover-listings.js` | Auto-discovers my OLX offers and writes `product-links.txt` |
 | `scripts/build-catalog.js` | Node script that fetches metadata and renders the template |
 | `scripts/camera-types.json` | Keyword rules that sort cameras into on-page type sections (SLR / compact / …) |

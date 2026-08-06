@@ -334,6 +334,70 @@ test('normalizeGuides rejects a type the catalog does not know', () => {
   );
 });
 
+test('a model guide selects listings by keyword, not by type', () => {
+  const guides = loadGuides();
+  const pentax = guides.find((guide) => guide.slug === 'pentax-me');
+  assert.ok(pentax, 'expected the Pentax ME guide');
+  assert.equal(pentax.kind, 'model');
+
+  const items = [
+    { title: 'Pentax ME z obiektywem Takumar', url: 'https://olx.pl/me.html', price: '330 zł', sold: false },
+    { title: 'Pentax SF7 z obiektywami', url: 'https://olx.pl/sf.html', price: '300 zł', sold: false },
+    { title: 'Aparat Zenit-B z Helios-44-2', url: 'https://olx.pl/z.html', price: '250 zł', sold: false },
+  ];
+  const html = renderGuide(pentax, guides, items, ADS_OFF);
+
+  assert.ok(html.includes('Pentax ME z obiektywem'), 'expected the matching body');
+  // All three are SLRs — a type-based filter would wrongly pull them all in.
+  assert.ok(!html.includes('Pentax SF7'), 'a different Pentax model must not be listed');
+  assert.ok(!html.includes('Zenit-B'), 'an unrelated SLR must not be listed');
+  assert.match(html, /Pentax ME i MV w mojej ofercie/);
+});
+
+test('model guides stay out of the homepage type headings', () => {
+  // Two model guides share the SLR type; letting them into the heading map
+  // would mean they silently overwrite each other and the type guide.
+  // Two types, so the catalog renders grouped sections with headings at all —
+  // with a single type it falls back to a flat grid and there are no headings.
+  const items = [{
+    id: 1,
+    title: 'Pentax ME z obiektywem Takumar',
+    image: 'https://example.com/p.jpg',
+    url: 'https://www.olx.pl/d/oferta/pentax.html',
+    host: 'olx.pl',
+    sold: false,
+    price: '330 zł',
+    oldPrice: '',
+  }, {
+    id: 2,
+    title: 'Olympus AM-100 kompakt',
+    image: 'https://example.com/o.jpg',
+    url: 'https://www.olx.pl/d/oferta/olympus.html',
+    host: 'olx.pl',
+    sold: false,
+    price: '165 zł',
+    oldPrice: '',
+  }];
+  const html = renderIndex(items, ADS_OFF);
+  assert.match(html, /cam-group__guide" href="poradniki\/lustrzanki-slr\.html"/);
+  assert.ok(!html.includes('cam-group__guide" href="poradniki/pentax-me.html"'));
+});
+
+test('normalizeGuides requires a model guide to carry match keywords', () => {
+  assert.throws(
+    () => normalizeGuides(
+      [{ slug: 'x', kind: 'model', type: 'Kompaktowe', title: 'T', description: 'D' }],
+      TYPE_CONFIG,
+    ),
+    /needs a non-empty match list/,
+  );
+});
+
+test('guide navLabels are unique so the cross-link row is unambiguous', () => {
+  const labels = loadGuides().map((guide) => guide.navLabel);
+  assert.equal(new Set(labels).size, labels.length, `duplicate navLabel in ${labels.join(', ')}`);
+});
+
 test('normalizeGuides rejects unsafe or duplicate slugs', () => {
   const base = { type: 'Kompaktowe', title: 'T', description: 'D' };
   // The slug becomes a filename, so path characters must never get through.
@@ -395,9 +459,12 @@ test('renderGuide builds a complete page and lists only its own type', () => {
   assert.match(html, /<h1>Aparat dalmierzowy — ostrzenie na plamkę<\/h1>/);
   assert.match(html, /"@type": "Article"/);
   assert.match(html, /rel="canonical" href="https:\/\/stareaparaty\.com\/poradniki\/dalmierzowe\.html"/);
-  // The SLR body must not leak into the rangefinder guide's offer list.
-  assert.ok(html.includes('Mamiya Rank'), 'expected the rangefinder listing');
-  assert.ok(!html.includes('Pentax ME'), 'SLR listing must not appear in the rangefinder guide');
+  // The SLR body must not leak into the rangefinder guide's OFFER LIST.
+  // Scoped to that block on purpose: "Pentax ME" also appears further down the
+  // page as a cross-link label, which is correct and must not fail this test.
+  const offers = html.slice(html.indexOf('<div class="offers">'), html.indexOf('Dobierz film'));
+  assert.ok(offers.includes('Mamiya Rank'), 'expected the rangefinder listing');
+  assert.ok(!offers.includes('Pentax ME'), 'SLR listing must not appear in the rangefinder offers');
   // Sibling guides are cross-linked, the guide itself is not.
   assert.ok(!html.includes('href="dalmierzowe.html"'), 'guide must not link to itself');
   assert.match(html, /href="lustrzanki-slr\.html"/);

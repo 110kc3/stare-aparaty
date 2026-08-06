@@ -18,7 +18,7 @@ At this traffic level the affiliate program cannot work — the problem is visit
 ## 2. Traffic (the prerequisite for everything else)
 
 - **Per-camera-type guide pages — first pass shipped.** Five guides live under `poradniki/` (lustrzanki SLR, kompaktowe, dalmierzowe, zestawy, obiektywy), written in `scripts/guides.json` and rendered by the build. Each one ends with the cameras of that type currently in the catalog and links through to the film sections, so a guide reader lands one click from an OLX listing. Every type heading on the homepage links to its guide, and all five are in the sitemap and `llms.txt`.
-- **Next: per-model guides.** "Pentax ME — recenzja i jaki film wybrać", "Zenit B + Helios 44-2 — instrukcja dla początkujących". Type-level guides cover the generic queries; model-level ones catch the buyer already searching a specific body, which is where the intent is highest. Same pipeline — add an entry to `guides.json`. Watch Search Console for which type guide picks up impressions first and write the model guides underneath it.
+- **Per-model guides — first two shipped.** "Pentax ME — recenzja i jaki film wybrać" and "Zenit B z Heliosem 44-2 — instrukcja dla początkujących" are live. Model-level guides catch the buyer already searching a specific body, which is where intent is highest. They select their listings by keyword rather than by catalog section, so a guide keeps earning after that particular camera sells. Next candidates: Praktica BCA, Yashica 35W, Canon EOS — but watch Search Console first and write underneath whichever type guide actually draws impressions.
 - **Google Search Console**: submit `sitemap.xml` (added), verify the property. Free and takes 10 minutes.
 - **Polish analog community**: Facebook groups (Fotografia Analogowa, Aparaty Analogowe — sprzedam/kupię), wykop.pl, r/analog. Don't spam links — answer beginner questions ("jaki aparat na start do 300 zł?") and reference your guides.
 - **Social previews now work** (OG tags + branded og-image.png added) — sharing the site in those groups no longer shows a blank card.
@@ -59,6 +59,10 @@ Analytics = **Cloudflare Web Analytics (RUM)**, auto-injected via the Cloudflare
 
 ## Your action items
 
-1. Add the site to Google Search Console, submit the sitemap.
-2. Pick one camera and write the first guide page — validate the traffic thesis before scaling.
-3. Apply to Allegro Affiliate Business.
+*Updated 2026-08-06 — everything that could be done from the repo is done. What's left needs your accounts.*
+
+1. **Add the site to Google Search Console, submit the sitemap.** Now the highest-value thing you can do: seven guide pages are live and there is no way to know which queries they reach without it. The sitemap already lists them all.
+2. ~~Pick one camera and write the first guide page.~~ ✅ Done — five type guides plus two model guides (Pentax ME, Zenit B + Helios 44-2). The traffic thesis is now testable; step 1 is what tests it.
+3. **Apply to Allegro Affiliate Business** (and finish the onboarding already started 2026-06-23 — see TODO).
+4. **AdSense**: apply, then follow `ADSENSE.md`. Code is wired and disabled; approval odds are better now that there is real editorial content.
+5. **Finish the DNS / Pages cutover** for `stareaparaty.com` if it isn't already live — see STATUS-REPORT.

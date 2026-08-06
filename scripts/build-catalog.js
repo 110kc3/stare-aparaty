@@ -895,16 +895,44 @@ function normalizeGuides(guides, typeConfig) {
       throw new Error(`guides.json: guide "${slug}" needs both a title and a description.`);
     }
 
+    // 'type' guides cover a whole catalog section and are what the homepage
+    // headings link to. 'model' guides sit underneath one of them and select
+    // their listings by keyword instead, so several can share a type.
+    const kind = guide.kind === 'model' ? 'model' : 'type';
+    const match = Array.isArray(guide.match) ? guide.match.filter(Boolean).map(String) : [];
+    if (kind === 'model' && match.length === 0) {
+      throw new Error(`guides.json: model guide "${slug}" needs a non-empty match list.`);
+    }
+
     return {
       slug,
       type,
+      kind,
+      match,
+      // Short label used in the cross-link row; a model guide can't use `type`
+      // there because its siblings would all render the same text.
+      navLabel: String(guide.navLabel || guide.type || guide.title),
       title: String(guide.title),
       description: String(guide.description),
       lead: String(guide.lead || ''),
+      offersHeading: String(guide.offersHeading || `${type} w mojej ofercie`),
       sections: Array.isArray(guide.sections) ? guide.sections : [],
       url: `${SITE_URL}${GUIDES_DIR}/${slug}.html`,
     };
   });
+}
+
+// Which catalog listings a guide should show. A type guide takes its whole
+// section; a model guide keyword-matches, so it stays useful after the specific
+// body it was written about is sold and a similar one arrives.
+function selectGuideListings(guide, items, typeConfig) {
+  if (guide.kind === 'model') {
+    return items.filter((item) => {
+      const haystack = String(item.title).toLowerCase().trimStart();
+      return guide.match.some((needle) => matchesNeedle(haystack, needle));
+    });
+  }
+  return items.filter((item) => classifyType(item.title, typeConfig) === guide.type);
 }
 
 function knownTypeSet(typeConfig) {
@@ -976,7 +1004,7 @@ function renderGuideRelated(guides, currentSlug) {
     return '      <a href="../#aparaty">Wróć do katalogu</a>';
   }
   return others
-    .map((guide) => `      <a href="${escapeAttribute(`${guide.slug}.html`)}">${escapeHtml(guide.type)}</a>`)
+    .map((guide) => `      <a href="${escapeAttribute(`${guide.slug}.html`)}">${escapeHtml(guide.navLabel)}</a>`)
     .join('\n');
 }
 
@@ -1002,7 +1030,7 @@ function renderGuideJsonLd(guide) {
 function renderGuide(guide, guides, items, adsConfig) {
   const ads = adsConfig || loadAdsConfig();
   const typeConfig = loadTypeConfig();
-  const matching = items.filter((item) => classifyType(item.title, typeConfig) === guide.type);
+  const matching = selectGuideListings(guide, items, typeConfig);
 
   const rendered = fs.readFileSync(GUIDE_TEMPLATE_FILE, 'utf8')
     .split('{{GUIDE_TITLE}}').join(escapeHtml(guide.title))
@@ -1010,7 +1038,7 @@ function renderGuide(guide, guides, items, adsConfig) {
     .split('{{GUIDE_URL}}').join(escapeAttribute(guide.url))
     .split('{{GUIDE_LEAD}}').join(renderInlineMarkup(guide.lead))
     .split('{{GUIDE_BODY}}').join(renderGuideBody(guide.sections))
-    .split('{{OFFERS_HEADING}}').join(escapeHtml(`${guide.type} w mojej ofercie`))
+    .split('{{OFFERS_HEADING}}').join(escapeHtml(guide.offersHeading))
     .split('{{GUIDE_OFFERS}}').join(renderGuideOffers(matching))
     .split('{{GUIDE_RELATED}}').join(renderGuideRelated(guides, guide.slug))
     .split('{{GUIDE_JSONLD}}').join(renderGuideJsonLd(guide))
@@ -1360,8 +1388,13 @@ function renderCameraCatalog(items) {
 
   // Each type heading links to its buyer's guide when one exists — the guide is
   // the low-competition search entry point, and this is the only in-catalog
-  // path to it.
-  const guidesByType = new Map(loadGuides().map((guide) => [guide.type, guide]));
+  // path to it. Model guides are excluded: several share a type, so they'd
+  // fight over the one heading slot. They're reached from the type guide.
+  const guidesByType = new Map(
+    loadGuides()
+      .filter((guide) => guide.kind === 'type')
+      .map((guide) => [guide.type, guide]),
+  );
 
   const sections = groups
     .map(([type, group]) => {
