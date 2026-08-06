@@ -287,8 +287,13 @@
       transition: opacity 200ms, transform 220ms, filter 200ms;
       opacity: 0.88;
     }
+    /* Easter egg: the photo drops to chunky pixels on hover, behind the OLX
+       pill. Pure CSS can't pixelate a full-resolution image, so this leans on
+       the inline #pixelate SVG filter near the end of the document. Applied on
+       hover only — filtering all 20 images at rest would be needlessly
+       expensive. Delete this rule and the inline svg filter to remove it. */
     .cam-card:hover .cam-card__img {
-      opacity: 0.45; transform: scale(1.04); filter: none;
+      opacity: 0.45; transform: scale(1.04); filter: url(#pixelate);
     }
     .cam-card__hover-cta {
       position: absolute; inset: 0;
@@ -323,6 +328,34 @@
       transition: color 200ms;
     }
     .cam-card:hover .cam-card__detail { color: #444; }
+    /* One-sentence model note (scripts/camera-notes.json). Clamped to two lines
+       so a long note can't stretch one card taller than its row. */
+    .cam-card__note {
+      font-size: 10px;
+      line-height: 1.45;
+      color: var(--ink-soft);
+      margin-top: 5px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      transition: color 200ms;
+    }
+    .cam-card:hover .cam-card__note { color: #555; }
+    /* NOWE chip — opposite corner from the price so the two never collide. */
+    .cam-card__new {
+      position: absolute;
+      top: 8px; right: 8px;
+      background: var(--bg);
+      color: var(--gold);
+      border: 1px solid var(--gold);
+      padding: 3px 7px;
+      font-family: var(--retro);
+      font-size: 7px;
+      letter-spacing: 0.1em;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+    }
     .cam-card__price {
       position: absolute;
       top: 8px; left: 8px;
@@ -510,7 +543,8 @@
         animation-duration: 0.01ms !important;
       }
       .product-card:hover { transform: none; }
-      .cam-card:hover .cam-card__img { transform: none; }
+      /* The pixelate snap is a motion effect too — drop it here as well. */
+      .cam-card:hover .cam-card__img { transform: none; filter: none; }
     }
   </style>
 {{ADSENSE_HEAD}}
@@ -761,6 +795,20 @@
   </footer>
 
 </div><!-- /.shell -->
+
+<!-- Pixelation filter for the card hover easter egg. feFlood paints one opaque
+     pixel, feTile repeats it into a grid, and the dilate spreads each surviving
+     sample over its whole cell — the classic SVG way to quantise an image that
+     CSS filters can't do on their own. -->
+<svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+  <filter id="pixelate" x="0" y="0">
+    <feFlood x="3" y="3" width="1" height="1"/>
+    <feComposite width="7" height="7"/>
+    <feTile result="grid"/>
+    <feComposite in="SourceGraphic" in2="grid" operator="in"/>
+    <feMorphology operator="dilate" radius="3.5"/>
+  </filter>
+</svg>
 
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Podgląd zdjęcia" hidden>
   <button type="button" class="lightbox__close" id="lightbox-close" aria-label="Zamknij podgląd">✕ ZAMKNIJ</button>

@@ -1,6 +1,7 @@
 # Status Report — Bug Check & Future Steps Audit
 
 *Generated 2026-06-13. Covers: full review of scripts, workflows, templates, generated output, and planning docs (TODO.md, GROWTH-PLAN.md).*
+*Last refreshed 2026-08-06 — see "Session 6" below.*
 
 > Note: bug #2 below (whole repo published as the Pages artifact) is fixed — internal docs like this file no longer ship to the live site.
 
@@ -26,13 +27,21 @@
 - Added schema.org **Product/Offer JSON-LD** for the whole camera catalog (`build-catalog.js` → `renderProductJsonLd`, new `{{CAMERA_JSONLD}}` template placeholder). Each camera emits name, image, listing URL, used-condition, InStock/SoldOut, and price (PLN) when known; `<` is escaped so a title can't break out of the `<script>`. Validated: 17 products parse cleanly.
 - Added a **web manifest** (`site.webmanifest`) + `theme-color` meta and `rel="manifest"` link; added `site.webmanifest` to both workflows' `dist/` copy lists. (Apple-touch-icon still needs a square PNG — see open items.)
 
+**Session 6 — 2026-08-06: guides, ads, and the CI backlog**
+- **Per-camera-type guide pages** (the "highest-leverage traffic item" flagged below as not started): five Polish buyer guides under `poradniki/`, data in `scripts/guides.json`, shell in `templates/guide.template.html`. Each lists the cameras of its type live that day, cross-links its siblings, and carries `Article` JSON-LD. Homepage type headings link out to them.
+- **Google AdSense wired but disabled** behind `scripts/ads-config.json` (four slots incl. one per guide page), plus a generated `polityka-prywatnosci.html`, `ads.txt`, and `Mediapartners-Google` in robots. See `ADSENSE.md`; the consent banner is Google's dashboard-side CMP, deliberately not hand-rolled.
+- **Closed the remaining CI backlog**: URL/fetch validation with GitHub annotations (+ `--strict`), ESLint via `npx` (Prettier declined — see TODO for why), Lighthouse CI on PRs.
+- **UX backlog**: per-camera notes (`scripts/camera-notes.json`), `NOWE` new-arrival chip (`firstSeen` in `olx_meta.json`), pixelate-on-hover easter egg.
+- **Fixed a stray inconsistency:** `404.html` was still loading Cormorant/Inter/Press Start 2P from `fonts.googleapis.com` while every other page uses the self-hosted set — a third-party render-blocking request, and one more thing to disclose now that the site has a privacy policy. It now links `fonts/fonts.css` like the rest.
+- **Conditional-request caching** added for OLX fetches; verified inert because OLX sends no `ETag`/`Last-Modified` (details in TODO).
+
 ---
 
 ## Bug check findings
 
 ### High priority
 
-1. ~~**`404.html` "back" link goes to the wrong site.**~~ ✅ **Fixed 2026-06-13.** The button linked to `href="/"`, which on a GitHub Pages *project* site resolves to `https://110kc3.github.io/` — not the catalog. Now links to `/stare-aparaty/`.
+1. ~~**`404.html` "back" link goes to the wrong site.**~~ ✅ **Fixed 2026-06-13.** The button linked to `href="/"`, which on a GitHub Pages *project* site resolves to `https://110kc3.github.io/` — not the catalog. It now points at `https://stareaparaty.com/` (updated again during the custom-domain migration; the interim value was `/stare-aparaty/`).
 
 2. ~~**Internal docs are published to the public site.**~~ ✅ **Fixed 2026-06-13.** Both workflows uploaded the Pages artifact with `path: .`, so `GROWTH-PLAN.md` (revenue numbers, monetization strategy), `TODO.md`, `scripts/`, and `templates/` were all fetchable on the live site. Both workflows now assemble a `dist/` folder containing only the public files (`index.html`, `404.html`, `favicon.svg`, `og-image.png`, `robots.txt`, `sitemap.xml`, `site.webmanifest`) and upload that. This also stops deploying the legacy `vintage_cameras.html` (finding #5).
 
@@ -95,10 +104,14 @@ Also stale: the **prefers-reduced-motion** item references the `.retro` hover st
 
 ### Genuinely open (validated as still-relevant)
 
+> ⚠️ **This section is superseded by Session 6 (2026-08-06).** Everything listed
+> below as open under "small / self-contained" and "larger" is now done, except
+> where noted inline. The two "blocked on external approval" items still stand.
+
 **Small / self-contained (no external dependency):**
 - ~~**Apple-touch-icon (PNG).**~~ ✅ **Done 2026-06-14.** `scripts/generate-icons.js` rasterizes the pixel-art favicon into `apple-touch-icon.png` (180×180, linked in `<head>`) plus `icon-192/512.png` (added to the manifest); all three ship in both workflows' `dist/`.
 - ~~**Group cameras by type** (SLR / rangefinder / compact / instant)~~ ✅ **Done 2026-06-14.** Title-based classification (`scripts/camera-types.json`) renders a labelled sub-section per non-empty type; flat grid when only one type.
-- **Validate discovered URLs in the workflow**; **cache OLX fetches**; **ESLint + Prettier** on `scripts/`; **Lighthouse CI** on PRs.
+- ~~**Validate discovered URLs in the workflow**~~ ✅ **Done 2026-08-06** (fetch-status tracking + GitHub annotations + `--strict`). ~~**ESLint**~~ ✅ **Done 2026-08-06** (Prettier declined on purpose). ~~**Lighthouse CI** on PRs~~ ✅ **Done 2026-08-06**. **Cache OLX fetches** — implemented as conditional requests, but inert: OLX sends no `ETag`/`Last-Modified`. See TODO for why the originally-proposed `actions/cache` approach was the wrong shape.
 
 **Reliability hardening (done 2026-06-14):**
 - Fetch timeout + retry in both scrapers; bounded-concurrency listing fetches; 410-only sold detection; order-independent OLX offer fallback parser; `assertRenderedOutput` build guard; `node:test` suite + `ci.yml`.
@@ -106,7 +119,7 @@ Also stale: the **prefers-reduced-motion** item references the `.retro` hover st
 **Larger / needs design or content work:**
 - ~~**Self-host fonts**~~ ✅ **Done 2026-06-14.** `scripts/fetch-fonts.js` → `fonts/` (woff2, latin + latin-ext) + `fonts/fonts.css`; template drops the Google Fonts request.
 - ~~**Lightbox for camera photos.**~~ ✅ **Done 2026-06-14.** Magnifier button (sibling of the OLX link) opens an accessible lightbox; card still links to OLX.
-- **Per-camera guide pages** — GROWTH-PLAN's highest-leverage traffic item; none exist yet. Content work.
+- ~~**Per-camera guide pages** — GROWTH-PLAN's highest-leverage traffic item; none exist yet.~~ ✅ **First pass done 2026-08-06.** Five per-*type* guides under `poradniki/`. Per-*model* guides (higher buyer intent) are the follow-up — see GROWTH-PLAN §2.
 
 **Blocked on external approval:**
 - **PA-API price refresh** — needs Amazon Associates approval (see deadline below); the Playwright scraper stays disabled until then.
@@ -116,20 +129,22 @@ Also stale: the **prefers-reduced-motion** item references the `.retro` hover st
 
 1. **Analytics** — GoatCounter removed 2026-07-02; Cloudflare Web Analytics (RUM) enabled instead, auto-injected via the Cloudflare dashboard.
 2. **Google Search Console + sitemap submission** — not verifiable from the repo; sitemap is ready (and now points at `stareaparaty.com`). Do this once the custom domain is live, before writing guide pages.
-3. **First per-camera guide page** — not started. Still the single highest-leverage item.
+3. ~~**First per-camera guide page** — not started.~~ ✅ **Done 2026-08-06** — five per-type guides shipped; per-model guides are next.
 4. **Allegro Affiliate application** — not verifiable from the repo; no Allegro links present yet.
 5. **⏰ Amazon Associates deadline** — the plan (dated June 2026) warns the account closes with <3 qualifying sales in 180 days, killing the PA-API path. If nothing has sold by **autumn 2026**, expect to re-apply.
 
 ### Manual steps still pending on your side (cannot be done from the repo)
 
-1. **Custom domain DNS + Pages setting** for `stareaparaty.com` (finding #3): apex `A` records → `185.199.108.153`, `.109.153`, `.110.153`, `.111.153`; `CNAME` `www` → `110kc3.github.io`; then **Settings → Pages → Custom domain** + **Enforce HTTPS**. Until this is done, the live github.io site carries canonical/OG tags pointing at a domain that isn't serving yet.
-   - ⚠️ **`CNAME` file gap (do this as part of the cutover, not before).** Both deploy workflows publish a `dist/`-only artifact via `actions/deploy-pages`. With the Actions deploy path the custom domain set in Settings is not reliably retained across deploys unless a `CNAME` file is included in the uploaded artifact — each deploy can otherwise clear the custom-domain setting. So when you do the cutover: add a repo-root `CNAME` file containing `stareaparaty.com` **and** add `CNAME` to the `cp … dist/` line in *both* `.github/workflows/deploy-pages.yml` and `.github/workflows/discover-cameras.yml`. Do **not** add it earlier: with DNS not yet pointed at Pages, a live `CNAME` would make Pages serve on a domain that 404s and break the working github.io site.
-2. **Google Search Console** property + sitemap submission (after the domain is live).
+1. **Custom domain DNS + Pages setting** for `stareaparaty.com` (finding #3): apex `A` records → `185.199.108.153`, `.109.153`, `.110.153`, `.111.153`; `CNAME` `www` → `110kc3.github.io`; then **Settings → Pages → Custom domain** + **Enforce HTTPS**.
+   - ✅ **`CNAME` file: shipped.** The repo-root `CNAME` (`stareaparaty.com`) is in the `cp … dist/` line of both workflows, so `actions/deploy-pages` can no longer clear the Settings-level custom domain.
+2. **Google Search Console** property + sitemap submission. The sitemap now carries the five guide pages and the privacy policy, so submit it again after this deploy.
+3. **AdSense**: account, publisher id, ad units, and the GDPR consent message — all dashboard-side. Runbook in `ADSENSE.md`. Also fill in the data-controller identity in `templates/privacy.template.html` §1 (RODO art. 13 wants more than "właściciel serwisu").
 
 ### Recommended order of attack
 
 1. ~~Fix the 404 link and the artifact `path: .` exposure.~~ ✅ Done 2026-06-13.
 2. ~~Decide the domain question (#3).~~ ✅ Code migrated to `stareaparaty.com`; only DNS + Pages settings remain (manual, above).
 3. ~~Resolve the GoatCounter mismatch.~~ ✅ Moot — GoatCounter removed 2026-07-02 in favour of Cloudflare Web Analytics.
-4. Finish the DNS/Pages cutover, then write the first camera guide page (highest-leverage growth item).
-5. Optional code follow-ups: Product JSON-LD, then font self-hosting and the CI niceties (ESLint/Prettier, Lighthouse, URL validation).
+4. ~~Finish the DNS/Pages cutover, then write the first camera guide page.~~ ✅ Guides done 2026-08-06; the DNS/Pages cutover is the last manual piece.
+5. ~~Optional code follow-ups: Product JSON-LD, font self-hosting, CI niceties.~~ ✅ All done (Prettier declined deliberately — see TODO).
+6. **What's left is almost entirely off-repo:** DNS + Pages settings, Search Console, AdSense onboarding, Allegro Affiliate, Amazon PA-API keys. The one substantial code item still open is **per-model guide pages** — let Search Console indicate which type guide draws impressions first.

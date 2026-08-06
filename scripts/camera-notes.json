@@ -1,0 +1,26 @@
+{
+  "_comment": "One-sentence context per camera model — era, origin, notable feature. Keywords are matched against the lowercased OLX title, first rule wins, and a listing with no match simply renders no note. Keep each note to a single short sentence: it appears on the card, under the title, clamped to two lines. Same matching rules as camera-types.json (a `^` prefix anchors to the start of the title).",
+  "rules": [
+    { "match": ["zenit"], "note": "Radziecka lustrzanka z lat 70. — ciężka, w pełni mechaniczna, praktycznie niezniszczalna." },
+    { "match": ["helios"], "note": "Helios-44 słynie z wirującego bokeh — to jego wada optyczna, która stała się znakiem rozpoznawczym." },
+    { "match": ["praktica"], "note": "Wschodnioniemiecka lustrzanka z Drezna — prosta konstrukcja i tanie szkła Pentacon." },
+    { "match": ["pentax me"], "note": "Japońska lustrzanka z 1976 r. — jedna z najmniejszych i najlżejszych w pełni automatycznych SLR-ek epoki." },
+    { "match": ["pentax mv"], "note": "Uproszczona wersja ME z 1979 r. — automat przysłony bez trybu manualnego, pomyślana dla początkujących." },
+    { "match": ["pentax sf7", "pentax sf"], "note": "Lustrzanka z 1988 r. — jeden z pierwszych autofocusów Pentaxa, z wbudowaną lampą." },
+    { "match": ["pentax"], "note": "Japońska szkoła lustrzanek — kompaktowe korpusy i ceniona optyka SMC." },
+    { "match": ["yashica 35"], "note": "Dalmierz z lat 60. — stałoogniskowy obiektyw i klasyczne ostrzenie na plamkę." },
+    { "match": ["yashica"], "note": "Japońska marka z Nagano, znana z przystępnych korpusów i optyki spod znaku Contax/Zeiss." },
+    { "match": ["chinon"], "note": "Japoński producent z Nagano — solidne korpusy, często sprzedawane pod cudzymi markami." },
+    { "match": ["petri"], "note": "Tokijska wytwórnia z lat 60.–70., ceniona za jasne obiektywy w niskiej cenie." },
+    { "match": ["minolta 5000", "minolta"], "note": "Minolta 5000 to jedna z pierwszych lustrzanek z autofocusem w korpusie (1985)." },
+    { "match": ["coronet"], "note": "Brytyjski aparat pudełkowy — najprostsza możliwa konstrukcja: jedna przysłona, jeden czas." },
+    { "match": ["quasar"], "note": "Prosty kompakt na film 35 mm — jedna z tych bezobsługowych „mydelniczek” z przełomu lat 80. i 90." },
+    { "match": ["olympus am-100", "olympus"], "note": "Olympus AM-100 — kompakt z autofocusem i datownikiem, typowy aparat rodzinny z lat 90." },
+    { "match": ["mamiya"], "note": "Japońska firma znana głównie ze średniego formatu; jej dalmierze 35 mm są dziś rzadsze." },
+    { "match": ["duaflex", "brownie"], "note": "Kodak z epoki, gdy fotografia dopiero trafiała pod strzechy — celownik od góry, obsługa w trzech ruchach." },
+    { "match": ["retina"], "note": "Kodak Retina — produkowana w Stuttgarcie składana konstrukcja z niemiecką optyką." },
+    { "match": ["canon eos"], "note": "System EOS z 1987 r. — mocowanie EF przetrwało do dziś, więc stare szkła pasują do współczesnych korpusów Canona." },
+    { "match": ["takumar"], "note": "Takumary to klasyka japońskiej optyki — wielowarstwowe powłoki SMC i metalowa konstrukcja." },
+    { "match": ["^obiektyw", "osawa", "topman", "sunagor", "paragon"], "note": "Niezależny japoński producent optyki z czasów, gdy szkła OEM były tańszą alternatywą dla markowych." }
+  ]
+}

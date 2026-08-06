@@ -43,6 +43,10 @@ jobs:
       - name: Discover listings from OLX user page
         run: node scripts/discover-listings.js
 
+      # build-catalog.js emits ::warning:: annotations for any listing it could
+      # not fetch, so a degraded card shows up on the run page instead of only
+      # in the log. Not --strict: one dead OLX link must not block the deploy of
+      # the other 19 cameras.
       - name: Rebuild catalog
         run: node scripts/build-catalog.js
 

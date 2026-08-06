@@ -128,7 +128,6 @@ async function runPass(asins, products, { label }) {
       get: () => [{ name: 'Chrome PDF Plugin' }, { name: 'Chrome PDF Viewer' }, { name: 'Native Client' }],
     });
     // Hide the headless Chrome UA signature on window.chrome.
-    // eslint-disable-next-line no-undef
     window.chrome = window.chrome || { runtime: {} };
   });
 

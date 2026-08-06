@@ -12,6 +12,9 @@ const GUIDES_FILE = path.join(__dirname, 'guides.json');
 const AMAZON_PRODUCTS_FILE = path.join(__dirname, 'amazon-products.json');
 const ALLEGRO_PRODUCTS_FILE = path.join(__dirname, 'allegro-products.json');
 const CAMERA_TYPES_FILE = path.join(__dirname, 'camera-types.json');
+const CAMERA_NOTES_FILE = path.join(__dirname, 'camera-notes.json');
+// How long a freshly-discovered listing keeps its NOWE chip.
+const NEW_ARRIVAL_DAYS = 14;
 const ADS_CONFIG_FILE = path.join(__dirname, 'ads-config.json');
 const OUTPUT_HTML = path.join(ROOT_DIR, 'index.html');
 const OUTPUT_JSON = path.join(ROOT_DIR, 'olx_meta.json');
@@ -47,6 +50,7 @@ async function main() {
     buildItem(link, previousMetadata.get(link)),
   );
 
+  const today = todayInWarsaw();
   const normalizedItems = items.map((item, index) => ({
     id: index + 1,
     title: item.title,
@@ -56,7 +60,16 @@ async function main() {
     sold: !!item.sold,
     price: item.price || '',
     oldPrice: item.oldPrice || '',
+    firstSeen: resolveFirstSeen(item.url, previousMetadata, today),
+    // HTTP validators, persisted so the next run can send a conditional request.
+    etag: item.etag || '',
+    lastModified: item.lastModified || '',
   }));
+
+  reportFetchHealth(summarizeFetchHealth(items), {
+    strict: args.strict,
+    annotate: !!process.env.GITHUB_ACTIONS,
+  });
 
   if (args.writeLinksFile) {
     fs.writeFileSync(LINKS_FILE, `${links.join('\n')}\n`, 'utf8');
@@ -79,9 +92,11 @@ async function main() {
   fs.writeFileSync(OUTPUT_ADS_TXT, renderAdsTxt(ads), 'utf8');
   fs.writeFileSync(OUTPUT_LLMS_FULL, renderLlmsFull(normalizedItems), 'utf8');
 
+  const notModified = items.filter((item) => item.fetchStatus === 'not-modified').length;
   console.log(
     `Built catalog with ${normalizedItems.length} item(s), ${guides.length} guide(s). `
-    + `Ads: ${ads.enabled ? `on (${ads.publisherId})` : 'off'}.`,
+    + `Ads: ${ads.enabled ? `on (${ads.publisherId})` : 'off'}. `
+    + `Unchanged since last run (HTTP 304): ${notModified}.`,
   );
 }
 
@@ -148,6 +163,7 @@ function parseArgs(argv) {
     links: '',
     linksFile: '',
     writeLinksFile: false,
+    strict: false,
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -160,6 +176,10 @@ function parseArgs(argv) {
       index += 1;
     } else if (argument === '--write-links-file') {
       parsed.writeLinksFile = true;
+    } else if (argument === '--strict') {
+      // Opt-in: fail the run if any listing would ship as a placeholder card.
+      // Off by default so one dead OLX link can't block the daily deploy.
+      parsed.strict = true;
     }
   }
 
@@ -188,6 +208,37 @@ function normalizeLinks(rawText) {
   return [...new Set(extractedLinks.map((entry) => entry.trim().replace(/[),]+$/g, '')).filter(Boolean))];
 }
 
+function todayInWarsaw() {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Warsaw' }).format(new Date());
+}
+
+// When a listing first showed up in the catalog, used for the NOWE badge.
+//
+// Listings already known before this field existed keep an empty firstSeen and
+// are treated as not-new — otherwise the first build after adding the badge
+// would stamp every camera in the catalog as a new arrival at once.
+function resolveFirstSeen(url, previousMetadata, today) {
+  const previous = previousMetadata.get(url);
+  if (!previous) {
+    return today;
+  }
+  return typeof previous.firstSeen === 'string' ? previous.firstSeen : '';
+}
+
+// A camera counts as a new arrival for NEW_ARRIVAL_DAYS after it first appeared.
+function isNewArrival(item, today = todayInWarsaw()) {
+  if (!item || !item.firstSeen || item.sold) {
+    return false;
+  }
+  const first = Date.parse(`${item.firstSeen}T00:00:00Z`);
+  const now = Date.parse(`${today}T00:00:00Z`);
+  if (!Number.isFinite(first) || !Number.isFinite(now)) {
+    return false;
+  }
+  const days = (now - first) / 86400000;
+  return days >= 0 && days < NEW_ARRIVAL_DAYS;
+}
+
 function loadPreviousMetadata() {
   if (!fs.existsSync(OUTPUT_JSON)) {
     return new Map();
@@ -207,13 +258,43 @@ function loadPreviousMetadata() {
 
 async function buildItem(url, fallbackItem) {
   try {
+    // Conditional request: if we stored a validator last run, let OLX tell us
+    // the listing is unchanged (304) instead of re-sending the whole page. Costs
+    // nothing when OLX sends no validators — the headers are simply omitted and
+    // every request stays a normal 200. Reduces load on OLX either way.
+    const conditionalHeaders = {};
+    if (fallbackItem?.etag) {
+      conditionalHeaders['if-none-match'] = fallbackItem.etag;
+    }
+    if (fallbackItem?.lastModified) {
+      conditionalHeaders['if-modified-since'] = fallbackItem.lastModified;
+    }
+
     const response = await fetchWithRetry(url, {
       headers: {
         'user-agent': 'Mozilla/5.0 (compatible; StareAparatyBot/1.0; +https://github.com/110kc3/stare-aparaty)',
         'accept-language': 'pl-PL,pl;q=0.9,en;q=0.8',
+        ...conditionalHeaders,
       },
       redirect: 'follow',
     });
+
+    // 304 Not Modified — the listing is byte-identical to what we already have,
+    // so reuse it wholesale (including the sold state and price).
+    if (response.status === 304 && fallbackItem) {
+      return {
+        title: fallbackItem.title,
+        image: fallbackItem.image,
+        url,
+        host: new URL(url).hostname.replace(/^www\./, ''),
+        sold: !!fallbackItem.sold,
+        price: fallbackItem.price || '',
+        oldPrice: fallbackItem.oldPrice || '',
+        etag: fallbackItem.etag || '',
+        lastModified: fallbackItem.lastModified || '',
+        fetchStatus: 'not-modified',
+      };
+    }
 
     // OLX returns 410 (Gone) when a listing is permanently removed, which
     // almost always means the camera was sold. Mark the card so the template
@@ -231,6 +312,10 @@ async function buildItem(url, fallbackItem) {
         sold: true,
         price: fallbackItem?.price || '',
         oldPrice: fallbackItem?.oldPrice || '',
+        // A gone listing will never validate again — drop the stale validators.
+        etag: '',
+        lastModified: '',
+        fetchStatus: 'sold',
       };
     }
 
@@ -249,6 +334,11 @@ async function buildItem(url, fallbackItem) {
       sold: false,
       price,
       oldPrice: resolveOldPrice(price, fallbackItem),
+      etag: response.headers.get('etag') || '',
+      lastModified: response.headers.get('last-modified') || '',
+      // A 200 that yields no title/image means the page shape changed — the
+      // card still renders, but from a placeholder, so flag it like a failure.
+      fetchStatus: extracted.title && extracted.image ? 'ok' : 'placeholder',
     };
   } catch (error) {
     // Transient errors (timeout, DNS, etc.) shouldn't unset a previously-detected sold state.
@@ -261,7 +351,48 @@ async function buildItem(url, fallbackItem) {
       sold: !!fallbackItem?.sold,
       price: fallbackItem?.price || '',
       oldPrice: fallbackItem?.oldPrice || '',
+      // Keep the validators so the next run can still ask conditionally.
+      etag: fallbackItem?.etag || '',
+      lastModified: fallbackItem?.lastModified || '',
+      // Cached data is a soft landing; no cache means a placeholder card ships.
+      fetchStatus: fallbackItem ? 'cached' : 'placeholder',
+      fetchError: error.message,
     };
+  }
+}
+
+// Group the run's fetch outcomes so the workflow can surface them. A placeholder
+// card is the one that actually reaches visitors as a broken-looking entry, so
+// it is reported separately from a listing that merely fell back to cache.
+function summarizeFetchHealth(items) {
+  const placeholders = items.filter((item) => item.fetchStatus === 'placeholder');
+  const cached = items.filter((item) => item.fetchStatus === 'cached');
+  return { placeholders, cached };
+}
+
+// GitHub Actions renders ::warning:: / ::error:: lines in the job summary and
+// on the workflow run page, so a degraded listing is visible without digging
+// through the log.
+function reportFetchHealth({ placeholders, cached }, { strict = false, annotate = false } = {}) {
+  const annotation = (level, message) => {
+    if (annotate) {
+      console.log(`::${level}::${message}`);
+    } else {
+      console.warn(`${level}: ${message}`);
+    }
+  };
+
+  for (const item of cached) {
+    annotation('warning', `Używam danych z cache dla ${item.url} (${item.fetchError || 'fetch failed'})`);
+  }
+  for (const item of placeholders) {
+    annotation(strict ? 'error' : 'warning', `Karta zastępcza (brak danych i cache): ${item.url}`);
+  }
+
+  if (strict && placeholders.length > 0) {
+    throw new Error(
+      `${placeholders.length} listing(s) rendered as placeholder cards. Re-run, or remove them from product-links.txt.`,
+    );
   }
 }
 
@@ -1105,6 +1236,33 @@ function loadAllegroProducts() {
   }
 }
 
+// One-sentence context per model (scripts/camera-notes.json). Reuses the same
+// keyword-matching rules as the type classifier, so a `^` prefix anchors to the
+// start of the title exactly as it does there.
+function loadCameraNotes() {
+  if (!fs.existsSync(CAMERA_NOTES_FILE)) {
+    return [];
+  }
+  try {
+    const config = JSON.parse(fs.readFileSync(CAMERA_NOTES_FILE, 'utf8'));
+    return Array.isArray(config.rules) ? config.rules : [];
+  } catch (error) {
+    console.warn(`Could not read ${CAMERA_NOTES_FILE}: ${error.message}`);
+    return [];
+  }
+}
+
+function noteForTitle(title, rules) {
+  const haystack = String(title).toLowerCase().trimStart();
+  for (const rule of rules || []) {
+    const needles = Array.isArray(rule.match) ? rule.match : [];
+    if (needles.some((needle) => matchesNeedle(haystack, needle))) {
+      return rule.note || '';
+    }
+  }
+  return '';
+}
+
 function loadTypeConfig() {
   const fallbackConfig = { rules: [], fallback: 'Inne', order: [] };
   if (!fs.existsSync(CAMERA_TYPES_FILE)) {
@@ -1185,11 +1343,15 @@ function renderCameraCatalog(items) {
 
   const groups = groupByType(items, loadTypeConfig());
 
+  // Loaded once for the whole catalog rather than per card — both are pure
+  // lookups that every card would otherwise re-read from disk.
+  const cardOptions = { noteRules: loadCameraNotes(), today: todayInWarsaw() };
+
   // A single global counter so only the first 4 images across the whole
   // catalog load eagerly (above-the-fold), regardless of grouping.
   let imageIndex = 0;
   const renderGroupCards = (group) =>
-    group.map((item) => renderCard(item, imageIndex++)).join('\n');
+    group.map((item) => renderCard(item, imageIndex++, cardOptions)).join('\n');
 
   if (groups.length <= 1) {
     return '    <div class="camera-grid" aria-label="Katalog aparatów">'
@@ -1220,10 +1382,18 @@ function renderCameraCatalog(items) {
   return `    <div class="camera-catalog" aria-label="Katalog aparatów">\n${sections}\n    </div>`;
 }
 
-function renderCard(item, index = 0) {
+function renderCard(item, index = 0, options = {}) {
   // First row (4 cards) loads eagerly for fast above-the-fold paint;
   // everything below lazy-loads.
   const loadingAttrs = index < 4 ? '' : ' loading="lazy" decoding="async"';
+  const noteRules = options.noteRules || [];
+  const note = noteForTitle(item.title, noteRules);
+  const noteLine = note
+    ? `\n              <p class="cam-card__note">${escapeHtml(note)}</p>`
+    : '';
+  const newChip = isNewArrival(item, options.today)
+    ? '\n            <span class="cam-card__new">NOWE</span>'
+    : '';
   // On a price drop, prefix the chip with the original (higher) price struck
   // through, so a markdown reads "390 zł 320 zł" at a glance.
   const oldPriceMark = item.oldPrice && !item.sold
@@ -1248,19 +1418,19 @@ function renderCard(item, index = 0) {
           <div class="cam-card__strip">
             <div>
               <p class="cam-card__name">${escapeHtml(item.title)}</p>
-              <p class="cam-card__detail">${escapeHtml(item.host)} · sprzedane</p>
+              <p class="cam-card__detail">${escapeHtml(item.host)} · sprzedane</p>${noteLine}
             </div>
           </div>
         </div>`
     : `<a class="cam-card" href="${escapeAttribute(item.url)}" target="_blank" rel="noopener noreferrer">
           <div class="cam-card__img-wrap">
-            <img class="cam-card__img"${loadingAttrs} src="${escapeAttribute(item.image)}" alt="${escapeAttribute(item.title)}">${priceChip}
+            <img class="cam-card__img"${loadingAttrs} src="${escapeAttribute(item.image)}" alt="${escapeAttribute(item.title)}">${priceChip}${newChip}
             <div class="cam-card__hover-cta"><span class="cam-card__cta-pill">OLX →</span></div>
           </div>
           <div class="cam-card__strip">
             <div>
               <p class="cam-card__name">${escapeHtml(item.title)}</p>
-              <p class="cam-card__detail">${escapeHtml(item.host)}</p>
+              <p class="cam-card__detail">${escapeHtml(item.host)}</p>${noteLine}
             </div>
           </div>
         </a>`;
@@ -1375,4 +1545,10 @@ module.exports = {
   renderGuideBody,
   renderGuideOffers,
   renderInlineMarkup,
+  isNewArrival,
+  resolveFirstSeen,
+  noteForTitle,
+  loadCameraNotes,
+  summarizeFetchHealth,
+  reportFetchHealth,
 };

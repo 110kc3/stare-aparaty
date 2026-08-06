@@ -33,6 +33,12 @@ const {
   renderGuideBody,
   renderGuideOffers,
   renderInlineMarkup,
+  isNewArrival,
+  resolveFirstSeen,
+  noteForTitle,
+  loadCameraNotes,
+  summarizeFetchHealth,
+  reportFetchHealth,
 } = require('../scripts/build-catalog.js');
 
 // Stands in for a live scripts/ads-config.json without needing the real
@@ -396,6 +402,103 @@ test('renderGuide builds a complete page and lists only its own type', () => {
   assert.ok(!html.includes('href="dalmierzowe.html"'), 'guide must not link to itself');
   assert.match(html, /href="lustrzanki-slr\.html"/);
   assert.ok(!html.includes('adsbygoogle'), 'ads-off guide must load no third-party script');
+});
+
+// ── New-arrival badge ───────────────────────────────────────────────────────
+
+test('resolveFirstSeen stamps genuinely new URLs and backfills known ones as not-new', () => {
+  const previous = new Map([
+    ['https://olx.pl/known.html', { url: 'https://olx.pl/known.html' }],
+    ['https://olx.pl/tracked.html', { url: 'https://olx.pl/tracked.html', firstSeen: '2026-07-30' }],
+  ]);
+
+  // Never seen before → stamped today.
+  assert.equal(resolveFirstSeen('https://olx.pl/fresh.html', previous, '2026-08-06'), '2026-08-06');
+  // Already tracked → keeps its original date.
+  assert.equal(resolveFirstSeen('https://olx.pl/tracked.html', previous, '2026-08-06'), '2026-07-30');
+  // Known from before the field existed → empty, so the first build after
+  // adding the badge doesn't stamp the whole catalog as new at once.
+  assert.equal(resolveFirstSeen('https://olx.pl/known.html', previous, '2026-08-06'), '');
+});
+
+test('isNewArrival covers the 14-day window and excludes sold listings', () => {
+  const today = '2026-08-06';
+  assert.equal(isNewArrival({ firstSeen: '2026-08-06' }, today), true);
+  assert.equal(isNewArrival({ firstSeen: '2026-07-24' }, today), true, '13 days is still new');
+  assert.equal(isNewArrival({ firstSeen: '2026-07-23' }, today), false, '14 days has expired');
+  assert.equal(isNewArrival({ firstSeen: '' }, today), false);
+  assert.equal(isNewArrival({ firstSeen: '2026-08-06', sold: true }, today), false);
+  assert.equal(isNewArrival({ firstSeen: 'nonsense' }, today), false);
+  assert.equal(isNewArrival(undefined, today), false);
+});
+
+test('renderCard shows the NOWE chip only for a recent unsold listing', () => {
+  const item = {
+    title: 'Pentax ME', url: 'https://olx.pl/p.html', image: 'https://e.com/p.jpg',
+    host: 'olx.pl', price: '330 zł', sold: false, firstSeen: '2026-08-06',
+  };
+  assert.match(renderCard(item, 0, { today: '2026-08-06' }), /cam-card__new/);
+  assert.ok(!renderCard(item, 0, { today: '2026-09-30' }).includes('cam-card__new'));
+  assert.ok(!renderCard({ ...item, sold: true }, 0, { today: '2026-08-06' }).includes('cam-card__new'));
+});
+
+// ── Per-camera notes ────────────────────────────────────────────────────────
+
+test('noteForTitle picks the first matching rule and tolerates no match', () => {
+  const rules = [
+    { match: ['pentax me'], note: 'Note ME' },
+    { match: ['pentax'], note: 'Note Pentax' },
+    { match: ['^obiektyw'], note: 'Note lens' },
+  ];
+  // More specific rule listed first wins.
+  assert.equal(noteForTitle('Pentax ME z obiektywem Takumar', rules), 'Note ME');
+  assert.equal(noteForTitle('Pentax SF7', rules), 'Note Pentax');
+  // ^ anchors to the start: a camera "z obiektywem" is not a lens.
+  assert.equal(noteForTitle('Obiektyw Osawa 80-200', rules), 'Note lens');
+  assert.equal(noteForTitle('Zenit-B', rules), '');
+});
+
+test('every committed note rule is usable and one sentence long', () => {
+  const rules = loadCameraNotes();
+  assert.ok(rules.length > 0, 'expected camera-notes.json to hold rules');
+  for (const rule of rules) {
+    assert.ok(Array.isArray(rule.match) && rule.match.length > 0, 'rule needs keywords');
+    assert.ok(rule.note && rule.note.length < 160, `note too long: ${rule.note}`);
+  }
+});
+
+test('renderCard renders a note when one matches and omits the line otherwise', () => {
+  const item = {
+    title: 'Aparat Zenit-B z obiektywem Helios-44-2', url: 'https://olx.pl/z.html',
+    image: 'https://e.com/z.jpg', host: 'olx.pl', price: '250 zł', sold: false,
+  };
+  const rules = [{ match: ['zenit'], note: 'Radziecka lustrzanka.' }];
+  assert.match(renderCard(item, 0, { noteRules: rules }), /cam-card__note">Radziecka lustrzanka\./);
+  assert.ok(!renderCard(item, 0, {}).includes('cam-card__note'));
+});
+
+// ── Fetch health reporting ──────────────────────────────────────────────────
+
+test('summarizeFetchHealth separates placeholder cards from cache fallbacks', () => {
+  const health = summarizeFetchHealth([
+    { url: 'a', fetchStatus: 'ok' },
+    { url: 'b', fetchStatus: 'not-modified' },
+    { url: 'c', fetchStatus: 'cached', fetchError: 'timeout' },
+    { url: 'd', fetchStatus: 'placeholder' },
+  ]);
+  assert.deepEqual(health.cached.map((i) => i.url), ['c']);
+  assert.deepEqual(health.placeholders.map((i) => i.url), ['d']);
+});
+
+test('reportFetchHealth only fails the build under --strict', () => {
+  const health = { placeholders: [{ url: 'd' }], cached: [] };
+  // Default: warn and carry on, so one dead listing can't block the deploy.
+  assert.doesNotThrow(() => reportFetchHealth(health, { strict: false }));
+  assert.throws(() => reportFetchHealth(health, { strict: true }), /placeholder cards/);
+  // A cache fallback alone is never fatal.
+  assert.doesNotThrow(
+    () => reportFetchHealth({ placeholders: [], cached: [{ url: 'c' }] }, { strict: true }),
+  );
 });
 
 test('the catalog links each type section to its guide', () => {

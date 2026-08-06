@@ -29,3 +29,55 @@ jobs:
 
       - name: Run unit tests
         run: node --test
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Run through npx rather than a devDependency: package.json is gitignored
+      # and the repo has no install step. Config lives in eslint.config.mjs and
+      # is correctness-only — no formatting rules, so this never asks for a
+      # reformat diff. Prettier is deliberately not wired up: it would rewrite
+      # every hand-maintained file and bury the history for no bug caught.
+      - name: Lint scripts and tests
+        run: npx --yes eslint@9 .
+
+  lighthouse:
+    runs-on: ubuntu-latest
+    # PRs only. On push the site deploys anyway, and a budget regression should
+    # be caught before merge, not after it is already live.
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Audits the committed index.html as it would actually ship, rather than
+      # rebuilding — a rebuild would hit OLX from a PR runner and make the job
+      # depend on a third party being up.
+      - name: Assemble site artifact
+        run: |
+          mkdir dist
+          cp index.html 404.html polityka-prywatnosci.html favicon.svg og-image.png robots.txt \
+             sitemap.xml ads.txt site.webmanifest \
+             apple-touch-icon.png icon-192.png icon-512.png llms.txt olx_meta.json dist/
+          cp scripts/amazon-products.json scripts/allegro-products.json dist/
+          cp -r fonts poradniki dist/
+
+      - name: Run Lighthouse
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          configPath: ./.lighthouserc.json
+          uploadArtifacts: true
+          temporaryPublicStorage: true
