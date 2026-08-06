@@ -1,0 +1,11 @@
+{
+  "_readme": "Google AdSense wiring. Fill in publisherId (ca-pub-...) and flip enabled to true to go live; see ADSENSE.md in the repo root. Each slot renders only when its id is non-empty, so you can launch with Auto ads first and add manual units later. Leaving enabled:false renders the page exactly as before, with no ad markup and no third-party script.",
+  "enabled": false,
+  "publisherId": "",
+  "slots": {
+    "midpage": "",
+    "ingrid": "",
+    "footer": "",
+    "guide": ""
+  }
+}

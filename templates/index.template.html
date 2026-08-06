@@ -212,6 +212,16 @@
     .cam-group__head {
       display: flex; align-items: baseline; gap: 12px; margin: 0 0 10px;
     }
+    .cam-group__guide {
+      margin-left: auto;
+      font-size: 11px;
+      color: var(--gold-dim);
+      text-decoration: none;
+      letter-spacing: 0.03em;
+      border-bottom: 1px solid transparent;
+      transition: color 150ms, border-color 150ms;
+    }
+    .cam-group__guide:hover { color: var(--gold); border-bottom-color: var(--gold-dim); }
     .cam-group__count {
       font-size: 12px; color: var(--ink-soft); letter-spacing: 0.04em;
     }
@@ -437,6 +447,36 @@
     .footer p { font-size: 11px; color: var(--ink-soft); }
     .footer a { color: var(--gold-dim); text-decoration: none; }
     .footer a:hover { color: var(--gold); text-decoration: underline; }
+    .footer__legal { display: flex; gap: 14px; flex-wrap: wrap; }
+
+    /* ── Ad slots ───────────────────────────────────────────────────
+       Always labelled: the in-grid unit sits between product cards that look
+       exactly like editorial content, so an unmarked ad there would read as a
+       recommendation. min-height reserves the space before AdSense measures,
+       which keeps the unit from shoving the page down as it fills. */
+    .ad-slot {
+      display: flex; flex-direction: column; gap: 8px;
+      border: 1px dashed var(--line);
+      background: var(--bg-2);
+      padding: 12px;
+      overflow: hidden;
+    }
+    .ad-slot__label {
+      font-family: var(--retro);
+      font-size: 7px;
+      letter-spacing: 0.12em;
+      color: var(--ink-faint);
+      align-self: flex-start;
+    }
+    .ad-slot__ins { width: 100%; }
+    .ad-slot--wide { margin-top: 32px; }
+    .ad-slot--wide .ad-slot__ins { min-height: 100px; }
+    /* Sits inside .product-grid as one more cell, matching a card's proportions. */
+    .ad-slot--card { margin: 0; }
+    .ad-slot--card .ad-slot__ins { min-height: 260px; }
+    /* When Google has no ad to show it marks the <ins> unfilled — collapse the
+       whole frame rather than leaving an empty labelled box on the page. */
+    .ad-slot:has(> .ad-slot__ins[data-ad-status="unfilled"]) { display: none; }
 
     /* Keyboard focus — the hover outline never shows for keyboard users, so
        give every interactive element a visible focus ring of its own. */
@@ -473,6 +513,7 @@
       .cam-card:hover .cam-card__img { transform: none; }
     }
   </style>
+{{ADSENSE_HEAD}}
 </head>
 <body>
 <div class="shell">
@@ -512,6 +553,8 @@
   </section>
 
   <div class="filmstrip" style="margin-top: 32px;" aria-hidden="true"></div>
+
+  {{AD_SLOT_MIDPAGE}}
 
   <section class="product-section" id="filmy-bw">
     <div class="section-head">
@@ -656,6 +699,8 @@
         <span class="cta">Sprawdź na Allegro <span>→</span></span>
       </a>
 
+      {{AD_SLOT_INGRID}}
+
     </div>
   </section>
 
@@ -704,10 +749,15 @@
     </div>
   </section>
 
+  {{AD_SLOT_FOOTER}}
+
   <footer class="footer">
     <span class="label label--soft">STARE APARATY</span>
-    <p>Projekt prywatny. Ogłoszenia pochodzą z olx.pl, linki do filmów i akcesoriów prowadzą do Amazon.pl i Allegro.pl. Część z nich to linki afiliacyjne — kupując przez nie, wspierasz projekt bez dodatkowych kosztów dla Ciebie. Ceny orientacyjne — sprawdzone {{LAST_REFRESHED}}, aktualną cenę zobaczysz po kliknięciu w produkt.</p>
-    <p>Kontakt: <a href="mailto:support@stareaparaty.com">support@stareaparaty.com</a></p>
+    <p>Projekt prywatny. Ogłoszenia pochodzą z olx.pl, linki do filmów i akcesoriów prowadzą do Amazon.pl i Allegro.pl. Część z nich to linki afiliacyjne — kupując przez nie, wspierasz projekt bez dodatkowych kosztów dla Ciebie. Ceny orientacyjne — sprawdzone {{LAST_REFRESHED}}, aktualną cenę zobaczysz po kliknięciu w produkt. Strona wyświetla też reklamy Google.</p>
+    <p class="footer__legal">
+      <a href="polityka-prywatnosci.html">Polityka prywatności i cookies</a>
+      <a href="mailto:support@stareaparaty.com">support@stareaparaty.com</a>
+    </p>
   </footer>
 
 </div><!-- /.shell -->

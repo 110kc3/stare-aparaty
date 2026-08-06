@@ -77,7 +77,12 @@ For copy, styling, or template changes: push to one of the branches above and `d
 | Path | Purpose |
 | --- | --- |
 | `index.html` | Generated static page published on GitHub Pages |
-| `templates/index.template.html` | Source template. Placeholders: `{{COUNT}}`, `{{LAST_UPDATED}}`, `{{CAMERA_CARDS}}`, `{{CAMERA_JSONLD}}` (filled from OLX data) and `{{PRICE_<ASIN>}}`, `{{IMAGE_<ASIN>}}`, `{{LAST_REFRESHED}}` (filled from `amazon-products.json`) |
+| `templates/index.template.html` | Source template. Placeholders: `{{COUNT}}`, `{{LAST_UPDATED}}`, `{{CAMERA_CARDS}}`, `{{CAMERA_JSONLD}}` (filled from OLX data), `{{PRICE_<ASIN>}}`, `{{IMAGE_<ASIN>}}`, `{{LAST_REFRESHED}}` (filled from `amazon-products.json`) and `{{ADSENSE_HEAD}}`, `{{AD_SLOT_MIDPAGE}}`, `{{AD_SLOT_INGRID}}`, `{{AD_SLOT_FOOTER}}` (filled from `ads-config.json`) |
+| `templates/privacy.template.html` | Source template for the privacy policy — generated, not hand-written, so the AdSense publisher id lives in exactly one place |
+| `polityka-prywatnosci.html` | Generated privacy & cookie policy, linked from the footer |
+| `scripts/guides.json` | Prose for the per-camera-type buyer guides. Each guide's `type` must match a type in `camera-types.json` — the build fails otherwise, so a renamed section can't orphan its guide |
+| `templates/guide.template.html` | Shared shell for the guide pages |
+| `poradniki/` | Generated guide pages, one per camera type. Each ends with the cameras of that type live in the catalog on build day, so the guides feed the OLX listings instead of dead-ending |
 | `scripts/discover-listings.js` | Auto-discovers my OLX offers and writes `product-links.txt` |
 | `scripts/build-catalog.js` | Node script that fetches metadata and renders the template |
 | `scripts/camera-types.json` | Keyword rules that sort cameras into on-page type sections (SLR / compact / …) |
@@ -93,6 +98,9 @@ For copy, styling, or template changes: push to one of the branches above and `d
 | `apple-touch-icon.png`, `icon-192.png`, `icon-512.png` | Raster app icons (iOS home screen + PWA manifest), generated from `favicon.svg` |
 | `site.webmanifest` | PWA manifest (name, theme color, icon) linked from the template `<head>` |
 | `robots.txt`, `sitemap.xml` | SEO basics; both reference the `stareaparaty.com` domain |
+| `scripts/ads-config.json` | The only AdSense knob — publisher id, per-slot ids, and an `enabled` flag. Ships **disabled**: with `enabled: false` the build emits no ad markup and loads no third-party script |
+| `ads.txt` | Generated from `ads-config.json`; a comment-only placeholder while ads are off |
+| `ADSENSE.md` | Runbook for the dashboard-side activation steps (approval, ad units, GDPR consent message) |
 | `styles.css`, `retro.css`, `vintage_cameras.html` | Legacy hand-made page and its stylesheets. Not part of the generated site and no longer deployed — `index.html` carries all its styles inline in the template |
 | `test/` | `node:test` unit tests for the build/discovery script helpers |
 | `.github/workflows/ci.yml` | Runs `node --test` on PRs and pushes |

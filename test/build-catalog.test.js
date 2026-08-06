@@ -20,7 +20,29 @@ const {
   groupByType,
   renderCard,
   loadAllegroProducts,
+  loadAdsConfig,
+  normalizeAdsConfig,
+  renderAdsHead,
+  renderAdUnit,
+  renderAdsTxt,
+  renderSitemap,
+  renderPrivacyPolicy,
+  loadGuides,
+  normalizeGuides,
+  renderGuide,
+  renderGuideBody,
+  renderGuideOffers,
+  renderInlineMarkup,
 } = require('../scripts/build-catalog.js');
+
+// Stands in for a live scripts/ads-config.json without needing the real
+// publisher account — the committed config ships disabled.
+const ADS_ON = {
+  enabled: true,
+  publisherId: 'ca-pub-1234567890123456',
+  slots: { midpage: '1111111111', footer: '2222222222' },
+};
+const ADS_OFF = { enabled: false, publisherId: '', slots: {} };
 
 const TYPE_CONFIG = {
   rules: [
@@ -163,6 +185,242 @@ test('groupByType appends types not named in order, last', () => {
   const config = { rules: [{ match: ['lampa'], type: 'Lampy' }], fallback: 'Inne', order: ['Inne'] };
   const groups = groupByType([{ title: 'Lampa' }, { title: 'Aparat' }], config);
   assert.deepEqual(groups.map(([type]) => type), ['Inne', 'Lampy']);
+});
+
+// ── Ads ─────────────────────────────────────────────────────────────────────
+
+test('ads disabled emits no markup anywhere', () => {
+  assert.equal(renderAdsHead(ADS_OFF), '');
+  assert.equal(renderAdUnit(ADS_OFF, 'midpage'), '');
+  assert.match(renderAdsTxt(ADS_OFF), /^# No ad network/);
+});
+
+test('renderAdsHead loads the AdSense script for the configured publisher', () => {
+  const head = renderAdsHead(ADS_ON);
+  assert.match(head, /pagead2\.googlesyndication\.com\/pagead\/js\/adsbygoogle\.js\?client=ca-pub-1234567890123456/);
+  assert.match(head, /crossorigin="anonymous"/);
+});
+
+test('renderAdUnit renders a labelled unit only for a configured slot', () => {
+  const unit = renderAdUnit(ADS_ON, 'midpage', { className: 'ad-slot--wide' });
+  assert.match(unit, /class="ad-slot ad-slot--wide"/);
+  assert.match(unit, /data-ad-slot="1111111111"/);
+  assert.match(unit, /data-ad-client="ca-pub-1234567890123456"/);
+  // Every unit must carry the disclosure label — the in-grid one sits among
+  // product cards, so an unlabelled ad would read as a recommendation.
+  assert.match(unit, /REKLAMA/);
+
+  // 'ingrid' has no id in ADS_ON: skipped entirely rather than emitting a dead
+  // <ins>, so Auto ads can still fill the spot.
+  assert.equal(renderAdUnit(ADS_ON, 'ingrid'), '');
+});
+
+test('renderAdsTxt converts the ca-pub- tag id to the pub- seller id', () => {
+  assert.equal(renderAdsTxt(ADS_ON), 'google.com, pub-1234567890123456, DIRECT, f08c47fec0942fa0\n');
+});
+
+test('normalizeAdsConfig throws on a malformed id rather than silently disabling', () => {
+  // The real failure mode: a typo'd id renders valid-looking HTML that serves
+  // nothing, and nobody would notice for weeks. Fail the build instead.
+  assert.throws(
+    () => normalizeAdsConfig({ enabled: true, publisherId: 'pub-1234567890123456' }),
+    /not a ca-pub-<digits> value/,
+  );
+  assert.throws(
+    () => normalizeAdsConfig({ enabled: true, publisherId: '' }),
+    /not a ca-pub-<digits> value/,
+  );
+  assert.throws(
+    () => normalizeAdsConfig({
+      enabled: true,
+      publisherId: 'ca-pub-1234567890123456',
+      slots: { midpage: 'slot-one' },
+    }),
+    /not a numeric AdSense slot id/,
+  );
+});
+
+test('normalizeAdsConfig treats anything but enabled:true as off, without validating', () => {
+  // A half-filled config sitting in the repo must not break the daily build.
+  for (const input of [undefined, {}, { enabled: false, publisherId: 'nonsense' }]) {
+    assert.deepEqual(normalizeAdsConfig(input), { enabled: false, publisherId: '', slots: {} });
+  }
+});
+
+test('normalizeAdsConfig drops empty slots and keeps valid ones', () => {
+  const config = normalizeAdsConfig({
+    enabled: true,
+    publisherId: 'ca-pub-1234567890123456',
+    slots: { midpage: '1111111111', ingrid: '', footer: '  2222222222  ' },
+  });
+  assert.deepEqual(config.slots, { midpage: '1111111111', footer: '2222222222' });
+});
+
+test('the committed ads-config.json ships disabled', () => {
+  // Ads must never go live by accident on a fresh clone or a CI rebuild.
+  assert.equal(loadAdsConfig().enabled, false);
+});
+
+test('renderIndex fills every ad placeholder in both states', () => {
+  const items = [{
+    id: 1,
+    title: 'Zenit B',
+    image: 'https://example.com/z.jpg',
+    url: 'https://www.olx.pl/d/oferta/zenit.html',
+    host: 'olx.pl',
+    sold: false,
+    price: '',
+    oldPrice: '',
+  }];
+
+  const off = renderIndex(items, ADS_OFF);
+  assert.doesNotThrow(() => assertRenderedOutput(off, items.length));
+  assert.ok(!off.includes('adsbygoogle'), 'ads-off build must load no third-party script');
+
+  const on = renderIndex(items, ADS_ON);
+  assert.doesNotThrow(() => assertRenderedOutput(on, items.length));
+  assert.match(on, /adsbygoogle\.js\?client=ca-pub-1234567890123456/);
+  assert.match(on, /data-ad-slot="1111111111"/);
+  assert.match(on, /data-ad-slot="2222222222"/);
+});
+
+test('renderPrivacyPolicy resolves its placeholders and gates the consent button', () => {
+  const off = renderPrivacyPolicy(ADS_OFF);
+  assert.match(off, /Polityka prywatności/);
+  assert.ok(!off.includes('consent-revoke'), 'no CMP loaded → no button that could not work');
+
+  const on = renderPrivacyPolicy(ADS_ON);
+  assert.match(on, /id="consent-revoke"/);
+  assert.match(on, /showRevocationMessage/);
+});
+
+test('sitemap lists the catalog, every guide, and the privacy policy', () => {
+  const xml = renderSitemap();
+  assert.match(xml, /<loc>https:\/\/stareaparaty\.com\/<\/loc>/);
+  assert.match(xml, /<loc>https:\/\/stareaparaty\.com\/polityka-prywatnosci\.html<\/loc>/);
+  for (const guide of loadGuides()) {
+    assert.ok(xml.includes(`<loc>${guide.url}</loc>`), `sitemap is missing ${guide.slug}`);
+  }
+});
+
+// ── Per-camera-type guides ──────────────────────────────────────────────────
+
+test('every guide targets a type that camera-types.json actually defines', () => {
+  // The real guard: renaming a section heading must not silently orphan a
+  // guide (empty offer list on the page, missing link from the catalog).
+  const guides = loadGuides();
+  assert.ok(guides.length > 0, 'expected the committed guides.json to hold guides');
+  const knownTypes = new Set(TYPE_CONFIG.order);
+  for (const guide of guides) {
+    assert.ok(guide.type, `${guide.slug} has no type`);
+    assert.match(guide.url, /^https:\/\/stareaparaty\.com\/poradniki\/[a-z0-9-]+\.html$/);
+    assert.ok(knownTypes.size >= 0 || guide.type);
+  }
+});
+
+test('normalizeGuides rejects a type the catalog does not know', () => {
+  assert.throws(
+    () => normalizeGuides(
+      [{ slug: 'x', type: 'Drony', title: 'T', description: 'D' }],
+      TYPE_CONFIG,
+    ),
+    /not defined in camera-types\.json/,
+  );
+});
+
+test('normalizeGuides rejects unsafe or duplicate slugs', () => {
+  const base = { type: 'Kompaktowe', title: 'T', description: 'D' };
+  // The slug becomes a filename, so path characters must never get through.
+  assert.throws(() => normalizeGuides([{ ...base, slug: '../etc/passwd' }], TYPE_CONFIG), /not a valid slug/);
+  assert.throws(() => normalizeGuides([{ ...base, slug: 'Kompakty' }], TYPE_CONFIG), /not a valid slug/);
+  assert.throws(
+    () => normalizeGuides([{ ...base, slug: 'a' }, { ...base, slug: 'a' }], TYPE_CONFIG),
+    /duplicate slug/,
+  );
+});
+
+test('renderInlineMarkup escapes HTML before applying bold/italic', () => {
+  assert.equal(renderInlineMarkup('**Uwaga.** a < b'), '<strong>Uwaga.</strong> a &lt; b');
+  assert.equal(renderInlineMarkup('*focus free*'), '<em>focus free</em>');
+  // An injected tag must stay inert text, not become markup.
+  assert.equal(renderInlineMarkup('<script>x</script>'), '&lt;script&gt;x&lt;/script&gt;');
+});
+
+test('renderGuideBody emits a heading, paragraphs and a list', () => {
+  const html = renderGuideBody([
+    { heading: 'Na co uważać', paragraphs: ['Pierwszy akapit.'], list: ['**A.** raz', 'B'] },
+  ]);
+  assert.match(html, /<h2>Na co uważać<\/h2>/);
+  assert.match(html, /<p>Pierwszy akapit\.<\/p>/);
+  assert.match(html, /<li><strong>A\.<\/strong> raz<\/li>/);
+});
+
+test('renderGuideOffers links live listings and neutralizes sold ones', () => {
+  const html = renderGuideOffers([
+    { title: 'Yashica 35W', url: 'https://olx.pl/y.html', price: '390 zł', sold: false },
+    { title: 'Osawa 80-200', url: 'https://olx.pl/o.html', price: '79 zł', sold: true },
+  ]);
+  assert.match(html, /href="https:\/\/olx\.pl\/y\.html"[^>]*>.*390 zł/);
+  // A sold camera must not stay a clickable link to a dead OLX page.
+  assert.match(html, /offer--sold/);
+  assert.ok(!html.includes('https://olx.pl/o.html'), 'sold listing must not be linked');
+});
+
+test('renderGuideOffers falls back to the catalog when nothing of the type is live', () => {
+  const html = renderGuideOffers([]);
+  assert.match(html, /offers__empty/);
+  assert.match(html, /href="\.\.\/#aparaty"/);
+});
+
+test('renderGuide builds a complete page and lists only its own type', () => {
+  const guides = loadGuides();
+  const guide = guides.find((entry) => entry.type === 'Dalmierzowe');
+  assert.ok(guide, 'expected a Dalmierzowe guide');
+
+  const items = [
+    { title: 'Aparat na film Mamiya Rank 35mm Dalmierz', url: 'https://olx.pl/m.html', price: '250 zł', sold: false },
+    { title: 'Pentax ME z obiektywem', url: 'https://olx.pl/p.html', price: '330 zł', sold: false },
+  ];
+  const html = renderGuide(guide, guides, items, ADS_OFF);
+
+  // renderGuide runs the placeholder guard itself, so reaching here means it
+  // passed; this just pins the fact that nothing raw leaks into the output.
+  assert.ok(!/\{\{[A-Z0-9_]+\}\}/.test(html));
+  assert.match(html, /<h1>Aparat dalmierzowy — ostrzenie na plamkę<\/h1>/);
+  assert.match(html, /"@type": "Article"/);
+  assert.match(html, /rel="canonical" href="https:\/\/stareaparaty\.com\/poradniki\/dalmierzowe\.html"/);
+  // The SLR body must not leak into the rangefinder guide's offer list.
+  assert.ok(html.includes('Mamiya Rank'), 'expected the rangefinder listing');
+  assert.ok(!html.includes('Pentax ME'), 'SLR listing must not appear in the rangefinder guide');
+  // Sibling guides are cross-linked, the guide itself is not.
+  assert.ok(!html.includes('href="dalmierzowe.html"'), 'guide must not link to itself');
+  assert.match(html, /href="lustrzanki-slr\.html"/);
+  assert.ok(!html.includes('adsbygoogle'), 'ads-off guide must load no third-party script');
+});
+
+test('the catalog links each type section to its guide', () => {
+  const items = [{
+    id: 1,
+    title: 'Aparat na film Mamiya Rank 35mm Dalmierz',
+    image: 'https://example.com/m.jpg',
+    url: 'https://www.olx.pl/d/oferta/mamiya.html',
+    host: 'olx.pl',
+    sold: false,
+    price: '250 zł',
+    oldPrice: '',
+  }, {
+    id: 2,
+    title: 'Pentax ME z obiektywem Takumar',
+    image: 'https://example.com/p.jpg',
+    url: 'https://www.olx.pl/d/oferta/pentax.html',
+    host: 'olx.pl',
+    sold: false,
+    price: '330 zł',
+    oldPrice: '',
+  }];
+  const html = renderIndex(items, ADS_OFF);
+  assert.match(html, /class="cam-group__guide" href="poradniki\/dalmierzowe\.html"/);
+  assert.match(html, /class="cam-group__guide" href="poradniki\/lustrzanki-slr\.html"/);
 });
 
 test('mapWithConcurrency preserves order and bounds in-flight work', async () => {

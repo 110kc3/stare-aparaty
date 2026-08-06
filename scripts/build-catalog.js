@@ -6,16 +6,31 @@ const path = require('node:path');
 const ROOT_DIR = path.resolve(__dirname, '..');
 const LINKS_FILE = path.join(ROOT_DIR, 'product-links.txt');
 const TEMPLATE_FILE = path.join(ROOT_DIR, 'templates', 'index.template.html');
+const PRIVACY_TEMPLATE_FILE = path.join(ROOT_DIR, 'templates', 'privacy.template.html');
+const GUIDE_TEMPLATE_FILE = path.join(ROOT_DIR, 'templates', 'guide.template.html');
+const GUIDES_FILE = path.join(__dirname, 'guides.json');
 const AMAZON_PRODUCTS_FILE = path.join(__dirname, 'amazon-products.json');
 const ALLEGRO_PRODUCTS_FILE = path.join(__dirname, 'allegro-products.json');
 const CAMERA_TYPES_FILE = path.join(__dirname, 'camera-types.json');
+const ADS_CONFIG_FILE = path.join(__dirname, 'ads-config.json');
 const OUTPUT_HTML = path.join(ROOT_DIR, 'index.html');
 const OUTPUT_JSON = path.join(ROOT_DIR, 'olx_meta.json');
 const OUTPUT_SITEMAP = path.join(ROOT_DIR, 'sitemap.xml');
 const LLMS_FILE = path.join(ROOT_DIR, 'llms.txt');
 const OUTPUT_LLMS_FULL = path.join(ROOT_DIR, 'llms-full.txt');
+const OUTPUT_ADS_TXT = path.join(ROOT_DIR, 'ads.txt');
 
 const SITE_URL = 'https://stareaparaty.com/';
+const PRIVACY_PATH = 'polityka-prywatnosci.html';
+const OUTPUT_PRIVACY = path.join(ROOT_DIR, PRIVACY_PATH);
+// Bumped by hand when the policy text itself changes. Deliberately NOT the
+// build date: the page rebuilds daily with the catalog, and a date that moved
+// every night would tell readers "this policy changed" when it hadn't.
+const PRIVACY_UPDATED = '6 sierpnia 2026';
+// Per-camera-type buyer guides live in their own directory so the deploy
+// workflows can ship them with one `cp -r` instead of a filename per guide.
+const GUIDES_DIR = 'poradniki';
+const OUTPUT_GUIDES_DIR = path.join(ROOT_DIR, GUIDES_DIR);
 
 // Up to this many listings are fetched at once. OLX tolerates a handful of
 // concurrent requests fine, and a bounded pool keeps the whole catalog from
@@ -47,15 +62,27 @@ async function main() {
     fs.writeFileSync(LINKS_FILE, `${links.join('\n')}\n`, 'utf8');
   }
 
-  const html = renderIndex(normalizedItems);
+  // Loaded once so the page markup and ads.txt can never disagree about which
+  // publisher account this domain belongs to.
+  const ads = loadAdsConfig();
+
+  const html = renderIndex(normalizedItems, ads);
   assertRenderedOutput(html, normalizedItems.length);
+
+  const privacyHtml = renderPrivacyPolicy(ads);
+  const guides = writeGuides(normalizedItems, ads);
 
   fs.writeFileSync(OUTPUT_JSON, `${JSON.stringify(normalizedItems, null, 2)}\n`, 'utf8');
   fs.writeFileSync(OUTPUT_HTML, html, 'utf8');
-  fs.writeFileSync(OUTPUT_SITEMAP, renderSitemap(), 'utf8');
+  fs.writeFileSync(OUTPUT_PRIVACY, privacyHtml, 'utf8');
+  fs.writeFileSync(OUTPUT_SITEMAP, renderSitemap(guides), 'utf8');
+  fs.writeFileSync(OUTPUT_ADS_TXT, renderAdsTxt(ads), 'utf8');
   fs.writeFileSync(OUTPUT_LLMS_FULL, renderLlmsFull(normalizedItems), 'utf8');
 
-  console.log(`Built catalog with ${normalizedItems.length} item(s).`);
+  console.log(
+    `Built catalog with ${normalizedItems.length} item(s), ${guides.length} guide(s). `
+    + `Ads: ${ads.enabled ? `on (${ads.publisherId})` : 'off'}.`,
+  );
 }
 
 // Run `fn` over `items` with at most `limit` in flight, preserving input order
@@ -101,13 +128,18 @@ async function fetchWithRetry(url, options = {}, { timeoutMs = 10000, retries = 
 // Guard against shipping a half-rendered page: any leftover {{PLACEHOLDER}} or
 // (when we have links) a card-less grid means the template/data drifted.
 function assertRenderedOutput(html, itemCount) {
+  assertNoPlaceholders(html, 'index.html');
+  if (itemCount > 0 && !html.includes('cam-card')) {
+    throw new Error('Refusing to write index.html: expected camera cards but none were rendered.');
+  }
+}
+
+// Shared by every templated page, so a new placeholder can never ship raw.
+function assertNoPlaceholders(html, fileLabel) {
   const leftover = html.match(/\{\{[A-Z0-9_]+\}\}/g);
   if (leftover) {
     const unique = [...new Set(leftover)].join(', ');
-    throw new Error(`Refusing to write index.html: unresolved placeholders (${unique}).`);
-  }
-  if (itemCount > 0 && !html.includes('cam-card')) {
-    throw new Error('Refusing to write index.html: expected camera cards but none were rendered.');
+    throw new Error(`Refusing to write ${fileLabel}: unresolved placeholders (${unique}).`);
   }
 }
 
@@ -436,8 +468,9 @@ function createPlaceholderImage(title) {
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
-function renderIndex(items) {
+function renderIndex(items, adsConfig) {
   let rendered = fs.readFileSync(TEMPLATE_FILE, 'utf8');
+  const ads = adsConfig || loadAdsConfig();
 
   const lastUpdated = new Intl.DateTimeFormat('pl-PL', {
     dateStyle: 'medium',
@@ -457,7 +490,19 @@ function renderIndex(items) {
     .split('{{COUNT}}').join(String(items.length))
     .split('{{LAST_UPDATED}}').join(escapeHtml(lastUpdated))
     .split('{{CAMERA_CARDS}}').join(renderCameraCatalog(items))
-    .split('{{CAMERA_JSONLD}}').join(renderProductJsonLd(items, amazon.products, allegro.products));
+    .split('{{CAMERA_JSONLD}}').join(renderProductJsonLd(items, amazon.products, allegro.products))
+    .split('{{ADSENSE_HEAD}}').join(renderAdsHead(ads))
+    // A leaderboard between the catalog and the film sections, a card-shaped
+    // unit that completes the colour-film row, and one above the footer.
+    .split('{{AD_SLOT_MIDPAGE}}').join(renderAdUnit(ads, 'midpage', { className: 'ad-slot--wide' }))
+    .split('{{AD_SLOT_INGRID}}').join(
+      renderAdUnit(ads, 'ingrid', {
+        className: 'ad-slot--card',
+        format: 'fluid',
+        fullWidthResponsive: false,
+      }),
+    )
+    .split('{{AD_SLOT_FOOTER}}').join(renderAdUnit(ads, 'footer', { className: 'ad-slot--wide' }));
 
   // Inject Amazon prices + images (managed by scripts/amazon-products.json).
   for (const [asin, data] of Object.entries(amazon.products)) {
@@ -596,8 +641,6 @@ function retailProductNode(data, url) {
   return product;
 }
 
-// The site is a single page, so the sitemap's job is just to carry an honest
-// <lastmod> — the catalog rebuilds daily, and this file rebuilds with it.
 // llms-full.txt = the hand-written llms.txt prose with the live catalog inlined
 // underneath, so an agent gets every camera, price and availability flag in one
 // fetch instead of following a link into JSON.
@@ -638,9 +681,23 @@ function renderLlmsFull(items) {
   return `${sections.join('\n')}\n`;
 }
 
-function renderSitemap() {
+// The catalog is a single page, so the sitemap's job is mostly to carry an
+// honest <lastmod> — it rebuilds daily with the catalog. The privacy policy is
+// a hand-maintained static page, so it gets no <lastmod> rather than a false one.
+function renderSitemap(guides) {
   const lastmod = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Warsaw' })
     .format(new Date());
+  // Guides carry a <lastmod> too: their offer lists rebuild with the catalog,
+  // so the page really does change even when the prose doesn't.
+  const guideEntries = (guides || loadGuides())
+    .map((guide) => `  <url>
+    <loc>${escapeXml(guide.url)}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>`)
+    .join('\n');
+
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
@@ -649,8 +706,357 @@ function renderSitemap() {
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
+${guideEntries}
+  <url>
+    <loc>${SITE_URL}${PRIVACY_PATH}</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.2</priority>
+  </url>
 </urlset>
 `;
+}
+
+// ── Per-camera-type guides ─────────────────────────────────────────────────
+// One short buyer's guide per catalog type, written in scripts/guides.json and
+// rendered into poradniki/<slug>.html. Each page lists whichever cameras of its
+// type are live on build day, so the guides double as an entry path into the
+// OLX listings instead of being a dead-end wall of text.
+function loadGuides() {
+  if (!fs.existsSync(GUIDES_FILE)) {
+    return [];
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(fs.readFileSync(GUIDES_FILE, 'utf8'));
+  } catch (error) {
+    console.warn(`Could not read ${GUIDES_FILE}: ${error.message}`);
+    return [];
+  }
+  return normalizeGuides(parsed.guides, loadTypeConfig());
+}
+
+// Validation lives here (not in the file read) so it is testable, and it is
+// strict on purpose: a guide pointing at a renamed type would otherwise render
+// a page that silently lists no cameras and loses its link from the catalog.
+function normalizeGuides(guides, typeConfig) {
+  const list = Array.isArray(guides) ? guides : [];
+  const knownTypes = knownTypeSet(typeConfig);
+  const seen = new Set();
+
+  return list.map((guide) => {
+    const slug = String(guide.slug || '').trim();
+    // Also a path guard — the slug becomes a filename.
+    if (!/^[a-z0-9-]+$/.test(slug)) {
+      throw new Error(`guides.json: "${slug}" is not a valid slug (lowercase letters, digits and dashes only).`);
+    }
+    if (seen.has(slug)) {
+      throw new Error(`guides.json: duplicate slug "${slug}" — the second would overwrite the first.`);
+    }
+    seen.add(slug);
+
+    const type = String(guide.type || '').trim();
+    if (knownTypes.size > 0 && !knownTypes.has(type)) {
+      throw new Error(
+        `guides.json: guide "${slug}" targets type "${type}", which is not defined in camera-types.json.`,
+      );
+    }
+    if (!guide.title || !guide.description) {
+      throw new Error(`guides.json: guide "${slug}" needs both a title and a description.`);
+    }
+
+    return {
+      slug,
+      type,
+      title: String(guide.title),
+      description: String(guide.description),
+      lead: String(guide.lead || ''),
+      sections: Array.isArray(guide.sections) ? guide.sections : [],
+      url: `${SITE_URL}${GUIDES_DIR}/${slug}.html`,
+    };
+  });
+}
+
+function knownTypeSet(typeConfig) {
+  const types = new Set();
+  for (const rule of (typeConfig && typeConfig.rules) || []) {
+    if (rule && rule.type) types.add(rule.type);
+  }
+  for (const type of (typeConfig && typeConfig.order) || []) {
+    types.add(type);
+  }
+  if (typeConfig && typeConfig.fallback) types.add(typeConfig.fallback);
+  return types;
+}
+
+// Deliberately tiny: **bold** and *italic* only. The guide copy is prose in a
+// JSON file, and anything richer belongs in the template, not in the data.
+function renderInlineMarkup(text) {
+  return escapeHtml(text)
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*([^*]+)\*/g, '<em>$1</em>');
+}
+
+function renderGuideBody(sections) {
+  return sections
+    .map((section) => {
+      const parts = [`    <h2>${escapeHtml(section.heading || '')}</h2>`];
+      for (const paragraph of section.paragraphs || []) {
+        parts.push(`    <p>${renderInlineMarkup(paragraph)}</p>`);
+      }
+      if (Array.isArray(section.list) && section.list.length > 0) {
+        const items = section.list
+          .map((entry) => `      <li>${renderInlineMarkup(entry)}</li>`)
+          .join('\n');
+        parts.push(`    <ul>\n${items}\n    </ul>`);
+      }
+      return parts.join('\n');
+    })
+    .join('\n\n');
+}
+
+// A compact list rather than the catalog's photo cards: the guide is a text
+// page, and reusing .cam-card would mean duplicating ~200 lines of grid CSS.
+function renderGuideOffers(items) {
+  if (items.length === 0) {
+    return '    <p class="offers__empty">Aktualnie nie mam w ofercie aparatu tego typu — zajrzyj do '
+      + '<a href="../#aparaty">pełnego katalogu</a>.</p>';
+  }
+
+  const rows = items
+    .map((item) => {
+      if (item.sold) {
+        return '      <span class="offer offer--sold">'
+          + `<span class="offer__name">${escapeHtml(item.title)}</span>`
+          + '<span class="offer__price">sprzedane</span></span>';
+      }
+      const price = item.price ? escapeHtml(item.price) : 'zobacz na OLX';
+      return `      <a class="offer" href="${escapeAttribute(item.url)}" target="_blank" rel="noopener noreferrer">`
+        + `<span class="offer__name">${escapeHtml(item.title)}</span>`
+        + `<span class="offer__price">${price} →</span></a>`;
+    })
+    .join('\n');
+
+  return `    <div class="offers">\n${rows}\n    </div>`;
+}
+
+function renderGuideRelated(guides, currentSlug) {
+  const others = guides.filter((guide) => guide.slug !== currentSlug);
+  if (others.length === 0) {
+    return '      <a href="../#aparaty">Wróć do katalogu</a>';
+  }
+  return others
+    .map((guide) => `      <a href="${escapeAttribute(`${guide.slug}.html`)}">${escapeHtml(guide.type)}</a>`)
+    .join('\n');
+}
+
+function renderGuideJsonLd(guide) {
+  const graph = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: guide.title,
+    description: guide.description,
+    inLanguage: 'pl-PL',
+    mainEntityOfPage: guide.url,
+    author: { '@type': 'Organization', name: 'Stare Aparaty', url: SITE_URL },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Stare Aparaty',
+      url: SITE_URL,
+      logo: `${SITE_URL}icon-512.png`,
+    },
+  };
+  return `<script type="application/ld+json">\n${JSON.stringify(graph, null, 2)}\n</script>`;
+}
+
+function renderGuide(guide, guides, items, adsConfig) {
+  const ads = adsConfig || loadAdsConfig();
+  const typeConfig = loadTypeConfig();
+  const matching = items.filter((item) => classifyType(item.title, typeConfig) === guide.type);
+
+  const rendered = fs.readFileSync(GUIDE_TEMPLATE_FILE, 'utf8')
+    .split('{{GUIDE_TITLE}}').join(escapeHtml(guide.title))
+    .split('{{GUIDE_DESCRIPTION}}').join(escapeAttribute(guide.description))
+    .split('{{GUIDE_URL}}').join(escapeAttribute(guide.url))
+    .split('{{GUIDE_LEAD}}').join(renderInlineMarkup(guide.lead))
+    .split('{{GUIDE_BODY}}').join(renderGuideBody(guide.sections))
+    .split('{{OFFERS_HEADING}}').join(escapeHtml(`${guide.type} w mojej ofercie`))
+    .split('{{GUIDE_OFFERS}}').join(renderGuideOffers(matching))
+    .split('{{GUIDE_RELATED}}').join(renderGuideRelated(guides, guide.slug))
+    .split('{{GUIDE_JSONLD}}').join(renderGuideJsonLd(guide))
+    .split('{{ADSENSE_HEAD}}').join(renderAdsHead(ads))
+    .split('{{AD_SLOT_GUIDE}}').join(renderAdUnit(ads, 'guide', { className: 'ad-slot--wide' }));
+
+  assertNoPlaceholders(rendered, `${GUIDES_DIR}/${guide.slug}.html`);
+  return rendered;
+}
+
+function writeGuides(items, adsConfig) {
+  const guides = loadGuides();
+  if (guides.length === 0) {
+    return guides;
+  }
+  fs.mkdirSync(OUTPUT_GUIDES_DIR, { recursive: true });
+  for (const guide of guides) {
+    const html = renderGuide(guide, guides, items, adsConfig);
+    fs.writeFileSync(path.join(OUTPUT_GUIDES_DIR, `${guide.slug}.html`), html, 'utf8');
+  }
+  return guides;
+}
+
+// ── Google AdSense ─────────────────────────────────────────────────────────
+// Ads are opt-in and driven entirely by scripts/ads-config.json. With
+// enabled:false every ad placeholder renders as an empty string, so the page
+// ships byte-for-byte ad-free and loads no third-party script — which is also
+// what keeps the site consent-banner-free while Cloudflare's cookieless
+// analytics is the only measurement in play.
+function loadAdsConfig() {
+  if (!fs.existsSync(ADS_CONFIG_FILE)) {
+    return disabledAdsConfig();
+  }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(fs.readFileSync(ADS_CONFIG_FILE, 'utf8'));
+  } catch (error) {
+    // A malformed config file means ads simply don't render; it must never take
+    // the daily catalog build down with it.
+    console.warn(`Could not read ${ADS_CONFIG_FILE}: ${error.message}`);
+    return disabledAdsConfig();
+  }
+
+  return normalizeAdsConfig(parsed);
+}
+
+function disabledAdsConfig() {
+  return { enabled: false, publisherId: '', slots: {} };
+}
+
+// Split out from the file read so the validation rules are testable on their own.
+function normalizeAdsConfig(parsed) {
+  if (!parsed || parsed.enabled !== true) {
+    return disabledAdsConfig();
+  }
+
+  // Past this point ads are meant to be live, so a malformed id is a hard
+  // error: a typo'd publisher or slot id renders perfectly valid-looking HTML
+  // that serves nothing, and the failure would otherwise be invisible for weeks.
+  const publisherId = String(parsed.publisherId || '').trim();
+  if (!/^ca-pub-\d{10,20}$/.test(publisherId)) {
+    throw new Error(
+      `ads-config.json: enabled is true but publisherId "${publisherId}" is not a ca-pub-<digits> value.`,
+    );
+  }
+
+  const slots = {};
+  for (const [name, rawId] of Object.entries(parsed.slots || {})) {
+    const id = String(rawId || '').trim();
+    if (!id) {
+      // An empty slot is a deliberate "not created in AdSense yet" — skip it
+      // and let Auto ads cover that spot instead of emitting a dead <ins>.
+      continue;
+    }
+    if (!/^\d{6,20}$/.test(id)) {
+      throw new Error(`ads-config.json: slot "${name}" id "${id}" is not a numeric AdSense slot id.`);
+    }
+    slots[name] = id;
+  }
+
+  return { enabled: true, publisherId, slots };
+}
+
+// The loader tag. This same script also fetches the Google-certified consent
+// message configured under AdSense → Privacy & messaging, so there is no
+// separate CMP snippet to keep in sync here.
+function renderAdsHead(config) {
+  if (!config || !config.enabled) {
+    return '';
+  }
+  const src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(config.publisherId)}`;
+  return `  <!-- Google AdSense loader (also delivers the GDPR consent message) -->
+  <script async src="${escapeAttribute(src)}" crossorigin="anonymous"></script>`;
+}
+
+// One display unit. Labelled "REKLAMA" because the in-grid placement sits among
+// product cards that look exactly like editorial content — an unlabelled ad
+// there would be genuinely misleading, and Google requires the distinction too.
+function renderAdUnit(config, name, options = {}) {
+  if (!config || !config.enabled) {
+    return '';
+  }
+  const slot = config.slots[name];
+  if (!slot) {
+    return '';
+  }
+
+  const modifier = options.className ? ` ${options.className}` : '';
+  const format = options.format || 'auto';
+  const fullWidth = options.fullWidthResponsive === false ? 'false' : 'true';
+
+  return `<aside class="ad-slot${modifier}">
+    <span class="ad-slot__label">REKLAMA</span>
+    <ins class="adsbygoogle ad-slot__ins"
+         style="display:block"
+         data-ad-client="${escapeAttribute(config.publisherId)}"
+         data-ad-slot="${escapeAttribute(slot)}"
+         data-ad-format="${escapeAttribute(format)}"
+         data-full-width-responsive="${fullWidth}"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </aside>`;
+}
+
+// The privacy policy is generated rather than hand-written so the publisher id
+// lives in exactly one place (ads-config.json) and the "manage consent" button
+// can only exist on a page that actually loads Google's CMP.
+function renderPrivacyPolicy(adsConfig) {
+  const ads = adsConfig || loadAdsConfig();
+  const rendered = fs.readFileSync(PRIVACY_TEMPLATE_FILE, 'utf8')
+    .split('{{PRIVACY_UPDATED}}').join(escapeHtml(PRIVACY_UPDATED))
+    .split('{{ADSENSE_HEAD}}').join(renderAdsHead(ads))
+    .split('{{CONSENT_REVOKE}}').join(renderConsentRevoke(ads));
+
+  assertNoPlaceholders(rendered, PRIVACY_PATH);
+  return rendered;
+}
+
+// Re-opens Google's consent message so a visitor can change their mind. Only
+// meaningful when the AdSense loader (which supplies `googlefc`) is on the
+// page, and the button stays hidden until the API confirms it can be shown —
+// otherwise a user who clicked it would get nothing and assume it was broken.
+function renderConsentRevoke(config) {
+  if (!config || !config.enabled) {
+    return '';
+  }
+  return `  <button type="button" class="consent-button" id="consent-revoke" hidden>Zmień swoje zgody na reklamy</button>
+  <script>
+    (function () {
+      var button = document.getElementById('consent-revoke');
+      if (!button) return;
+      window.googlefc = window.googlefc || {};
+      window.googlefc.callbackQueue = window.googlefc.callbackQueue || [];
+      window.googlefc.callbackQueue.push({
+        CONSENT_DATA_READY: function () {
+          button.hidden = false;
+          button.addEventListener('click', function () {
+            window.googlefc.showRevocationMessage();
+          });
+        }
+      });
+    })();
+  </script>`;
+}
+
+// ads.txt tells exchanges who may sell this domain's inventory. Google will not
+// serve on a domain whose ads.txt is missing the matching pub- id, so this is
+// generated from the same config as the tags rather than hand-maintained.
+// Always writes a file (a comment-only one when ads are off) because both
+// deploy workflows `cp ads.txt dist/` unconditionally.
+function renderAdsTxt(config) {
+  if (!config || !config.enabled) {
+    return '# No ad network is authorized to sell inventory on this domain.\n';
+  }
+  // ads.txt wants the bare "pub-…" form, not the "ca-pub-…" tag attribute form.
+  const sellerId = config.publisherId.replace(/^ca-/, '');
+  return `google.com, ${sellerId}, DIRECT, f08c47fec0942fa0\n`;
 }
 
 // Pull a bare numeric value ("120", "1234.56") out of a formatted price like
@@ -790,15 +1196,25 @@ function renderCameraCatalog(items) {
       + `${renderGroupCards(groups[0][1])}\n    </div>`;
   }
 
+  // Each type heading links to its buyer's guide when one exists — the guide is
+  // the low-competition search entry point, and this is the only in-catalog
+  // path to it.
+  const guidesByType = new Map(loadGuides().map((guide) => [guide.type, guide]));
+
   const sections = groups
-    .map(([type, group]) =>
-      '      <div class="cam-group">\n'
-      + '        <div class="cam-group__head">'
-      + `<span class="label">${escapeHtml(type)}</span>`
-      + `<span class="cam-group__count">${group.length} szt.</span></div>\n`
-      + '        <div class="camera-grid">'
-      + `${renderGroupCards(group)}\n        </div>\n`
-      + '      </div>')
+    .map(([type, group]) => {
+      const guide = guidesByType.get(type);
+      const guideLink = guide
+        ? `<a class="cam-group__guide" href="${escapeAttribute(`${GUIDES_DIR}/${guide.slug}.html`)}">Poradnik →</a>`
+        : '';
+      return '      <div class="cam-group">\n'
+        + '        <div class="cam-group__head">'
+        + `<span class="label">${escapeHtml(type)}</span>`
+        + `<span class="cam-group__count">${group.length} szt.</span>${guideLink}</div>\n`
+        + '        <div class="camera-grid">'
+        + `${renderGroupCards(group)}\n        </div>\n`
+        + '      </div>';
+    })
     .join('\n');
 
   return `    <div class="camera-catalog" aria-label="Katalog aparatów">\n${sections}\n    </div>`;
@@ -945,4 +1361,18 @@ module.exports = {
   escapeHtml,
   escapeAttribute,
   loadAllegroProducts,
+  loadAdsConfig,
+  normalizeAdsConfig,
+  renderAdsHead,
+  renderAdUnit,
+  renderAdsTxt,
+  renderSitemap,
+  renderPrivacyPolicy,
+  assertNoPlaceholders,
+  loadGuides,
+  normalizeGuides,
+  renderGuide,
+  renderGuideBody,
+  renderGuideOffers,
+  renderInlineMarkup,
 };

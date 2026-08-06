@@ -54,7 +54,7 @@ jobs:
           if git diff --quiet --exit-code; then
             echo "No changes to commit."
           else
-            git add index.html olx_meta.json product-links.txt sitemap.xml
+            git add index.html olx_meta.json product-links.txt sitemap.xml ads.txt polityka-prywatnosci.html poradniki
             git commit -m "chore: auto-discover camera catalog"
             git push
           fi
@@ -68,10 +68,11 @@ jobs:
       - name: Assemble site artifact
         run: |
           mkdir dist
-          cp index.html 404.html favicon.svg og-image.png robots.txt sitemap.xml site.webmanifest \
+          cp index.html 404.html polityka-prywatnosci.html favicon.svg og-image.png robots.txt \
+             sitemap.xml ads.txt site.webmanifest \
              apple-touch-icon.png icon-192.png icon-512.png llms.txt llms-full.txt CNAME olx_meta.json dist/
           cp scripts/amazon-products.json scripts/allegro-products.json dist/
-          cp -r fonts dist/
+          cp -r fonts poradniki dist/
           cp -r .well-known dist/
           # A2A 1.0 reads /.well-known/agent-card.json; /.well-known/agent.json is
           # the pre-0.3 path a 1.0 client never looks at. Derived at deploy from the

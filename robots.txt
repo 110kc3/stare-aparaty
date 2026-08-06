@@ -1,4 +1,10 @@
 User-agent: *
 Allow: /
 
+# AdSense crawler — needs to read every page it may serve ads on in order to
+# match ads to the content. Explicit because a future Disallow above must not
+# accidentally starve it.
+User-agent: Mediapartners-Google
+Allow: /
+
 Sitemap: https://stareaparaty.com/sitemap.xml

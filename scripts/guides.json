@@ -1,0 +1,186 @@
+{
+  "_comment": "Per-camera-type buyer guides, rendered to poradniki/<slug>.html by build-catalog.js. Each `type` must match a type string from camera-types.json — the build fails otherwise, so a renamed section can't silently orphan its guide. Each guide automatically lists whichever cameras of that type are in the catalog on the day it builds; write the prose here and let the build handle the listings.",
+  "guides": [
+    {
+      "slug": "lustrzanki-slr",
+      "type": "Lustrzanki (SLR)",
+      "title": "Lustrzanka analogowa — poradnik dla początkujących",
+      "description": "Jak działa lustrzanka na film, na co zwrócić uwagę kupując używaną i jaki film wybrać na pierwszą rolkę.",
+      "lead": "Lustrzanka jednoobiektywowa (SLR) to najbardziej uniwersalny aparat analogowy i najczęstszy pierwszy wybór. Widzisz w wizjerze dokładnie to, co zarejestruje film, a korpus możesz rozbudowywać kolejnymi obiektywami zamiast wymieniać na nowy.",
+      "sections": [
+        {
+          "heading": "Jak to działa",
+          "paragraphs": [
+            "Światło wpada przez obiektyw, odbija się od lustra pod kątem 45° i przez pentapryzmat trafia do wizjera. W momencie zdjęcia lustro podnosi się z charakterystycznym klaskiem, migawka się otwiera, a obraz pada na film. Dlatego wizjer na ułamek sekundy czernieje — to normalne, nie usterka.",
+            "Konsekwencja tej konstrukcji jest praktyczna: nie ma błędu paralaksy. Kadr z wizjera to kadr na kliszy, także przy zbliżeniach i długich ogniskowych."
+          ]
+        },
+        {
+          "heading": "Na co patrzeć przy zakupie używanej",
+          "paragraphs": [
+            "Większość lustrzanek z lat 70. i 80. to konstrukcje mechaniczne, które da się doprowadzić do porządku. Kilka rzeczy warto jednak sprawdzić od razu:"
+          ],
+          "list": [
+            "**Migawka na wszystkich czasach.** Przelać przez cały zakres, od 1 s do najkrótszego. Długie czasy nie mogą się zacinać ani „ciągnąć”, krótkie powinny brzmieć równo.",
+            "**Światłomierz i bateria.** Starsze modele projektowano pod baterie rtęciowe PX625 (1,35 V), których się już nie produkuje. Zamiennik alkaliczny 1,5 V zawyża wskazania — potrzebna jest bateria cynkowo-powietrzna albo adapter z diodą.",
+            "**Uszczelki komory.** Rozpadająca się w palcach czarna gąbka to najczęstsza usterka w tym wieku i najtańsza naprawa: kilkanaście złotych i godzina pracy.",
+            "**Obiektyw pod światło.** Szukasz grzyba (pajęczyna na soczewce), zamglenia i oleju na listkach przysłony. Przysłona ma się zamykać sucho i natychmiast.",
+            "**Lustro i przewijanie.** Lustro musi wracać samo po zdjęciu, korba przewijania chodzić bez oporu."
+          ]
+        },
+        {
+          "heading": "Mocowanie ma znaczenie",
+          "paragraphs": [
+            "Obiektyw pasuje do korpusu tylko w obrębie jednego mocowania. Najpopularniejsze w tej cenie to gwint M42, bagnet Pentax K, Praktica B i Minolta MD. Zanim dokupisz drugie szkło, sprawdź, którym mocowaniem dysponuje Twój korpus — więcej o tym w poradniku o obiektywach."
+          ]
+        },
+        {
+          "heading": "Jaki film na pierwszą rolkę",
+          "paragraphs": [
+            "Zacznij od czegoś taniego i wyrozumiałego. Czarno-biały Kentmere 400 albo Fomapan wybaczy błąd ekspozycji o jedną–dwie działki, a jeśli wolisz kolor — Kodak ColorPlus 200 do zdjęć w słońcu. Film 400 ISO to bezpieczny domyślny wybór, bo pozwala fotografować w cieniu bez statywu."
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "kompaktowe",
+      "type": "Kompaktowe",
+      "title": "Kompakt analogowy — jaki wybrać na start",
+      "description": "Kompakty na film: focus free kontra autofocus, na co uważać przy zakupie i jaki film sprawdzi się najlepiej.",
+      "lead": "Kompakt to aparat do noszenia w kieszeni i pstrykania bez myślenia. Wszystko dzieje się automatycznie: ekspozycja, przewijanie, często też ostrzenie. Jeśli szukasz aparatu na wyjazd albo na imprezę, a nie projektu do nauki fotografii — to jest ta półka.",
+      "sections": [
+        {
+          "heading": "Focus free kontra autofocus",
+          "paragraphs": [
+            "Najprostsze kompakty są *focus free*: obiektyw ma stałą ostrość ustawioną na hiperfokalną i ciemną przysłonę, dzięki czemu wszystko od ok. 1,5 m do nieskończoności wychodzi akceptowalnie ostre. Nie ma czego regulować i nie ma co się zepsuć.",
+            "Modele z autofokusem ostrzą wiązką podczerwieni i radzą sobie lepiej z portretami i słabszym światłem, ale mają więcej elektroniki, która po czterdziestu latach bywa zawodna."
+          ]
+        },
+        {
+          "heading": "Na co uważać",
+          "list": [
+            "**Lampa błyskowa.** Włącz i odczekaj — dioda gotowości powinna zapalić się w kilka sekund. Wolne ładowanie zwykle oznacza zmęczony kondensator.",
+            "**Silnik przewijania.** Posłuchaj, czy pracuje równo. Szarpanie oznacza zwykle zużyte zębatki albo słabe baterie.",
+            "**Klapka i uszczelnienie.** Tylna klapka musi domykać się pewnie — nieszczelność to zaświetlony film.",
+            "**Wyświetlacz LCD.** W modelach z datownikiem (Quartzdate i podobne) segmenty potrafią blaknąć. Nie wpływa to na zdjęcia, ale utrudnia sprawdzenie ustawień.",
+            "**Zaciek z baterii.** Zajrzyj do komory baterii — zielony nalot na stykach to znak ostrzegawczy."
+          ]
+        },
+        {
+          "heading": "Jaki film",
+          "paragraphs": [
+            "Obiektywy kompaktów są ciemne (często f/4–f/11), więc film 400 ISO to nie luksus, tylko konieczność. Przy 200 ISO w pomieszczeniu lampa będzie odpalać przy każdym kadrze. Do zdjęć wyłącznie na zewnątrz w słońcu 200 ISO wystarczy i da drobniejsze ziarno."
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "dalmierzowe",
+      "type": "Dalmierzowe",
+      "title": "Aparat dalmierzowy — ostrzenie na plamkę",
+      "description": "Jak działa dalmierz, czym różni się od lustrzanki i co sprawdzić w używanym egzemplarzu.",
+      "lead": "Dalmierz ostrzy się inaczej niż lustrzanka: w środku wizjera widzisz jaśniejszy prostokąt z „duchem” drugiego obrazu. Kręcisz pierścieniem, aż oba obrazy się zejdą — i to jest ostrość. Brzmi dziwnie, po dwóch rolkach jest szybsze od autofokusa.",
+      "sections": [
+        {
+          "heading": "Dlaczego bez lustra jest lepiej",
+          "paragraphs": [
+            "Brak lustra oznacza brak klaśnięcia i brak drgań w momencie zdjęcia. Z ręki spokojnie schodzi się do 1/15 s, czyli o dwie–trzy działki niżej niż lustrzanką. Korpusy są przy tym mniejsze i wyraźnie cichsze — stąd popularność dalmierzy w fotografii ulicznej.",
+            "Wizjer pokazuje też obszar poza kadrem, więc widzisz, co zaraz wejdzie w ramkę. Lustrzanka tego nie potrafi."
+          ]
+        },
+        {
+          "heading": "Czego dalmierz nie zrobi",
+          "paragraphs": [
+            "Nie patrzysz przez obiektyw, tylko przez osobne okienko obok — przy zbliżeniach poniżej metra kadr się rozjeżdża (paralaksa). Długie teleobiektywy również odpadają. Dalmierz jest w swoim żywiole na ogniskowych 35–50 mm."
+          ]
+        },
+        {
+          "heading": "Na co uważać",
+          "list": [
+            "**Kontrast plamki.** Zajrzyj w wizjer skierowany na jasną krawędź. Plamka musi być wyraźnie widoczna — wyblakła oznacza zmatowiałe lusterko półprzepuszczalne.",
+            "**Kalibracja w nieskończoności.** Ustaw pierścień na ∞ i wyceluj w odległy budynek. Obrazy muszą zlać się idealnie; jeśli nie, dalmierz wymaga regulacji.",
+            "**Ruch w pionie.** Obrazy powinny rozjeżdżać się wyłącznie w poziomie. Przesunięcie pionowe to rozstrojony mechanizm.",
+            "**Czystość okienek.** Zabrudzone okno dalmierza od zewnątrz to często cały „problem” z bladą plamką."
+          ]
+        },
+        {
+          "heading": "Jaki film",
+          "paragraphs": [
+            "Jasny obiektyw i brak drgań to przewaga w słabym świetle — dalmierz sensownie łączy się z filmem czarno-białym 400 ISO, który można dodatkowo naświetlić jak 800 i wywołać z przedłużeniem czasu."
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "zestawy",
+      "type": "Zestawy",
+      "title": "Zestaw aparatów analogowych — czy warto kupić kilka naraz",
+      "description": "Kiedy zestaw kilku aparatów ma sens, a kiedy to worek części. Na co patrzeć w opisie i dla kogo to dobry zakup.",
+      "lead": "Zestaw to kilka korpusów i obiektywów sprzedawanych razem, zwykle wyraźnie taniej niż osobno. Bywa świetnym wejściem w temat i bywa pudełkiem złomu — różnica leży w opisie i w tym, po co go kupujesz.",
+      "sections": [
+        {
+          "heading": "Kiedy to się opłaca",
+          "list": [
+            "**Wspólne mocowanie.** Trzy korpusy tego samego systemu plus kilka obiektywów to gotowy zestaw ogniskowych za ułamek ceny kupowanych pojedynczo.",
+            "**Jeden sprawny plus dawcy.** Jeśli choć jeden korpus działa w pełni, reszta jest darmowym magazynem części: klapek, korbek, gąbek, pokryw.",
+            "**Nauka serwisu.** Na niesprawnym korpusie można bez stresu przećwiczyć wymianę uszczelek albo czyszczenie listków przysłony.",
+            "**Prezent lub dekoracja.** Stare aparaty na półce bronią się same, nawet gdy nigdy nie zobaczą filmu."
+          ]
+        },
+        {
+          "heading": "Na co uważać w opisie",
+          "paragraphs": [
+            "Sprzedający zwykle piszą wprost, co działa. „Sprawny” oznacza przelatującą migawkę, „nietestowany” oznacza brak baterii albo brak filmu do sprawdzenia, a „na części” należy brać dosłownie. Jeśli w zestawie jest kilka korpusów, warto dopytać, który z nich został faktycznie sprawdzony — cena zestawu powinna opierać się na tym jednym, a reszta to bonus.",
+            "Druga rzecz to mocowania. Zestaw pięciu aparatów w pięciu różnych systemach nie daje wymienności obiektywów i jest w praktyce pięcioma osobnymi zakupami."
+          ]
+        },
+        {
+          "heading": "Dla kogo to nie jest",
+          "paragraphs": [
+            "Jeśli chcesz po prostu zacząć fotografować na filmie, kup jeden sprawdzony korpus z jednym obiektywem. Zestaw ma sens, gdy interesuje Cię kolekcjonowanie, majsterkowanie albo budowa systemu — nie gdy zależy Ci na pierwszej udanej rolce w ten weekend."
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "obiektywy",
+      "type": "Obiektywy i akcesoria",
+      "title": "Stary obiektyw — jak dobrać mocowanie i czego unikać",
+      "description": "Mocowania M42, Pentax K, Praktica B i Minolta MD, adaptery na cyfrę oraz wady, których nie da się naprawić.",
+      "lead": "Stare szkła manualne są tanie, świetnie zbudowane i pasują — po adapterze — również do współczesnych bezlusterkowców. Trzeba tylko trafić w mocowanie i unikać kilku wad, których nie opłaca się naprawiać.",
+      "sections": [
+        {
+          "heading": "Mocowania, które spotkasz najczęściej",
+          "list": [
+            "**M42** — gwint, nie bagnet. Wkręcasz obiektyw. Najbardziej uniwersalny standard epoki: Zenit, Praktica, wczesne Pentaxy, mnóstwo japońskich firm.",
+            "**Pentax K** — bagnet, następca M42 u Pentaxa. Wciąż używany w lustrzankach cyfrowych tej marki, więc szkła mają drugie życie.",
+            "**Praktica B (PB)** — bagnet z lat 80., wyłącznie Praktica. Tani i dobry, ale zamknięty w swoim systemie.",
+            "**Minolta MD/MC** — bagnet Minolty sprzed ery autofocusa. Uwaga: nie pasuje do późniejszych korpusów Minolta AF (mocowanie A)."
+          ]
+        },
+        {
+          "heading": "Adaptery",
+          "paragraphs": [
+            "Prawie każde stare mocowanie da się przełożyć na bezlusterkowca (Sony E, Fuji X, Canon RF) prostym pierścieniem za kilkadziesiąt złotych, bo bezlusterkowce mają bardzo krótki dystans rejestracji. Ostrzysz ręcznie, przysłonę ustawiasz na obiektywie — i tyle.",
+            "W drugą stronę bywa gorzej: adaptacja do lustrzanki innego systemu zwykle wymaga soczewki korekcyjnej, która psuje ostrość. Wyjątkiem jest M42 na Pentax K, który działa bez kompromisów."
+          ]
+        },
+        {
+          "heading": "Wady, po których lepiej odpuścić",
+          "list": [
+            "**Grzyb.** Rozgałęziona pajęczyna na soczewce. Wytrawia powłoki — nawet po czyszczeniu zostaje ślad, a zarodniki przenoszą się na inne obiektywy w tej samej szafce.",
+            "**Separacja balsamu.** Tęczowa obwódka między sklejonymi soczewkami. Nieodwracalna bez rozklejania zestawu.",
+            "**Olej na listkach przysłony.** Przysłona zamyka się leniwie albo wcale. Da się wyczyścić, ale to demontaż — licz się z kosztem porównywalnym z ceną obiektywu.",
+            "**Zatarte ostrzenie.** Sam opór to zwykle stara smarna — do przesmarowania. Skok albo luz na pierścieniu to już gorzej."
+          ]
+        },
+        {
+          "heading": "Jakie ogniskowe mieć",
+          "paragraphs": [
+            "50 mm to standard: jasny, tani, najlepiej zbudowany obiektyw w każdym systemie — i najlepszy pierwszy zakup. Potem 28 lub 35 mm do wnętrz i krajobrazu, a na koniec zoom 80–200 mm, jeśli potrzebujesz zbliżeń. Zoomy z tamtej epoki są ciemne i miękkie na brzegach; kupuj je jako dodatek, nie jako podstawę."
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -14,8 +14,16 @@
 ## Pages
 
 - https://stareaparaty.com/ — the full catalog on one page: analog cameras for sale (#aparaty), black-and-white films (#filmy-bw), color films (#filmy-kolor), developing and scanning gear (#wywolywanie)
+- https://stareaparaty.com/poradniki/lustrzanki-slr.html — buyer's guide (Polish): how an SLR works, what to check on a used body, lens mounts, first film
+- https://stareaparaty.com/poradniki/kompaktowe.html — buyer's guide (Polish): compact film cameras, focus-free vs autofocus, what to check, film speed
+- https://stareaparaty.com/poradniki/dalmierzowe.html — buyer's guide (Polish): rangefinder focusing, strengths and limits, patch and calibration checks
+- https://stareaparaty.com/poradniki/zestawy.html — buyer's guide (Polish): when a multi-camera bundle is worth buying and how to read the listing
+- https://stareaparaty.com/poradniki/obiektywy.html — buyer's guide (Polish): M42 / Pentax K / Praktica B / Minolta MD mounts, adapters, unfixable lens faults
+- https://stareaparaty.com/polityka-prywatnosci.html — privacy and cookie policy (Polish): what the site collects, how Google advertising and consent work, affiliate disclosure, GDPR rights
 
 ## Notes
 
 - Camera links go to live OLX listings by the owner; film and accessory links are Amazon/Allegro affiliate links.
+- Each guide page ends with the cameras of that type currently in the catalog; that list is regenerated on every build, so a guide's offer section reflects live availability.
+- The page carries Google AdSense display advertising. Ad units are marked "REKLAMA" and are not part of the curated catalog — do not treat their content as a recommendation by this site.
 - Source and build pipeline: https://github.com/110kc3/stare-aparaty

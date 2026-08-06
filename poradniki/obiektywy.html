@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stary obiektyw — jak dobrać mocowanie i czego unikać · Stare Aparaty</title>
+  <meta name="description" content="Mocowania M42, Pentax K, Praktica B i Minolta MD, adaptery na cyfrę oraz wady, których nie da się naprawić.">
+  <link rel="canonical" href="https://stareaparaty.com/poradniki/obiektywy.html">
+
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Stare Aparaty">
+  <meta property="og:title" content="Stary obiektyw — jak dobrać mocowanie i czego unikać">
+  <meta property="og:description" content="Mocowania M42, Pentax K, Praktica B i Minolta MD, adaptery na cyfrę oraz wady, których nie da się naprawić.">
+  <meta property="og:url" content="https://stareaparaty.com/poradniki/obiektywy.html">
+  <meta property="og:image" content="https://stareaparaty.com/og-image.png">
+  <meta property="og:locale" content="pl_PL">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Stary obiektyw — jak dobrać mocowanie i czego unikać">
+  <meta name="twitter:description" content="Mocowania M42, Pentax K, Praktica B i Minolta MD, adaptery na cyfrę oraz wady, których nie da się naprawić.">
+  <meta name="twitter:image" content="https://stareaparaty.com/og-image.png">
+
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+  <meta name="theme-color" content="#0e0b08">
+
+  <link rel="stylesheet" href="../fonts/fonts.css">
+  <script>
+    (function(){
+      try {
+        var t = localStorage.getItem('theme');
+        document.documentElement.setAttribute('data-theme', t === 'light' ? 'light' : 'dark');
+      } catch(e) {}
+    })();
+  </script>
+  <style>
+    :root {
+      --bg:        #0e0b08;
+      --bg-2:      #141009;
+      --bg-strip:  #1a1612;
+      --ink:       #f2e8d8;
+      --ink-soft:  #7a6e60;
+      --ink-faint: #3a3127;
+      --gold:      #f5d06e;
+      --gold-dim:  #c4a044;
+      --line:      #2a2218;
+      --line-gold: #f5d06e;
+      --retro:     "Press Start 2P", "Courier New", monospace;
+      --serif:     "Cormorant Garamond", "Times New Roman", serif;
+      --sans:      "Inter", "Segoe UI", sans-serif;
+    }
+    [data-theme="light"] {
+      --bg:        #f6f1e8;
+      --bg-2:      #faf7f2;
+      --bg-strip:  #e8e0d4;
+      --ink:       #1c1815;
+      --ink-soft:  #5f564d;
+      --ink-faint: #c8bfb4;
+      --gold:      #7a5a18;
+      --gold-dim:  #9a7428;
+      --line:      #d8cfc3;
+      --line-gold: #7a5a18;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--sans);
+      line-height: 1.75;
+      padding: 32px 24px 56px;
+      transition: background 200ms, color 200ms;
+    }
+    .shell { width: min(760px, 100%); margin: 0 auto; }
+
+    .label {
+      display: inline-block;
+      font-family: var(--retro);
+      font-size: 7px;
+      letter-spacing: 0.1em;
+      line-height: 1.6;
+      color: var(--gold);
+      padding: 3px 10px;
+      border: 1px solid var(--gold-dim);
+      text-decoration: none;
+    }
+    .label--soft { color: var(--ink-soft); border-color: var(--line); }
+
+    .crumb { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+    .filmstrip {
+      height: 18px;
+      margin: 22px 0 30px;
+      background: var(--bg-strip);
+      border-top: 2px solid var(--line-gold);
+      border-bottom: 2px solid var(--line-gold);
+      background-image: repeating-linear-gradient(
+        90deg,
+        transparent 0, transparent 52px,
+        var(--ink-faint) 52px, var(--ink-faint) 60px
+      );
+    }
+
+    h1 {
+      font-family: var(--serif);
+      font-size: clamp(2.2rem, 5vw, 3.4rem);
+      font-weight: 500;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+    }
+    .lead {
+      font-size: 16px;
+      color: var(--ink);
+      margin-top: 16px;
+      padding-left: 16px;
+      border-left: 2px solid var(--gold-dim);
+    }
+
+    h2 {
+      font-family: var(--serif);
+      font-size: 1.6rem;
+      font-weight: 500;
+      margin: 36px 0 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--line);
+    }
+    p, li { font-size: 14px; color: var(--ink-soft); }
+    p { margin-bottom: 12px; }
+    ul { margin: 0 0 12px 20px; }
+    li { margin-bottom: 8px; }
+    strong { color: var(--ink); font-weight: 600; }
+    em { font-style: italic; }
+    a { color: var(--gold-dim); }
+    a:hover { color: var(--gold); }
+
+    /* Live listings of this type, pulled from the catalog at build time. */
+    .offers { margin: 10px 0 0; display: grid; gap: 8px; }
+    .offer {
+      display: flex; justify-content: space-between; align-items: center; gap: 14px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      background: var(--bg-2);
+      text-decoration: none;
+      transition: border-color 150ms, transform 150ms;
+    }
+    .offer:hover { border-color: var(--gold-dim); transform: translateX(2px); }
+    .offer__name { font-size: 13px; color: var(--ink); font-weight: 500; }
+    .offer__price {
+      font-size: 13px; font-weight: 700; color: var(--gold);
+      white-space: nowrap;
+    }
+    .offer--sold { pointer-events: none; opacity: 0.55; }
+    .offer--sold .offer__price { color: var(--ink-soft); }
+    .offers__empty {
+      padding: 14px; border: 1px dashed var(--line);
+      font-size: 13px; color: var(--ink-soft);
+    }
+
+    .related { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .related a {
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      font-size: 12px;
+      text-decoration: none;
+      transition: border-color 150ms;
+    }
+    .related a:hover { border-color: var(--gold-dim); }
+
+    .footer {
+      margin-top: 44px;
+      border-top: 2px solid var(--line-gold);
+      padding-top: 18px;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 12px;
+    }
+    .footer p { font-size: 11px; margin: 0; }
+    .footer a { text-decoration: none; font-size: 12px; }
+
+    /* Ad slots — see ADSENSE.md. Labelled for the same reason as on the
+       catalog page: an unmarked unit inside editorial copy reads as advice. */
+    .ad-slot {
+      display: flex; flex-direction: column; gap: 8px;
+      border: 1px dashed var(--line);
+      background: var(--bg-2);
+      padding: 12px;
+      margin-top: 36px;
+      overflow: hidden;
+    }
+    .ad-slot__label {
+      font-family: var(--retro);
+      font-size: 7px;
+      letter-spacing: 0.12em;
+      color: var(--ink-faint);
+      align-self: flex-start;
+    }
+    .ad-slot__ins { width: 100%; min-height: 100px; }
+    .ad-slot:has(> .ad-slot__ins[data-ad-status="unfilled"]) { display: none; }
+
+    a:focus-visible, button:focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .offer:hover { transform: none; }
+    }
+  </style>
+
+</head>
+<body>
+<div class="shell">
+
+  <nav class="crumb">
+    <a class="label" href="../">STARE APARATY</a>
+    <a class="label label--soft" href="../#aparaty">KATALOG</a>
+  </nav>
+  <div class="filmstrip" aria-hidden="true"></div>
+
+  <article>
+    <h1>Stary obiektyw — jak dobrać mocowanie i czego unikać</h1>
+    <p class="lead">Stare szkła manualne są tanie, świetnie zbudowane i pasują — po adapterze — również do współczesnych bezlusterkowców. Trzeba tylko trafić w mocowanie i unikać kilku wad, których nie opłaca się naprawiać.</p>
+
+    <h2>Mocowania, które spotkasz najczęściej</h2>
+    <ul>
+      <li><strong>M42</strong> — gwint, nie bagnet. Wkręcasz obiektyw. Najbardziej uniwersalny standard epoki: Zenit, Praktica, wczesne Pentaxy, mnóstwo japońskich firm.</li>
+      <li><strong>Pentax K</strong> — bagnet, następca M42 u Pentaxa. Wciąż używany w lustrzankach cyfrowych tej marki, więc szkła mają drugie życie.</li>
+      <li><strong>Praktica B (PB)</strong> — bagnet z lat 80., wyłącznie Praktica. Tani i dobry, ale zamknięty w swoim systemie.</li>
+      <li><strong>Minolta MD/MC</strong> — bagnet Minolty sprzed ery autofocusa. Uwaga: nie pasuje do późniejszych korpusów Minolta AF (mocowanie A).</li>
+    </ul>
+
+    <h2>Adaptery</h2>
+    <p>Prawie każde stare mocowanie da się przełożyć na bezlusterkowca (Sony E, Fuji X, Canon RF) prostym pierścieniem za kilkadziesiąt złotych, bo bezlusterkowce mają bardzo krótki dystans rejestracji. Ostrzysz ręcznie, przysłonę ustawiasz na obiektywie — i tyle.</p>
+    <p>W drugą stronę bywa gorzej: adaptacja do lustrzanki innego systemu zwykle wymaga soczewki korekcyjnej, która psuje ostrość. Wyjątkiem jest M42 na Pentax K, który działa bez kompromisów.</p>
+
+    <h2>Wady, po których lepiej odpuścić</h2>
+    <ul>
+      <li><strong>Grzyb.</strong> Rozgałęziona pajęczyna na soczewce. Wytrawia powłoki — nawet po czyszczeniu zostaje ślad, a zarodniki przenoszą się na inne obiektywy w tej samej szafce.</li>
+      <li><strong>Separacja balsamu.</strong> Tęczowa obwódka między sklejonymi soczewkami. Nieodwracalna bez rozklejania zestawu.</li>
+      <li><strong>Olej na listkach przysłony.</strong> Przysłona zamyka się leniwie albo wcale. Da się wyczyścić, ale to demontaż — licz się z kosztem porównywalnym z ceną obiektywu.</li>
+      <li><strong>Zatarte ostrzenie.</strong> Sam opór to zwykle stara smarna — do przesmarowania. Skok albo luz na pierścieniu to już gorzej.</li>
+    </ul>
+
+    <h2>Jakie ogniskowe mieć</h2>
+    <p>50 mm to standard: jasny, tani, najlepiej zbudowany obiektyw w każdym systemie — i najlepszy pierwszy zakup. Potem 28 lub 35 mm do wnętrz i krajobrazu, a na koniec zoom 80–200 mm, jeśli potrzebujesz zbliżeń. Zoomy z tamtej epoki są ciemne i miękkie na brzegach; kupuj je jako dodatek, nie jako podstawę.</p>
+
+    <h2>Obiektywy i akcesoria w mojej ofercie</h2>
+    <div class="offers">
+      <span class="offer offer--sold"><span class="offer__name">Obiektyw manualny Osawa MC 80-200mm f/4.5 (mocowanie pentax K) Gliwice Wojska Polskiego</span><span class="offer__price">sprzedane</span></span>
+      <a class="offer" href="https://www.olx.pl/d/oferta/obiektyw-topman-mc-28mm-f-2-8-japonskiej-produkcji-CID99-ID12Vf8L.html" target="_blank" rel="noopener noreferrer"><span class="offer__name">Obiektyw Topman MC 28mm f/2.8, japońskiej produkcji Gliwice Sikornik</span><span class="offer__price">100 zł →</span></a>
+    </div>
+
+    <h2>Dobierz film</h2>
+    <p>Filmy i chemię do wywoływania znajdziesz w katalogu — z aktualnymi cenami i linkami do sklepów.</p>
+    <div class="related">
+      <a href="../#filmy-bw">Filmy czarno-białe</a>
+      <a href="../#filmy-kolor">Filmy kolorowe</a>
+      <a href="../#wywolywanie">Wywoływanie i skanowanie</a>
+    </div>
+
+    <h2>Pozostałe poradniki</h2>
+    <div class="related">
+      <a href="lustrzanki-slr.html">Lustrzanki (SLR)</a>
+      <a href="kompaktowe.html">Kompaktowe</a>
+      <a href="dalmierzowe.html">Dalmierzowe</a>
+      <a href="zestawy.html">Zestawy</a>
+    </div>
+  </article>
+
+
+
+  <footer class="footer">
+    <p class="label label--soft">STARE APARATY</p>
+    <p><a href="../polityka-prywatnosci.html">Polityka prywatności</a></p>
+    <p><a href="mailto:support@stareaparaty.com">support@stareaparaty.com</a></p>
+  </footer>
+
+</div>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Stary obiektyw — jak dobrać mocowanie i czego unikać",
+  "description": "Mocowania M42, Pentax K, Praktica B i Minolta MD, adaptery na cyfrę oraz wady, których nie da się naprawić.",
+  "inLanguage": "pl-PL",
+  "mainEntityOfPage": "https://stareaparaty.com/poradniki/obiektywy.html",
+  "author": {
+    "@type": "Organization",
+    "name": "Stare Aparaty",
+    "url": "https://stareaparaty.com/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Stare Aparaty",
+    "url": "https://stareaparaty.com/",
+    "logo": "https://stareaparaty.com/icon-512.png"
+  }
+}
+</script>
+</body>
+</html>

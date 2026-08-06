@@ -17,7 +17,8 @@ At this traffic level the affiliate program cannot work — the problem is visit
 
 ## 2. Traffic (the prerequisite for everything else)
 
-- **Per-camera guide pages.** "Pentax ME — recenzja i jaki film wybrać", "Zenit B + Helios 44-2 — instrukcja dla początkujących". Polish-language analog content is thin; these are low-competition queries with buyer intent. Each guide links to your OLX ad *and* film affiliate links. This is the single highest-leverage growth item.
+- **Per-camera-type guide pages — first pass shipped.** Five guides live under `poradniki/` (lustrzanki SLR, kompaktowe, dalmierzowe, zestawy, obiektywy), written in `scripts/guides.json` and rendered by the build. Each one ends with the cameras of that type currently in the catalog and links through to the film sections, so a guide reader lands one click from an OLX listing. Every type heading on the homepage links to its guide, and all five are in the sitemap and `llms.txt`.
+- **Next: per-model guides.** "Pentax ME — recenzja i jaki film wybrać", "Zenit B + Helios 44-2 — instrukcja dla początkujących". Type-level guides cover the generic queries; model-level ones catch the buyer already searching a specific body, which is where the intent is highest. Same pipeline — add an entry to `guides.json`. Watch Search Console for which type guide picks up impressions first and write the model guides underneath it.
 - **Google Search Console**: submit `sitemap.xml` (added), verify the property. Free and takes 10 minutes.
 - **Polish analog community**: Facebook groups (Fotografia Analogowa, Aparaty Analogowe — sprzedam/kupię), wykop.pl, r/analog. Don't spam links — answer beginner questions ("jaki aparat na start do 300 zł?") and reference your guides.
 - **Social previews now work** (OG tags + branded og-image.png added) — sharing the site in those groups no longer shows a blank card.
@@ -34,6 +35,16 @@ Amazon.pl is a weak place to send Polish film buyers — selection and prices fo
 | Fotoforma | cashback only (Fonia) | No classic affiliate program — not useful here. |
 
 Suggested move: keep Amazon links for now (sunk setup, some users prefer it), add an Allegro link as a second button on each film card once the Allegro Affiliate account is approved.
+
+## 3b. Display ads (wired, not switched on)
+
+AdSense is fully wired but ships disabled behind `scripts/ads-config.json` — see `ADSENSE.md` for the activation runbook. Three placements: mid-page, one card-shaped unit completing the colour-film row, one above the footer.
+
+Set expectations honestly before flipping it on:
+
+- **At current traffic this earns roughly nothing.** Display RPM in the Polish market is single-digit złoty per thousand pageviews; the traffic work in §2 is still the only thing that changes the picture. Ads are worth switching on now mainly so the account exists and is seasoned by the time traffic arrives.
+- **Approval is genuinely uncertain.** One page of affiliate cards is what AdSense calls thin content. A rejection is a signal to write the guide pages, not to resubmit.
+- **It costs something.** Turning ads on ends the site's consent-banner-free status (a Google-certified CMP becomes mandatory for EU traffic) and puts third-party units next to your own affiliate cards, which compete for the same click. If a camera sale is worth 40–520 zł and a display click is worth ~0.10 zł, keep the ads out of the camera catalog — which is why there is no slot in the `#aparaty` section.
 
 ## 4. Measure (unblocked today)
 
