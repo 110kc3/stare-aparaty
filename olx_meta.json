@@ -7,7 +7,10 @@
     "host": "olx.pl",
     "sold": false,
     "price": "390 zł",
-    "oldPrice": ""
+    "oldPrice": "",
+    "firstSeen": "",
+    "etag": "",
+    "lastModified": ""
   },
   {
     "id": 2,
@@ -17,7 +20,10 @@
     "host": "olx.pl",
     "sold": false,
     "price": "70 zł",
-    "oldPrice": ""
+    "oldPrice": "",
+    "firstSeen": "",
+    "etag": "",
+    "lastModified": ""
   },
   {
     "id": 3,
@@ -27,7 +33,10 @@
     "host": "olx.pl",
     "sold": false,
     "price": "80 zł",
-    "oldPrice": ""
+    "oldPrice": "",
+    "firstSeen": "",
+    "etag": "",
+    "lastModified": ""
   },
   {
     "id": 4,
@@ -37,7 +46,10 @@
     "host": "olx.pl",
     "sold": false,
     "price": "500 zł",
-    "oldPrice": ""
+    "oldPrice": "",
+    "firstSeen": "",
+    "etag": "",
+    "lastModified": ""
   },
   {
     "id": 5,
@@ -47,7 +59,10 @@
     "host": "olx.pl",
     "sold": false,
     "price": "250 zł",
-    "oldPrice": ""
+    "oldPrice": "",
+    "firstSeen": "",
+    "etag": "",
+    "lastModified": ""
   },
   {
     "id": 6,
@@ -57,7 +72,10 @@
     "host": "olx.pl",
     "sold": false,
     "price": "60 zł",
-    "oldPrice": ""
+    "oldPrice": "",
+    "firstSeen": "",
+    "etag": "",
+    "lastModified": ""
   },
   {
     "id": 7,
@@ -67,7 +85,10 @@
     "host": "olx.pl",
     "sold": false,
     "price": "400 zł",
-    "oldPrice": ""
+    "oldPrice": "",
+    "firstSeen": "",
+    "etag": "",
+    "lastModified": ""
   },
   {
     "id": 8,
@@ -77,7 +98,10 @@
     "host": "olx.pl",
     "sold": false,
     "price": "180 zł",
-    "oldPrice": ""
+    "oldPrice": "",
+    "firstSeen": "",
+    "etag": "",
+    "lastModified": ""
   },
   {
     "id": 9,
@@ -87,7 +111,10 @@
     "host": "olx.pl",
     "sold": false,
     "price": "250 zł",
-    "oldPrice": ""
+    "oldPrice": "",
+    "firstSeen": "",
+    "etag": "",
+    "lastModified": ""
   },
   {
     "id": 10,
@@ -97,7 +124,10 @@
     "host": "olx.pl",
     "sold": false,
     "price": "399 zł",
-    "oldPrice": ""
+    "oldPrice": "",
+    "firstSeen": "",
+    "etag": "",
+    "lastModified": ""
   },
   {
     "id": 11,
@@ -107,7 +137,10 @@
     "host": "olx.pl",
     "sold": false,
     "price": "350 zł",
-    "oldPrice": ""
+    "oldPrice": "",
+    "firstSeen": "",
+    "etag": "",
+    "lastModified": ""
   },
   {
     "id": 12,
@@ -117,7 +150,10 @@
     "host": "olx.pl",
     "sold": false,
     "price": "1700 zł",
-    "oldPrice": ""
+    "oldPrice": "",
+    "firstSeen": "",
+    "etag": "",
+    "lastModified": ""
   },
   {
     "id": 13,
@@ -127,7 +163,10 @@
     "host": "olx.pl",
     "sold": false,
     "price": "100 zł",
-    "oldPrice": ""
+    "oldPrice": "",
+    "firstSeen": "",
+    "etag": "",
+    "lastModified": ""
   },
   {
     "id": 14,
@@ -137,7 +176,10 @@
     "host": "olx.pl",
     "sold": false,
     "price": "165 zł",
-    "oldPrice": ""
+    "oldPrice": "",
+    "firstSeen": "",
+    "etag": "",
+    "lastModified": ""
   },
   {
     "id": 15,
@@ -147,7 +189,10 @@
     "host": "olx.pl",
     "sold": false,
     "price": "330 zł",
-    "oldPrice": ""
+    "oldPrice": "",
+    "firstSeen": "",
+    "etag": "",
+    "lastModified": ""
   },
   {
     "id": 16,
@@ -157,7 +202,10 @@
     "host": "olx.pl",
     "sold": false,
     "price": "450 zł",
-    "oldPrice": ""
+    "oldPrice": "",
+    "firstSeen": "",
+    "etag": "",
+    "lastModified": ""
   },
   {
     "id": 17,
@@ -167,7 +215,10 @@
     "host": "olx.pl",
     "sold": false,
     "price": "300 zł",
-    "oldPrice": ""
+    "oldPrice": "",
+    "firstSeen": "",
+    "etag": "",
+    "lastModified": ""
   },
   {
     "id": 18,
@@ -177,7 +228,10 @@
     "host": "olx.pl",
     "sold": false,
     "price": "180 zł",
-    "oldPrice": ""
+    "oldPrice": "",
+    "firstSeen": "",
+    "etag": "",
+    "lastModified": ""
   },
   {
     "id": 19,
@@ -187,6 +241,9 @@
     "host": "olx.pl",
     "sold": false,
     "price": "39 zł",
-    "oldPrice": ""
+    "oldPrice": "",
+    "firstSeen": "",
+    "etag": "",
+    "lastModified": ""
   }
 ]

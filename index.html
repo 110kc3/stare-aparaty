@@ -212,6 +212,16 @@
     .cam-group__head {
       display: flex; align-items: baseline; gap: 12px; margin: 0 0 10px;
     }
+    .cam-group__guide {
+      margin-left: auto;
+      font-size: 11px;
+      color: var(--gold-dim);
+      text-decoration: none;
+      letter-spacing: 0.03em;
+      border-bottom: 1px solid transparent;
+      transition: color 150ms, border-color 150ms;
+    }
+    .cam-group__guide:hover { color: var(--gold); border-bottom-color: var(--gold-dim); }
     .cam-group__count {
       font-size: 12px; color: var(--ink-soft); letter-spacing: 0.04em;
     }
@@ -277,8 +287,13 @@
       transition: opacity 200ms, transform 220ms, filter 200ms;
       opacity: 0.88;
     }
+    /* Easter egg: the photo drops to chunky pixels on hover, behind the OLX
+       pill. Pure CSS can't pixelate a full-resolution image, so this leans on
+       the inline #pixelate SVG filter near the end of the document. Applied on
+       hover only — filtering all 20 images at rest would be needlessly
+       expensive. Delete this rule and the inline svg filter to remove it. */
     .cam-card:hover .cam-card__img {
-      opacity: 0.45; transform: scale(1.04); filter: none;
+      opacity: 0.45; transform: scale(1.04); filter: url(#pixelate);
     }
     .cam-card__hover-cta {
       position: absolute; inset: 0;
@@ -313,6 +328,34 @@
       transition: color 200ms;
     }
     .cam-card:hover .cam-card__detail { color: #444; }
+    /* One-sentence model note (scripts/camera-notes.json). Clamped to two lines
+       so a long note can't stretch one card taller than its row. */
+    .cam-card__note {
+      font-size: 10px;
+      line-height: 1.45;
+      color: var(--ink-soft);
+      margin-top: 5px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      transition: color 200ms;
+    }
+    .cam-card:hover .cam-card__note { color: #555; }
+    /* NOWE chip — opposite corner from the price so the two never collide. */
+    .cam-card__new {
+      position: absolute;
+      top: 8px; right: 8px;
+      background: var(--bg);
+      color: var(--gold);
+      border: 1px solid var(--gold);
+      padding: 3px 7px;
+      font-family: var(--retro);
+      font-size: 7px;
+      letter-spacing: 0.1em;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+    }
     .cam-card__price {
       position: absolute;
       top: 8px; left: 8px;
@@ -437,6 +480,36 @@
     .footer p { font-size: 11px; color: var(--ink-soft); }
     .footer a { color: var(--gold-dim); text-decoration: none; }
     .footer a:hover { color: var(--gold); text-decoration: underline; }
+    .footer__legal { display: flex; gap: 14px; flex-wrap: wrap; }
+
+    /* ── Ad slots ───────────────────────────────────────────────────
+       Always labelled: the in-grid unit sits between product cards that look
+       exactly like editorial content, so an unmarked ad there would read as a
+       recommendation. min-height reserves the space before AdSense measures,
+       which keeps the unit from shoving the page down as it fills. */
+    .ad-slot {
+      display: flex; flex-direction: column; gap: 8px;
+      border: 1px dashed var(--line);
+      background: var(--bg-2);
+      padding: 12px;
+      overflow: hidden;
+    }
+    .ad-slot__label {
+      font-family: var(--retro);
+      font-size: 7px;
+      letter-spacing: 0.12em;
+      color: var(--ink-faint);
+      align-self: flex-start;
+    }
+    .ad-slot__ins { width: 100%; }
+    .ad-slot--wide { margin-top: 32px; }
+    .ad-slot--wide .ad-slot__ins { min-height: 100px; }
+    /* Sits inside .product-grid as one more cell, matching a card's proportions. */
+    .ad-slot--card { margin: 0; }
+    .ad-slot--card .ad-slot__ins { min-height: 260px; }
+    /* When Google has no ad to show it marks the <ins> unfilled — collapse the
+       whole frame rather than leaving an empty labelled box on the page. */
+    .ad-slot:has(> .ad-slot__ins[data-ad-status="unfilled"]) { display: none; }
 
     /* Keyboard focus — the hover outline never shows for keyboard users, so
        give every interactive element a visible focus ring of its own. */
@@ -470,9 +543,11 @@
         animation-duration: 0.01ms !important;
       }
       .product-card:hover { transform: none; }
-      .cam-card:hover .cam-card__img { transform: none; }
+      /* The pixelate snap is a motion effect too — drop it here as well. */
+      .cam-card:hover .cam-card__img { transform: none; filter: none; }
     }
   </style>
+
 </head>
 <body>
 <div class="shell">
@@ -505,12 +580,12 @@
         <h2>Aparaty w ofercie</h2>
         <p>Kliknij kartę, aby przejść do ogłoszenia na OLX</p>
       </div>
-      <span class="label label--soft">Aktualizacja: 7 sie 2026, 08:41</span>
+      <span class="label label--soft">Aktualizacja: 7 sie 2026, 08:42</span>
     </div>
 
     <div class="camera-catalog" aria-label="Katalog aparatów">
       <div class="cam-group">
-        <div class="cam-group__head"><span class="label">Lustrzanki (SLR)</span><span class="cam-group__count">10 szt.</span></div>
+        <div class="cam-group__head"><span class="label">Lustrzanki (SLR)</span><span class="cam-group__count">10 szt.</span><a class="cam-group__guide" href="poradniki/lustrzanki-slr.html">Poradnik →</a></div>
         <div class="camera-grid">
       <div class="cam-card-shell">
         <a class="cam-card" href="https://www.olx.pl/d/oferta/aparat-analogowy-minolta-5000-CID99-ID13N2w7.html" target="_blank" rel="noopener noreferrer">
@@ -523,6 +598,7 @@
             <div>
               <p class="cam-card__name">Aparat analogowy Minolta 5000 Gliwice Wojska Polskiego</p>
               <p class="cam-card__detail">olx.pl</p>
+              <p class="cam-card__note">Minolta 5000 to jedna z pierwszych lustrzanek z autofocusem w korpusie (1985).</p>
             </div>
           </div>
         </a>
@@ -540,6 +616,7 @@
             <div>
               <p class="cam-card__name">Aparat analogowy pudełkowy Coronet Ambassador, sprawny Gliwice Sikornik</p>
               <p class="cam-card__detail">olx.pl</p>
+              <p class="cam-card__note">Brytyjski aparat pudełkowy — najprostsza możliwa konstrukcja: jedna przysłona, jeden czas.</p>
             </div>
           </div>
         </a>
@@ -557,6 +634,7 @@
             <div>
               <p class="cam-card__name">Aparat na film Chinon CE-5 z Auto Chinon 50mm f/1.9 Chinon PW-530 Gliwice Sikornik</p>
               <p class="cam-card__detail">olx.pl</p>
+              <p class="cam-card__note">Japoński producent z Nagano — solidne korpusy, często sprzedawane pod cudzymi markami.</p>
             </div>
           </div>
         </a>
@@ -574,6 +652,7 @@
             <div>
               <p class="cam-card__name">Aparat PETRI FT EE FULLY AUTOMATIC z Petri C.C Auto 55mm F/1.8 na film Gliwice Sikornik</p>
               <p class="cam-card__detail">olx.pl</p>
+              <p class="cam-card__note">Tokijska wytwórnia z lat 60.–70., ceniona za jasne obiektywy w niskiej cenie.</p>
             </div>
           </div>
         </a>
@@ -591,6 +670,7 @@
             <div>
               <p class="cam-card__name">Aparat Yashica FX-2 z obiektywem Super Paragon PMC II Auto Tele Zoom Gliwice Wojska Polskiego</p>
               <p class="cam-card__detail">olx.pl</p>
+              <p class="cam-card__note">Japońska marka z Nagano, znana z przystępnych korpusów i optyki spod znaku Contax/Zeiss.</p>
             </div>
           </div>
         </a>
@@ -608,6 +688,7 @@
             <div>
               <p class="cam-card__name">Aparat Zenit-B z obiektywem Helios-44-2 58mm f/2 + Futerał Gliwice Sikornik</p>
               <p class="cam-card__detail">olx.pl</p>
+              <p class="cam-card__note">Radziecka lustrzanka z lat 70. — ciężka, w pełni mechaniczna, praktycznie niezniszczalna.</p>
             </div>
           </div>
         </a>
@@ -625,6 +706,7 @@
             <div>
               <p class="cam-card__name">Pentax ME z obiektywem Takumar-A Zoom 70-200mm f/4, analog na film Gliwice Wojska Polskiego</p>
               <p class="cam-card__detail">olx.pl</p>
+              <p class="cam-card__note">Japońska lustrzanka z 1976 r. — jedna z najmniejszych i najlżejszych w pełni automatycznych SLR-ek epoki.</p>
             </div>
           </div>
         </a>
@@ -642,6 +724,7 @@
             <div>
               <p class="cam-card__name">Pentax MV Sunagor Auto Zoom 80-200mm f/4.5-5.5, aparat analogowy Gliwice Sikornik</p>
               <p class="cam-card__detail">olx.pl</p>
+              <p class="cam-card__note">Uproszczona wersja ME z 1979 r. — automat przysłony bez trybu manualnego, pomyślana dla początkujących.</p>
             </div>
           </div>
         </a>
@@ -659,6 +742,7 @@
             <div>
               <p class="cam-card__name">Pentax SF7 z obiektywami Pentax-F Zoom 28-80mm i SMC Pentax-F 35-80mm Gliwice Sikornik</p>
               <p class="cam-card__detail">olx.pl</p>
+              <p class="cam-card__note">Lustrzanka z 1988 r. — jeden z pierwszych autofocusów Pentaxa, z wbudowaną lampą.</p>
             </div>
           </div>
         </a>
@@ -676,6 +760,7 @@
             <div>
               <p class="cam-card__name">Praktica BCA z obiektywem Prakticar PB 80-200mm f/4.5-5.6 MC Pentacon Gliwice Wojska Polskiego</p>
               <p class="cam-card__detail">olx.pl</p>
+              <p class="cam-card__note">Wschodnioniemiecka lustrzanka z Drezna — prosta konstrukcja i tanie szkła Pentacon.</p>
             </div>
           </div>
         </a>
@@ -684,7 +769,7 @@
         </div>
       </div>
       <div class="cam-group">
-        <div class="cam-group__head"><span class="label">Kompaktowe</span><span class="cam-group__count">3 szt.</span></div>
+        <div class="cam-group__head"><span class="label">Kompaktowe</span><span class="cam-group__count">3 szt.</span><a class="cam-group__guide" href="poradniki/kompaktowe.html">Poradnik →</a></div>
         <div class="camera-grid">
       <div class="cam-card-shell">
         <a class="cam-card" href="https://www.olx.pl/d/oferta/aparat-na-film-chinon-auto-gx-motorized-focus-free-z-futeralem-CID99-ID13I4Bv.html" target="_blank" rel="noopener noreferrer">
@@ -697,6 +782,7 @@
             <div>
               <p class="cam-card__name">Aparat na film: Chinon Auto GX Motorized Focus Free z futerałem Gliwice Sikornik</p>
               <p class="cam-card__detail">olx.pl</p>
+              <p class="cam-card__note">Japoński producent z Nagano — solidne korpusy, często sprzedawane pod cudzymi markami.</p>
             </div>
           </div>
         </a>
@@ -714,6 +800,7 @@
             <div>
               <p class="cam-card__name">Olympus AM-100 Quartzdate, analog kompaktowy na film Gliwice Sikornik</p>
               <p class="cam-card__detail">olx.pl</p>
+              <p class="cam-card__note">Olympus AM-100 — kompakt z autofocusem i datownikiem, typowy aparat rodzinny z lat 90.</p>
             </div>
           </div>
         </a>
@@ -731,6 +818,7 @@
             <div>
               <p class="cam-card__name">Quasar Smart - klasyczny aparat analogowy na film, sprawny Gliwice Wojska Polskiego</p>
               <p class="cam-card__detail">olx.pl</p>
+              <p class="cam-card__note">Prosty kompakt na film 35 mm — jedna z tych bezobsługowych „mydelniczek” z przełomu lat 80. i 90.</p>
             </div>
           </div>
         </a>
@@ -739,7 +827,7 @@
         </div>
       </div>
       <div class="cam-group">
-        <div class="cam-group__head"><span class="label">Dalmierzowe</span><span class="cam-group__count">2 szt.</span></div>
+        <div class="cam-group__head"><span class="label">Dalmierzowe</span><span class="cam-group__count">2 szt.</span><a class="cam-group__guide" href="poradniki/dalmierzowe.html">Poradnik →</a></div>
         <div class="camera-grid">
       <div class="cam-card-shell">
         <a class="cam-card" href="https://www.olx.pl/d/oferta/analogowy-aparat-yashica-35w-sprawny-w-bardzo-dobrym-stanie-na-film-CID99-ID130b45.html" target="_blank" rel="noopener noreferrer">
@@ -752,6 +840,7 @@
             <div>
               <p class="cam-card__name">Analogowy aparat Yashica 35W, sprawny w bardzo dobrym stanie, na film Gliwice Wojska Polskiego</p>
               <p class="cam-card__detail">olx.pl</p>
+              <p class="cam-card__note">Dalmierz z lat 60. — stałoogniskowy obiektyw i klasyczne ostrzenie na plamkę.</p>
             </div>
           </div>
         </a>
@@ -769,6 +858,7 @@
             <div>
               <p class="cam-card__name">Aparat na film Mamiya Rank 35mm Dalmierz Gliwice Sikornik</p>
               <p class="cam-card__detail">olx.pl</p>
+              <p class="cam-card__note">Japońska firma znana głównie ze średniego formatu; jej dalmierze 35 mm są dziś rzadsze.</p>
             </div>
           </div>
         </a>
@@ -777,7 +867,7 @@
         </div>
       </div>
       <div class="cam-group">
-        <div class="cam-group__head"><span class="label">Zestawy</span><span class="cam-group__count">3 szt.</span></div>
+        <div class="cam-group__head"><span class="label">Zestawy</span><span class="cam-group__count">3 szt.</span><a class="cam-group__guide" href="poradniki/zestawy.html">Poradnik →</a></div>
         <div class="camera-grid">
       <div class="cam-card-shell">
         <a class="cam-card" href="https://www.olx.pl/d/oferta/aparaty-marki-praktica-bca-tl-2-obiektywy-palar-i-pmc-CID4042-ID136V3O.html" target="_blank" rel="noopener noreferrer">
@@ -790,6 +880,7 @@
             <div>
               <p class="cam-card__name">Aparaty marki Praktica BCA, TL 2 + obiektywy Palar i PMC Gliwice Sikornik</p>
               <p class="cam-card__detail">olx.pl</p>
+              <p class="cam-card__note">Wschodnioniemiecka lustrzanka z Drezna — prosta konstrukcja i tanie szkła Pentacon.</p>
             </div>
           </div>
         </a>
@@ -807,6 +898,7 @@
             <div>
               <p class="cam-card__name">Aparaty na film Kodak Duaflex II, Brownie Cresta 3, Retina If Gliwice Sikornik</p>
               <p class="cam-card__detail">olx.pl</p>
+              <p class="cam-card__note">Kodak z epoki, gdy fotografia dopiero trafiała pod strzechy — celownik od góry, obsługa w trzech ruchach.</p>
             </div>
           </div>
         </a>
@@ -824,6 +916,7 @@
             <div>
               <p class="cam-card__name">Kolekcja aparatów Canon EOS analogi cyfrowe i manualne Gierałtowice</p>
               <p class="cam-card__detail">olx.pl</p>
+              <p class="cam-card__note">System EOS z 1987 r. — mocowanie EF przetrwało do dziś, więc stare szkła pasują do współczesnych korpusów Canona.</p>
             </div>
           </div>
         </a>
@@ -832,7 +925,7 @@
         </div>
       </div>
       <div class="cam-group">
-        <div class="cam-group__head"><span class="label">Obiektywy i akcesoria</span><span class="cam-group__count">1 szt.</span></div>
+        <div class="cam-group__head"><span class="label">Obiektywy i akcesoria</span><span class="cam-group__count">1 szt.</span><a class="cam-group__guide" href="poradniki/obiektywy.html">Poradnik →</a></div>
         <div class="camera-grid">
       <div class="cam-card-shell">
         <a class="cam-card" href="https://www.olx.pl/d/oferta/obiektyw-topman-mc-28mm-f-2-8-japonskiej-produkcji-CID99-ID12Vf8L.html" target="_blank" rel="noopener noreferrer">
@@ -845,6 +938,7 @@
             <div>
               <p class="cam-card__name">Obiektyw Topman MC 28mm f/2.8, japońskiej produkcji Gliwice Sikornik</p>
               <p class="cam-card__detail">olx.pl</p>
+              <p class="cam-card__note">Niezależny japoński producent optyki z czasów, gdy szkła OEM były tańszą alternatywą dla markowych.</p>
             </div>
           </div>
         </a>
@@ -856,6 +950,8 @@
   </section>
 
   <div class="filmstrip" style="margin-top: 32px;" aria-hidden="true"></div>
+
+  
 
   <section class="product-section" id="filmy-bw">
     <div class="section-head">
@@ -1000,6 +1096,8 @@
         <span class="cta">Sprawdź na Allegro <span>→</span></span>
       </a>
 
+      
+
     </div>
   </section>
 
@@ -1048,13 +1146,32 @@
     </div>
   </section>
 
+  
+
   <footer class="footer">
     <span class="label label--soft">STARE APARATY</span>
-    <p>Projekt prywatny. Ogłoszenia pochodzą z olx.pl, linki do filmów i akcesoriów prowadzą do Amazon.pl i Allegro.pl. Część z nich to linki afiliacyjne — kupując przez nie, wspierasz projekt bez dodatkowych kosztów dla Ciebie. Ceny orientacyjne — sprawdzone 2026-06-22, aktualną cenę zobaczysz po kliknięciu w produkt.</p>
-    <p>Kontakt: <a href="mailto:support@stareaparaty.com">support@stareaparaty.com</a></p>
+    <p>Projekt prywatny. Ogłoszenia pochodzą z olx.pl, linki do filmów i akcesoriów prowadzą do Amazon.pl i Allegro.pl. Część z nich to linki afiliacyjne — kupując przez nie, wspierasz projekt bez dodatkowych kosztów dla Ciebie. Ceny orientacyjne — sprawdzone 2026-06-22, aktualną cenę zobaczysz po kliknięciu w produkt. Strona wyświetla też reklamy Google.</p>
+    <p class="footer__legal">
+      <a href="polityka-prywatnosci.html">Polityka prywatności i cookies</a>
+      <a href="mailto:support@stareaparaty.com">support@stareaparaty.com</a>
+    </p>
   </footer>
 
 </div><!-- /.shell -->
+
+<!-- Pixelation filter for the card hover easter egg. feFlood paints one opaque
+     pixel, feTile repeats it into a grid, and the dilate spreads each surviving
+     sample over its whole cell — the classic SVG way to quantise an image that
+     CSS filters can't do on their own. -->
+<svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+  <filter id="pixelate" x="0" y="0">
+    <feFlood x="3" y="3" width="1" height="1"/>
+    <feComposite width="7" height="7"/>
+    <feTile result="grid"/>
+    <feComposite in="SourceGraphic" in2="grid" operator="in"/>
+    <feMorphology operator="dilate" radius="3.5"/>
+  </filter>
+</svg>
 
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Podgląd zdjęcia" hidden>
   <button type="button" class="lightbox__close" id="lightbox-close" aria-label="Zamknij podgląd">✕ ZAMKNIJ</button>
