@@ -29,7 +29,16 @@ const OUTPUT_PRIVACY = path.join(ROOT_DIR, PRIVACY_PATH);
 // Bumped by hand when the policy text itself changes. Deliberately NOT the
 // build date: the page rebuilds daily with the catalog, and a date that moved
 // every night would tell readers "this policy changed" when it hadn't.
-const PRIVACY_UPDATED = '6 sierpnia 2026';
+//
+// Last bump 2026-08-07, when §1 (data controller) was settled. The site is run
+// by a private individual, not a registered business, so the policy names a
+// natural person and carries no company name, address or NIP — that is
+// deliberate, not an unfilled placeholder, and it should not be "fixed" by
+// inventing business details. RODO art. 13(1)(a-b) wants the controller's
+// identity and a working contact channel; support@stareaparaty.com is it.
+// If the site ever starts operating under a działalność gospodarcza, §1 needs
+// that entity's name, address and NIP, and this date needs another bump.
+const PRIVACY_UPDATED = '7 sierpnia 2026';
 // Per-camera-type buyer guides live in their own directory so the deploy
 // workflows can ship them with one `cp -r` instead of a filename per guide.
 const GUIDES_DIR = 'poradniki';
