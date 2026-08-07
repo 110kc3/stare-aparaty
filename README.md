@@ -22,15 +22,18 @@ The camera grid shows **4 cards per row**; the build renders every discovered ca
 ### `scripts/discover-listings.js` — auto-discover my listings
 
 ```bash
-node scripts/discover-listings.js            # update product-links.txt
-node scripts/discover-listings.js --dry-run  # print what it found, write nothing
+node scripts/discover-listings.js               # update product-links.txt
+node scripts/discover-listings.js --dry-run     # print what it found, write nothing
 node scripts/discover-listings.js --out tmp.txt
+node scripts/discover-listings.js --allow-shrink # accept a big drop in listing count
 ```
 
 The OLX user page is a client-rendered app, but it still ships the current page's listings as an escaped JSON blob in the HTML. The script collapses that escaping, reads `title` / `status` / `url` / owning `user.id` for each offer, paginates automatically until a page comes back empty, and keeps only offers that are mine (own `user.id`), `active`, and whose title contains a keyword. Config lives at the top of the file:
 
 - `USER_PAGES` — my OLX user listing page(s); list only the first page of each, pagination is automatic. `categoryId=99` is the Foto category.
 - `KEYWORDS` — the "is it actually a camera" filter (case-insensitive). Defaults to `aparat` / `analog` plus common analog-camera brands, since some cameras are titled by model only (e.g. *Pentax SF7*). Set to `[]` to keep every offer in the category.
+
+Two guards protect `product-links.txt` from a bad scrape, because overwriting it with a short list quietly removes cameras from the live site. A run that finds **zero** offers leaves the file alone, and a run that loses more than **30%** of the previous list (`SHRINK_MAX_FRACTION`, floor of 5 links) refuses to write and exits non-zero — so the workflow stops before rebuilding and the deployed site keeps the last complete catalog. Pass `--allow-shrink` when you have genuinely removed a lot of listings.
 
 ## Workflows
 

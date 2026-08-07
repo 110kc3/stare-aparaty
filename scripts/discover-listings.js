@@ -64,10 +64,48 @@ const LINKS_FILE = path.resolve(__dirname, '..', 'product-links.txt');
 
 // --- Implementation --------------------------------------------------------
 
+// A scrape that returns *nothing* is caught below by an explicit zero-check.
+// The dangerous case is a scrape that returns *some* of the catalog: OLX
+// serving page 1 but blocking page 2 produces a plausible-looking truncated
+// list, and writing it silently deletes the rest of the catalog from the live
+// site. Observed 2026-08-07 — the link file went 19 -> 10 one night and back to
+// 19 the next, so the site shipped a half-empty catalog for a day with nothing
+// in the logs saying so.
+//
+// A real day's shrinkage is one or two sold cameras. A third of the list
+// vanishing at once is a failed scrape until proven otherwise, so we refuse to
+// write and exit non-zero: the workflow stops before rebuilding, and the live
+// site keeps yesterday's complete catalog instead of publishing a partial one.
+// Override with --allow-shrink when you really have removed a lot of listings.
+const SHRINK_MIN_PREVIOUS = 5;
+const SHRINK_MAX_FRACTION = 0.3;
+
+function countLinks(text) {
+  return String(text)
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean).length;
+}
+
+// Returns null when the drop is acceptable, or an explanatory string when the
+// list shrank so far that a partial scrape is the likelier explanation.
+function shrinkRefusal(previousCount, keptCount) {
+  if (previousCount < SHRINK_MIN_PREVIOUS) return null;
+  const dropped = previousCount - keptCount;
+  if (dropped <= 0) return null;
+  const fraction = dropped / previousCount;
+  if (fraction <= SHRINK_MAX_FRACTION) return null;
+  return `discovered ${keptCount} offer(s), down ${dropped} from ${previousCount} `
+    + `(${Math.round(fraction * 100)}% of the list). That is a partial scrape until `
+    + 'proven otherwise, so product-links.txt was left untouched. Re-run, or pass '
+    + '--allow-shrink if the listings really are gone.';
+}
+
 function parseArgs(argv) {
-  const out = { dryRun: false, outFile: LINKS_FILE };
+  const out = { dryRun: false, outFile: LINKS_FILE, allowShrink: false };
   for (let i = 0; i < argv.length; i += 1) {
     if (argv[i] === '--dry-run') out.dryRun = true;
+    else if (argv[i] === '--allow-shrink') out.allowShrink = true;
     else if (argv[i] === '--out') {
       const value = argv[i + 1];
       // Fail fast: `path.resolve(cwd, '')` is the cwd itself, which would only
@@ -284,6 +322,22 @@ async function main() {
     for (const o of skipped) console.log(`  - ${o.title}`);
   }
 
+  // Checked before the dry-run bail-out so `--dry-run` reports the refusal too.
+  if (!args.allowShrink) {
+    let previousCount = 0;
+    try {
+      previousCount = countLinks(fs.readFileSync(args.outFile, 'utf8'));
+    } catch {
+      previousCount = 0; // First run: no file to compare against.
+    }
+    const refusal = shrinkRefusal(previousCount, kept.length);
+    if (refusal) {
+      console.error(`\n${refusal}`);
+      process.exitCode = 1;
+      return;
+    }
+  }
+
   if (args.dryRun) {
     console.log('\n--dry-run: not writing any file.');
     return;
@@ -307,4 +361,7 @@ module.exports = {
   decodeUnicode,
   matchesKeyword,
   withPage,
+  parseArgs,
+  countLinks,
+  shrinkRefusal,
 };

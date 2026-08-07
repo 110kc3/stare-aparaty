@@ -10,6 +10,9 @@ const {
   decodeUnicode,
   matchesKeyword,
   withPage,
+  parseArgs,
+  countLinks,
+  shrinkRefusal,
 } = require('../scripts/discover-listings.js');
 
 // A fragment shaped like OLX's embedded JSON blob, with the keys in the exact
@@ -72,4 +75,39 @@ test('withPage sets the page query param', () => {
     withPage('https://www.olx.pl/oferty/uzytkownik/abc/?categoryId=99', 3),
     'https://www.olx.pl/oferty/uzytkownik/abc/?categoryId=99&page=3',
   );
+});
+
+test('countLinks ignores blank lines and surrounding whitespace', () => {
+  assert.equal(countLinks('a\nb\nc\n'), 3);
+  assert.equal(countLinks('  a  \n\n\n  b\n'), 2);
+  assert.equal(countLinks(''), 0);
+});
+
+// The regression this guards: a partial OLX scrape returned 10 of 19 listings
+// and the old code wrote it, deleting 9 cameras from the live site for a day.
+test('shrinkRefusal blocks the 19 -> 10 partial-scrape case', () => {
+  const refusal = shrinkRefusal(19, 10);
+  assert.ok(refusal, 'a 47% drop must be refused');
+  assert.match(refusal, /19/);
+  assert.match(refusal, /--allow-shrink/);
+});
+
+test('shrinkRefusal allows ordinary day-to-day shrinkage', () => {
+  assert.equal(shrinkRefusal(19, 18), null); // one camera sold
+  assert.equal(shrinkRefusal(19, 14), null); // 26% — under the limit
+  assert.equal(shrinkRefusal(19, 19), null); // unchanged
+  assert.equal(shrinkRefusal(19, 25), null); // growth is never suspicious
+});
+
+test('shrinkRefusal stays quiet on small or absent previous lists', () => {
+  // Percentages are meaningless on a tiny list, and a first run has no file.
+  assert.equal(shrinkRefusal(0, 0), null);
+  assert.equal(shrinkRefusal(4, 1), null);
+  assert.ok(shrinkRefusal(5, 1), 'at the floor the guard starts applying');
+});
+
+test('parseArgs understands --allow-shrink', () => {
+  assert.equal(parseArgs([]).allowShrink, false);
+  assert.equal(parseArgs(['--allow-shrink']).allowShrink, true);
+  assert.equal(parseArgs(['--dry-run']).dryRun, true);
 });
