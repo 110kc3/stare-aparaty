@@ -40,7 +40,8 @@
 - **This validated the model-guide design more strongly than expected.** The two Praktica listings classify into *different* catalog sections (`Zestawy` and `Lustrzanki (SLR)`), and the Canon EOS listing into `Zestawy`. Keyword matching gathers them; a type guide structurally could not. Worth remembering before anyone proposes simplifying `kind: "model"` away.
 - **Merge hygiene:** rebased onto 31 accumulated `chore: auto-discover camera catalog` bot commits. All source conflicts were *additive on both sides* (deploy workflows, `build-catalog.js`) and resolved as unions — see the note below on why that keeps recurring.
 - ✅ **Fixed the catalog flap** found while rebasing: bot commit `80f0f6f` deleted 9 entries from `product-links.txt` and `a947b06` re-added the same 9, so the live site had been swinging between 10 and 19 cameras depending on whether OLX served that night's scrape in full. `discover-listings.js` now refuses to write a list that lost more than 30% of its entries in one run. Details as finding #13.
-- **The backlog is now blocked, not unfinished.** Every remaining TODO item needs an account, a credential, or an approval that does not exist in the repo. Search Console has become the critical path: the pre-named guide candidates are exhausted, so choosing the next one requires impression data.
+- **Two "blocked" TODO items were actually finished a month ago.** The Allegro Affiliate onboarding and the Amazon → Allegro card switch were both still filed as pending/blocked, but the repo says otherwise: 10 `allegro.pl/affiliate` deep links on a single joined campaign (`8902aaa9-…`), 10 × "Sprawdź na Allegro" against 5 × "Sprawdź na Amazon", the footer disclaimer already naming both marketplaces, and a populated `scripts/allegro-products.json`. All ten are retail `/produkt/` or `/oferta/` listings, so none fall into the auction / "Kolekcja i Sztuka" categories Allegro pays no commission on. Marked done across TODO, GROWTH-PLAN and this file. **Lesson for future audits: check the template before trusting the backlog** — this repo's planning docs drift behind the code, which is the failure mode this report exists to catch.
+- **What is genuinely left needs an account or a decision, not code.** AdSense (dashboard), Search Console (ten minutes, and now the critical path for further guide work since the named candidates are exhausted), the PA-API keys, and the data-controller identity for the privacy policy — which needs a business name, address and NIP that must not be guessed.
 
 ---
 
@@ -132,14 +133,14 @@ Also stale: the **prefers-reduced-motion** item references the `.retro` hover st
 
 **Blocked on external approval:**
 - **PA-API price refresh** — needs Amazon Associates approval (see deadline below); the Playwright scraper stays disabled until then.
-- **Allegro Affiliate** second button on film cards — needs an approved Allegro Affiliate account.
+- ~~**Allegro Affiliate** second button on film cards — needs an approved Allegro Affiliate account.~~ ✅ **Done, and superseded.** The account was approved and the catalog went further than a second button: cards moved individually to whichever marketplace is cheaper, now 10 Allegro to 5 Amazon.
 
 ### GROWTH-PLAN action items — current state
 
 1. **Analytics** — GoatCounter removed 2026-07-02; Cloudflare Web Analytics (RUM) enabled instead, auto-injected via the Cloudflare dashboard.
 2. **Google Search Console + sitemap submission** — not verifiable from the repo; sitemap is ready (and now points at `stareaparaty.com`). Do this once the custom domain is live, before writing guide pages.
 3. ~~**First per-camera guide page** — not started.~~ ✅ **Done 2026-08-06** — five per-type guides shipped; per-model guides are next.
-4. **Allegro Affiliate application** — not verifiable from the repo; no Allegro links present yet.
+4. ~~**Allegro Affiliate application** — not verifiable from the repo; no Allegro links present yet.~~ ✅ **Done.** Now very much verifiable from the repo: 10 `allegro.pl/affiliate` deep links on campaign `8902aaa9-…`, priced from `scripts/allegro-products.json`.
 5. **⏰ Amazon Associates deadline** — the plan (dated June 2026) warns the account closes with <3 qualifying sales in 180 days, killing the PA-API path. If nothing has sold by **autumn 2026**, expect to re-apply.
 
 ### Manual steps still pending on your side (cannot be done from the repo)

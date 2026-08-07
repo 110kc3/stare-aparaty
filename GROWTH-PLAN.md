@@ -34,7 +34,9 @@ Amazon.pl is a weak place to send Polish film buyers — selection and prices fo
 | **webePartners network** | 3–4% typical | Polish e-commerce affiliate network; check which photo shops are currently listed. |
 | Fotoforma | cashback only (Fonia) | No classic affiliate program — not useful here. |
 
-Suggested move: keep Amazon links for now (sunk setup, some users prefer it), add an Allegro link as a second button on each film card once the Allegro Affiliate account is approved.
+**Status: done, and it went further than the original suggestion.** The Allegro Affiliate account was approved after the 2026-06-23 registration, and rather than adding a second button per card the catalog moved card-by-card to whichever marketplace is actually cheaper. It now runs **10 Allegro cards to 5 Amazon**, all deep-linked through `allegro.pl/affiliate` on campaign `8902aaa9-…`, all on retail (`/produkt/`, `/oferta/`) listings that qualify for commission.
+
+This resolves the mismatch this section was written about: Polish film buyers now mostly land on Allegro, where they actually buy. The remaining Amazon cards are the ones where Amazon still wins on price. Cyfrowe.pl (TradeTracker, 4% on accessories) is still the unexplored option worth a look if the accessory cards ever earn enough to matter.
 
 ## 3b. Display ads (wired, not switched on)
 
@@ -63,6 +65,6 @@ Analytics = **Cloudflare Web Analytics (RUM)**, auto-injected via the Cloudflare
 
 1. **Add the site to Google Search Console, submit the sitemap.** Now unambiguously the highest-value thing you can do — and it has become a *blocker*, not just an opportunity: **ten** guide pages are live, every pre-named writing candidate is used up, and there is no way to choose the next one without impression data. The sitemap already lists them all. Everything else on this list is waiting on someone else; this one is waiting on you and takes ten minutes.
 2. ~~Pick one camera and write the first guide page.~~ ✅ Done — five type guides plus five model guides (Pentax ME, Zenit B + Helios 44-2, Praktica BCA, Yashica 35, Canon EOS). The traffic thesis is now fully testable; step 1 is what tests it.
-3. **Apply to Allegro Affiliate Business** (and finish the onboarding already started 2026-06-23 — see TODO).
+3. ~~Apply to Allegro Affiliate Business.~~ ✅ Done — approved, and 10 of the 15 film/accessory cards now deep-link to Allegro on campaign `8902aaa9-…`. The only recurring piece left is billing: monthly accrual, 45-day return window, then a VAT invoice from Panel → Rozliczenia to `dostawcy.faktury@allegro.pl`.
 4. **AdSense**: apply, then follow `ADSENSE.md`. Code is wired and disabled; approval odds are better now that there is real editorial content.
 5. **Finish the DNS / Pages cutover** for `stareaparaty.com` if it isn't already live — see STATUS-REPORT.
