@@ -295,6 +295,151 @@
           ]
         }
       ]
+    },
+    {
+      "slug": "praktica-bca",
+      "kind": "model",
+      "navLabel": "Praktica BCA",
+      "type": "Lustrzanki (SLR)",
+      "match": [
+        "praktica"
+      ],
+      "offersHeading": "Praktica w mojej ofercie",
+      "title": "Praktica BCA — co kupujesz i jaki film wybrać",
+      "description": "Praktica BCA i bagnet PB: czym różni się od gwintowanych Praktic, na co uważać przy zestawie z obiektywami i jaki film dobrać do wschodnioniemieckiej lustrzanki.",
+      "lead": "Praktica BCA to wschodnioniemiecka lustrzanka z drezdeńskiego Pentacona, z pierwszej połowy lat 80. Kupuje się ją dla jednej rzeczy: to jeden z najtańszych sposobów, żeby wejść w fotografię lustrzanką z automatyką przysłony — pod warunkiem, że rozumiesz, które obiektywy do niej pasują.",
+      "sections": [
+        {
+          "heading": "Bagnet PB, nie gwint M42 — najważniejsza rzecz do sprawdzenia",
+          "paragraphs": [
+            "Do 1979 r. Praktica używała gwintu **M42** — tego samego, co Zenit czy wczesne Pentaxy. Seria B, do której należy BCA, przeszła na własny **bagnet PB (Praktica B)**. To dwa niewymienne światy: szkło M42 nie wkręci się w BCA, a obiektyw Prakticar PB nie wejdzie na starszy korpus.",
+            "Ma to bezpośrednie znaczenie przy zestawach. Jeśli w jednej ofercie stoi BCA obok modelu z gwintem (np. TL 2), to nie jest jedna kolekcja obiektywów, tylko dwie — każdy korpus obsługuje własny komplet. Adaptery M42 → PB istnieją, ale kosztem ostrości w nieskończoność, więc nie traktuj ich jako obejścia."
+          ]
+        },
+        {
+          "heading": "Na co sprawdzić ten konkretny egzemplarz",
+          "paragraphs": [
+            "BCA ma migawkę sterowaną elektronicznie i automatykę przysłony — bez zasilania nie zrobisz nią zdjęcia. To pierwsza rzecz do zweryfikowania, bo „nie działa” najczęściej znaczy „martwe ogniwa”."
+          ],
+          "list": [
+            "**Komora baterii.** Ogniwa guzikowe potrafią zostawić zielony nalot po wycieku. Skorodowane styki to najczęstsza przyczyna trupa w tej serii, a naprawa bywa droższa niż sam aparat.",
+            "**Automatyka.** Wyceluj w jasne okno, potem w ciemny kąt — wskazanie w wizjerze musi wyraźnie skoczyć. Brak reakcji oznacza martwy światłomierz.",
+            "**Uszczelki komory.** Rozpadająca się czarna gąbka oznacza zaświetlenia na filmie. Tania i bardzo częsta naprawa.",
+            "**Lustro i migawka.** Odpal kilka razy na różnych czasach. Lustro ma wracać natychmiast; opóźnienie zapowiada problem z elektroniką.",
+            "**Okładziny.** Plastik z tej epoki bywa kruchy. Kosmetyka, ale dobry argument w negocjacji ceny."
+          ]
+        },
+        {
+          "heading": "Obiektywy Prakticar — tanio, i o to właśnie chodzi",
+          "paragraphs": [
+            "Szkła Prakticar PB wychodziły z Pentacona i Meyer-Optik, część konstrukcji ma rodowód Zeiss Jena. Nie mają legendy Heliosa ani powłok SMC, ale są **tanie i zupełnie wystarczające** — a to jest cały sens tego korpusu.",
+            "Na start szukaj standardowej pięćdziesiątki (Prakticar 50 mm f/1.8 albo f/2.4) — jasnej, ostrej i zwykle najtańszej pozycji w ofercie. Zoomy 80–200 mm z tej epoki są ciemne i sprawdzają się głównie w pełnym słońcu; traktuj je jako dodatek do zestawu, nie jako powód zakupu."
+          ]
+        },
+        {
+          "heading": "Jaki film do BCA",
+          "paragraphs": [
+            "Automatyka sama dobiera czas, więc film o średniej czułości daje największą swobodę: przy 400 ISO i jasnej pięćdziesiątce zrobisz zdjęcie w niemal każdym świetle dziennym. Na start czarno-biały Kentmere 400 albo Fomapan 400 — ten drugi jest czeski i u nas zwykle najtańszy.",
+            "Do koloru wystarczy Kodak ColorPlus 200 albo Gold 200; wywoła je każdy lab w procesie C-41. Czułość ustawiasz ręcznie na pokrętle — BCA nie czyta kodu DX z kasety."
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "yashica-35w",
+      "kind": "model",
+      "navLabel": "Yashica 35",
+      "type": "Dalmierzowe",
+      "match": [
+        "yashica 35"
+      ],
+      "offersHeading": "Yashica 35 w mojej ofercie",
+      "title": "Yashica 35 — dalmierz na pierwszy film",
+      "description": "Yashica z serii 35: jak działa ostrzenie dalmierzem, pułapka baterii rtęciowych w aparatach z lat 60. i jaki film wybrać na start.",
+      "lead": "Yashica 35 to japoński dalmierz z lat 60. — stałoogniskowy obiektyw, ostrzenie na plamkę i korpus lżejszy niż lustrzanka z tej samej epoki. Dla wielu osób to najprzyjemniejszy sposób, żeby zacząć fotografować na filmie, bo nie ma tu nic do ustawiania poza ostrością i ekspozycją.",
+      "sections": [
+        {
+          "heading": "Jak ostrzy dalmierz i dlaczego to lubisz",
+          "paragraphs": [
+            "W lustrzance patrzysz przez obiektyw. W dalmierzu patrzysz przez osobne okienko, w którego środku widać jaśniejszą plamkę z drugim, przesuniętym obrazem. Kręcisz pierścieniem, aż oba obrazy nałożą się na siebie — i to jest ostrość.",
+            "Zalety są konkretne: nie ma lustra, więc nie ma wstrząsu ani głośnego klapnięcia, a aparat jest cichy i lekki. Wadą jest to, że **nie widzisz głębi ostrości** ani dokładnego kadru z bliska — dalmierz pokazuje ramkę w okienku, a nie obraz z obiektywu."
+          ]
+        },
+        {
+          "heading": "Baterie: pułapka aparatów z lat 60.",
+          "paragraphs": [
+            "To najważniejszy akapit na tej stronie. Jeżeli egzemplarz ma światłomierz — seria 35 obejmuje zarówno modele z pomiarem, jak i całkiem bez niego — sprawdź, czego wymaga. Aparaty z tej epoki projektowano pod **ogniwa rtęciowe PX625 o napięciu 1,35 V**, dawno wycofane z produkcji jako toksyczne.",
+            "Włożenie zwykłej alkalicznej LR44 (1,5 V) daje wyższe napięcie i pomiar zaczyna kłamać. Masz trzy wyjścia i każde działa: ogniwo cynkowo-powietrzne do aparatów słuchowych (trzyma równe 1,35 V), adapter MR-9 z układem obniżającym napięcie, albo — najprościej — zignoruj światłomierz i mierz telefonem lub regułą Sunny 16.",
+            "Aparat bez działającego pomiaru nie jest zepsuty, tylko w pełni mechaniczny. To często najlepiej wyceniona okazja w całym ogłoszeniu."
+          ]
+        },
+        {
+          "heading": "Na co sprawdzić używany egzemplarz",
+          "list": [
+            "**Plamka dalmierza.** Musi być wyraźnie widoczna. Przygaszona albo zniknięta to typowa przypadłość wieku — półprzezroczyste lusterko traci powłokę.",
+            "**Zgranie dalmierza.** Nastaw nieskończoność i wyceluj w odległy budynek: oba obrazy muszą się pokryć. Rozjazd oznacza kalibrację u serwisanta.",
+            "**Migawka na długich czasach.** Stary smar gęstnieje. Ustaw 1 s i posłuchaj — migawka, która się zacina albo otwiera leniwie, to najczęstsza usterka tych aparatów.",
+            "**Listki przysłony.** Muszą być suche. Ślady oleju spowalniają je i psują ekspozycję.",
+            "**Grzyb w optyce.** Zajrzyj przez obiektyw pod światło: pajęczynowate nitki to grzybnia, która się rozrasta i przechodzi na kolejne soczewki."
+          ]
+        },
+        {
+          "heading": "Jaki film",
+          "paragraphs": [
+            "Stałoogniskowy obiektyw dalmierza jest zwykle jasny, więc masz zapas w gorszym świetle. Na start weź 400 ISO — czarno-biały Kentmere 400 albo kolorowy Kodak Gold 400 — i nie przejmuj się precyzją pomiaru: negatyw znosi prześwietlenie o dwie działki znacznie lepiej niż niedoświetlenie.",
+            "Jeśli mierzysz regułą Sunny 16 zamiast światłomierzem, celowo dawaj o działkę więcej, niż wynika z reguły. Gęstszy negatyw skanuje się lepiej niż rzadki."
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "canon-eos",
+      "kind": "model",
+      "navLabel": "Canon EOS",
+      "type": "Lustrzanki (SLR)",
+      "match": [
+        "canon eos"
+      ],
+      "offersHeading": "Canon EOS w mojej ofercie",
+      "title": "Canon EOS na film — autofokus na start",
+      "description": "Analogowe korpusy Canon EOS: dlaczego mocowanie EF jest ich największą zaletą, których obiektywów EF-S nie założysz i jaki film wybrać.",
+      "lead": "Analogowe EOS-y to najbardziej niedoceniany zakup na rynku używanym. System wystartował w 1987 r. i Canon **do dziś** używa tego samego mocowania EF — więc korpus na film, kosztujący tyle co dwa filmy, przyjmie każdy współczesny obiektyw Canona. Jeśli masz już lustrzankę cyfrową tej marki, właśnie dostałeś drugi aparat niemal za darmo.",
+      "sections": [
+        {
+          "heading": "Mocowanie EF: dlaczego to zmienia cały rachunek",
+          "paragraphs": [
+            "Większość systemów analogowych umarła razem z filmem — bagnet Praktiki B czy Minolty AF to dziś ślepe uliczki, w których każdy obiektyw kupujesz wyłącznie pod ten jeden korpus. EF przetrwał, bo Canon przeszedł na w pełni elektroniczne sterowanie obiektywem już w 1987 r. i nie musiał zmieniać bagnetu, wchodząc w cyfrę.",
+            "Praktyczny wniosek: obiektywy kupujesz **raz**. To samo szkło pracuje na korpusie na film i na cyfrowej lustrzance Canona. Żaden inny system analogowy nie daje tej ciągłości, a to zwykle obiektywy — nie korpusy — są w tej zabawie prawdziwym wydatkiem."
+          ]
+        },
+        {
+          "heading": "Czego nie założysz: obiektywy EF-S",
+          "paragraphs": [
+            "Jest jeden wyjątek i lepiej poznać go przed zakupem, a nie po. Obiektywy oznaczone **EF-S** (oraz Sigma DC i Tamron Di II) zaprojektowano pod mniejszą matrycę APS-C. Ich tylna soczewka wchodzi głębiej w korpus i fizycznie nie zmieszczą się w aparacie pełnoklatkowym — a klatka filmu 35 mm to właśnie pełna klatka.",
+            "Zapamiętaj prostą regułę: **EF pasuje wszędzie, EF-S tylko na cyfrowy APS-C.** Kupując obiektyw do analogowego EOS-a, szukaj wyłącznie oznaczenia EF."
+          ]
+        },
+        {
+          "heading": "Który korpus i na co uważać",
+          "paragraphs": [
+            "Analogowych EOS-ów jest kilkadziesiąt i różnią się głównie wyposażeniem, nie jakością zdjęcia — o tej decyduje obiektyw i film. Modele z serii 300/500/1000 są plastikowe i bardzo lekkie; wyższe, jak EOS 50 czy 30, mają solidniejszy korpus i wyraźnie lepszy wizjer."
+          ],
+          "list": [
+            "**Zasilanie.** EOS jest w pełni elektroniczny — bez baterii to przycisk do papieru. Wiele modeli używa litowych ogniw 2CR5 lub CR123A, droższych i trudniej dostępnych niż paluszki. Sprawdź, czego wymaga konkretny korpus, zanim ustalisz cenę.",
+            "**Autofokus.** Załóż obiektyw i przejedź ostrością po kilku obiektach — przy dobrym świetle silnik ma trafiać pewnie, bez szukania w tę i z powrotem.",
+            "**Lepkie okładziny.** Charakterystyczne dla tej epoki: guma potrafi zrobić się klejąca. Zmywa się to alkoholem izopropylowym, ale wpływa na cenę.",
+            "**Wyświetlacz LCD.** Sprawdź, czy segmenty na górnej ściance nie gasną — wyblakły LCD to typowa usterka wieku.",
+            "**Przewijanie filmu.** Zobacz, czy aparat sam ładuje i przewija. To silnik, a silniki się zużywają."
+          ]
+        },
+        {
+          "heading": "Jaki film do EOS-a",
+          "paragraphs": [
+            "Automatyka EOS-a mierzy światło wielosegmentowo i robi to naprawdę dobrze — możesz spokojnie oddać jej kontrolę i skupić się na kadrze. To główny argument, żeby zacząć od takiego korpusu, a nie od w pełni manualnej lustrzanki.",
+            "Korpus czyta kod DX z kasety, więc czułość ustawia się sama — jedna rzecz mniej do pomylenia. Na start Kodak Gold 200 do słońca, Kodak Ultramax 400 albo czarno-biały Kentmere 400, gdy światła jest mniej."
+          ]
+        }
+      ]
     }
   ]
 }

@@ -1,7 +1,7 @@
 # Status Report — Bug Check & Future Steps Audit
 
 *Generated 2026-06-13. Covers: full review of scripts, workflows, templates, generated output, and planning docs (TODO.md, GROWTH-PLAN.md).*
-*Last refreshed 2026-08-06 — see "Session 6" below.*
+*Last refreshed 2026-08-07 — see "Session 7" below.*
 
 > Note: bug #2 below (whole repo published as the Pages artifact) is fixed — internal docs like this file no longer ship to the live site.
 
@@ -35,6 +35,13 @@
 - **Fixed a stray inconsistency:** `404.html` was still loading Cormorant/Inter/Press Start 2P from `fonts.googleapis.com` while every other page uses the self-hosted set — a third-party render-blocking request, and one more thing to disclose now that the site has a privacy policy. It now links `fonts/fonts.css` like the rest.
 - **Conditional-request caching** added for OLX fetches; verified inert because OLX sends no `ETag`/`Last-Modified` (details in TODO).
 
+**Session 7 — 2026-08-07: the last three model guides, and a repo that is now genuinely account-blocked**
+- **Three per-model guides** — `praktica-bca`, `yashica-35w`, `canon-eos` — closing the one substantial code item Session 6 left open. Ten guides total (5 type + 5 model). Each leads with the single fact that changes a purchase decision: the PB-vs-M42 mount split on the Praktica, the discontinued 1.35 V PX625 mercury cell on the Yashica, and EF-vs-EF-S mount compatibility on the EOS.
+- **This validated the model-guide design more strongly than expected.** The two Praktica listings classify into *different* catalog sections (`Zestawy` and `Lustrzanki (SLR)`), and the Canon EOS listing into `Zestawy`. Keyword matching gathers them; a type guide structurally could not. Worth remembering before anyone proposes simplifying `kind: "model"` away.
+- **Merge hygiene:** rebased onto 31 accumulated `chore: auto-discover camera catalog` bot commits. All source conflicts were *additive on both sides* (deploy workflows, `build-catalog.js`) and resolved as unions — see the note below on why that keeps recurring.
+- ✅ **Fixed the catalog flap** found while rebasing: bot commit `80f0f6f` deleted 9 entries from `product-links.txt` and `a947b06` re-added the same 9, so the live site had been swinging between 10 and 19 cameras depending on whether OLX served that night's scrape in full. `discover-listings.js` now refuses to write a list that lost more than 30% of its entries in one run. Details as finding #13.
+- **The backlog is now blocked, not unfinished.** Every remaining TODO item needs an account, a credential, or an approval that does not exist in the repo. Search Console has become the critical path: the pre-named guide candidates are exhausted, so choosing the next one requires impression data.
+
 ---
 
 ## Bug check findings
@@ -49,6 +56,8 @@
    1. At the DNS provider: apex `A` records → `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`; plus `CNAME` record `www` → `110kc3.github.io`.
    2. GitHub repo **Settings → Pages → Custom domain**: enter `stareaparaty.com`, wait for the DNS check, then tick **Enforce HTTPS** (certificate provisioning can take up to ~1 h).
    3. After it's live, the old `110kc3.github.io/stare-aparaty/` URL redirects automatically. Re-submit the new sitemap URL in Search Console under a property for `stareaparaty.com`.
+
+13. ~~**A partial OLX scrape silently deleted half the catalog.**~~ ✅ **Fixed 2026-08-07.** `discover-listings.js` guarded only the all-or-nothing case (`kept.length === 0` → leave the file untouched). A *partial* scrape — OLX serving page 1 but blocking page 2 — passed that check and overwrote `product-links.txt` with a plausible-looking truncated list. Observed live: bot commit `80f0f6f` cut the file from 19 links to 10, and `a947b06` restored all 9 the next night, so the site published a half-empty catalog for a day with nothing in the logs flagging it. This is the worst class of bug for this project — the site exists to sell cameras and it quietly stopped showing half of them. Now `shrinkRefusal()` refuses to write when more than **30%** of the previous list disappears at once (floor: 5 links, so a small list or a first run is unaffected), exiting non-zero so the workflow stops *before* rebuilding and the live site keeps yesterday's complete catalog. `--allow-shrink` overrides it for a genuine bulk removal. Verified against the live scrape: 18 discovered vs 19 on file is a 5% drop and passes; the observed 19→10 case is refused. Five unit tests cover the thresholds.
 
 ### Medium priority
 
