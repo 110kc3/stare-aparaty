@@ -119,7 +119,7 @@ For copy, styling, or template changes: push to one of the branches above and `d
 | `ads.txt` | Generated from `ads-config.json`; a comment-only placeholder while ads are off |
 | `ADSENSE.md` | Runbook for the dashboard-side activation steps (approval, ad units, GDPR consent message) |
 | `styles.css`, `retro.css`, `vintage_cameras.html` | Legacy hand-made page and its stylesheets. Not part of the generated site and no longer deployed — `index.html` carries all its styles inline in the template |
-| `test/` | `node:test` unit tests for the build/discovery script helpers |
+| `test/` | `node:test` suites: `build-catalog.test.js` / `discover-listings.test.js` cover the script helpers, `links.test.js` crawls the generated HTML and fails on a broken internal link, anchor, canonical URL or sitemap entry |
 | `.github/workflows/ci.yml` | Three jobs: `node --test` on PRs and pushes, ESLint via `npx`, and Lighthouse CI on PRs only |
 | `.github/workflows/discover-cameras.yml` | Scheduled/push workflow: auto-discover cameras, rebuild, and deploy |
 | `.github/workflows/refresh-amazon.yml.disabled` | Weekly cron workflow to refresh Amazon prices and product images. **Disabled** (the `.disabled` suffix parks it so Actions skips it) — see TODO.md for why |
@@ -154,6 +154,15 @@ Preview locally:
 python -m http.server 8000 --bind 127.0.0.1
 # open http://127.0.0.1:8000
 ```
+
+Run the checks CI runs (no install step — both use only what's already available):
+
+```bash
+node --test                 # 82 tests: script helpers + generated-link integrity
+npx --yes eslint@9 .        # correctness rules only, no formatting opinions
+```
+
+`test/links.test.js` reads the **committed** `index.html` / `poradniki/*.html` rather than rebuilding, so rebuild before running it if you have just edited a template — otherwise it is checking the previous build's output.
 
 Run the unit tests (no dependencies needed — Node 20+):
 
