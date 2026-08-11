@@ -1,7 +1,7 @@
 # Status Report — Bug Check & Future Steps Audit
 
 *Generated 2026-06-13. Covers: full review of scripts, workflows, templates, generated output, and planning docs (TODO.md, GROWTH-PLAN.md).*
-*Last refreshed 2026-08-07 — see "Session 7" below.*
+*Last refreshed 2026-08-11 — see "Session 8" below.*
 
 > Note: bug #2 below (whole repo published as the Pages artifact) is fixed — internal docs like this file no longer ship to the live site.
 
@@ -45,6 +45,14 @@
 - **PA-API deferred by decision, not blocked.** Declined to build the Amazon PA-API refresh speculatively: it cannot be tested without keys (SigV4 signing fails silently when wrong), the Associates account may close under the <3-sales/180-days rule, and Allegro now carries 10 of 15 product cards, so Amazon price staleness affects a third of the catalog rather than all of it. The spec in TODO stays accurate for whenever keys exist.
 - **What is genuinely left needs an account, not code.** AdSense (dashboard) and Search Console — the latter now the critical path for further guide work, since the named guide candidates are exhausted and choosing a sixth without impression data would be guessing.
 
+**Session 8 — 2026-08-11: the sitemap was lying, and the git log proved it**
+- ✅ **Fixed a false `<lastmod>` on 11 of 12 sitemap URLs** — finding #14 below. `renderSitemap` stamped the build date on the homepage and all ten guides, every night. This is precisely the pattern Google's sitemap documentation names as the reason it discards `lastmod` values, so the site was burning a crawl-priority signal to communicate nothing. Now each generated page is content-fingerprinted into `scripts/page-state.json` and `<lastmod>` reports the date the fingerprint last moved.
+- **The homepage needed special handling, and it is the part worth remembering.** Its only nightly diff was its own masthead build stamp (`Aktualizacja: 11 sie 2026, 08:12`) — hashing the page as-is would have produced a fingerprint that changes every night for content that didn't, reproducing the bug at the single most important URL. That span's text is stripped before hashing, and a test asserts the strip still matches the rendered markup, so renaming the class in the template fails CI instead of silently re-breaking the sitemap.
+- **Seeded from git history rather than stamped today.** `git log -1 --format=%cs` per generated file gave each page its real last-changed date, so the first deploy after this change was already honest: `kompaktowe.html` at 2026-08-09, the other nine guides and the privacy policy at 2026-08-07. Stamping everything with today's date would have worked too, but would have opened with one more day of the same false signal this change exists to remove.
+- **The privacy policy gained an honest `<lastmod>`.** It previously had none — deliberately, and correctly, because the only date available was the build date. With fingerprinting there is a real one to give.
+- **Workflow fix found on the way:** the commit step tested `git diff --quiet` *before* staging. `git diff` doesn't see untracked files, so on the first run after adding `scripts/page-state.json` the new file would have read as "no changes to commit" and never been committed — leaving every subsequent run with nothing to compare against and silently restoring the old behaviour. The step now stages first and tests `git diff --cached`.
+- Verified end-to-end rather than by unit test alone: backdated the whole state file to 2026-07-01 and rebuilt — all twelve URLs kept the July date; then corrupted one page's stored fingerprint and rebuilt — only that URL advanced to today. 78 tests pass, ESLint clean.
+
 ---
 
 ## Bug check findings
@@ -63,6 +71,8 @@
 13. ~~**A partial OLX scrape silently deleted half the catalog.**~~ ✅ **Fixed 2026-08-07.** `discover-listings.js` guarded only the all-or-nothing case (`kept.length === 0` → leave the file untouched). A *partial* scrape — OLX serving page 1 but blocking page 2 — passed that check and overwrote `product-links.txt` with a plausible-looking truncated list. Observed live: bot commit `80f0f6f` cut the file from 19 links to 10, and `a947b06` restored all 9 the next night, so the site published a half-empty catalog for a day with nothing in the logs flagging it. This is the worst class of bug for this project — the site exists to sell cameras and it quietly stopped showing half of them. Now `shrinkRefusal()` refuses to write when more than **30%** of the previous list disappears at once (floor: 5 links, so a small list or a first run is unaffected), exiting non-zero so the workflow stops *before* rebuilding and the live site keeps yesterday's complete catalog. `--allow-shrink` overrides it for a genuine bulk removal. Verified against the live scrape: 18 discovered vs 19 on file is a 5% drop and passes; the observed 19→10 case is refused. Five unit tests cover the thresholds.
 
 ### Medium priority
+
+14. ~~**The sitemap claimed every page changed on every build.**~~ ✅ **Fixed 2026-08-11.** `renderSitemap` computed one `lastmod` — today — and emitted it for the homepage and all ten guide pages. The git log shows how false that was: commits `7ed1d3b` (08-08), `702428c` (08-10) and `11c23aa` (08-11) each changed `index.html` and `sitemap.xml` and **no guide file whatsoever**, while the sitemap told Google all ten guides were modified those nights. Google's sitemap documentation states it ignores `lastmod` when the value isn't credible, and an always-today date across every URL is the canonical example — so the element was costing bytes and buying nothing. The homepage was subtler and arguably worse: its only nightly diff was its own masthead build stamp, making its `lastmod` self-referential. Fix: fingerprint each generated page (SHA-256, masthead build stamp stripped first), store `{fingerprint, lastmod}` per URL in `scripts/page-state.json`, and emit the stored date. Unknown URL → no `lastmod` element, never an invented one. The initial state file was seeded from `git log` so the dates were honest on the first deploy. Four unit tests cover it, including one that fails if a template change stops the build-stamp strip from matching — otherwise this bug could quietly return. Related workflow fix: the commit step staged *after* testing `git diff`, which cannot see an untracked file, so the new state file would never have been committed; it now stages first and tests `git diff --cached`.
 
 4. ~~**`decodeHtmlEntities()` decodes in the wrong order.**~~ ✅ **Fixed 2026-06-13.** `&amp;` was replaced first, so a double-encoded entity (e.g. `&amp;lt;`) decoded twice into a raw `<`. Reordered so `&amp;` is decoded **last**.
 
@@ -149,7 +159,7 @@ Also stale: the **prefers-reduced-motion** item references the `.retro` hover st
 
 1. **Custom domain DNS + Pages setting** for `stareaparaty.com` (finding #3): apex `A` records → `185.199.108.153`, `.109.153`, `.110.153`, `.111.153`; `CNAME` `www` → `110kc3.github.io`; then **Settings → Pages → Custom domain** + **Enforce HTTPS**.
    - ✅ **`CNAME` file: shipped.** The repo-root `CNAME` (`stareaparaty.com`) is in the `cp … dist/` line of both workflows, so `actions/deploy-pages` can no longer clear the Settings-level custom domain.
-2. **Google Search Console** property + sitemap submission. The sitemap now carries the five guide pages and the privacy policy, so submit it again after this deploy.
+2. **Google Search Console** property + sitemap submission. The sitemap carries all **ten** guide pages plus the privacy policy, and since 2026-08-11 its `lastmod` dates are per-page and truthful (finding #14) — worth submitting after this deploy, because a sitemap Google trusts is the point of the change.
 3. **AdSense**: account, publisher id, ad units, and the GDPR consent message — all dashboard-side. Runbook in `ADSENSE.md`. Also fill in the data-controller identity in `templates/privacy.template.html` §1 (RODO art. 13 wants more than "właściciel serwisu").
 
 ### Recommended order of attack

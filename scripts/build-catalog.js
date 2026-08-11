@@ -2,6 +2,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const crypto = require('node:crypto');
 
 const ROOT_DIR = path.resolve(__dirname, '..');
 const LINKS_FILE = path.join(ROOT_DIR, 'product-links.txt');
@@ -16,6 +17,11 @@ const CAMERA_NOTES_FILE = path.join(__dirname, 'camera-notes.json');
 // How long a freshly-discovered listing keeps its NOWE chip.
 const NEW_ARRIVAL_DAYS = 14;
 const ADS_CONFIG_FILE = path.join(__dirname, 'ads-config.json');
+// Per-page content fingerprints, so <lastmod> can say when a page's content
+// actually changed instead of when the build last ran. Build state, not site
+// content: it is committed (the next run needs it to compare against) but not
+// copied into dist/.
+const PAGE_STATE_FILE = path.join(__dirname, 'page-state.json');
 const OUTPUT_HTML = path.join(ROOT_DIR, 'index.html');
 const OUTPUT_JSON = path.join(ROOT_DIR, 'olx_meta.json');
 const OUTPUT_SITEMAP = path.join(ROOT_DIR, 'sitemap.xml');
@@ -92,12 +98,27 @@ async function main() {
   assertRenderedOutput(html, normalizedItems.length);
 
   const privacyHtml = renderPrivacyPolicy(ads);
-  const guides = writeGuides(normalizedItems, ads);
+  const guidePages = writeGuides(normalizedItems, ads);
+  const guides = guidePages.map((page) => page.guide);
+
+  // Every page that appears in the sitemap, in sitemap order, so <lastmod> can
+  // report when each one's content actually changed rather than when the build
+  // last ran. See resolvePageLastmod.
+  const { lastmod, state } = resolvePageLastmod(
+    [
+      { url: SITE_URL, html },
+      ...guidePages.map((page) => ({ url: page.guide.url, html: page.html })),
+      { url: `${SITE_URL}${PRIVACY_PATH}`, html: privacyHtml },
+    ],
+    loadPageState(),
+    today,
+  );
 
   fs.writeFileSync(OUTPUT_JSON, `${JSON.stringify(normalizedItems, null, 2)}\n`, 'utf8');
   fs.writeFileSync(OUTPUT_HTML, html, 'utf8');
   fs.writeFileSync(OUTPUT_PRIVACY, privacyHtml, 'utf8');
-  fs.writeFileSync(OUTPUT_SITEMAP, renderSitemap(guides), 'utf8');
+  fs.writeFileSync(PAGE_STATE_FILE, `${JSON.stringify(state, null, 2)}\n`, 'utf8');
+  fs.writeFileSync(OUTPUT_SITEMAP, renderSitemap(guides, lastmod), 'utf8');
   fs.writeFileSync(OUTPUT_ADS_TXT, renderAdsTxt(ads), 'utf8');
   fs.writeFileSync(OUTPUT_LLMS_FULL, renderLlmsFull(normalizedItems), 'utf8');
 
@@ -821,18 +842,86 @@ function renderLlmsFull(items) {
   return `${sections.join('\n')}\n`;
 }
 
-// The catalog is a single page, so the sitemap's job is mostly to carry an
-// honest <lastmod> — it rebuilds daily with the catalog. The privacy policy is
-// a hand-maintained static page, so it gets no <lastmod> rather than a false one.
-function renderSitemap(guides) {
-  const lastmod = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Warsaw' })
-    .format(new Date());
-  // Guides carry a <lastmod> too: their offer lists rebuild with the catalog,
-  // so the page really does change even when the prose doesn't.
+// ── Honest <lastmod> ───────────────────────────────────────────────────────
+// The build re-renders every page every night, so "when did the build run" and
+// "when did this page change" are different questions. The sitemap used to
+// answer the first one for all twelve URLs, which is the one thing Google's
+// sitemap docs say makes it discard <lastmod> entirely: a date that is always
+// today carries no information. The git log showed exactly that — 2026-08-08,
+// -10 and -11 each committed index.html + sitemap.xml with no guide touched,
+// yet the sitemap claimed all ten guides had changed that day.
+//
+// So each page is fingerprinted, the fingerprint and the date it last moved are
+// kept in scripts/page-state.json, and <lastmod> reports that date. A guide
+// whose prose and offer list are unchanged keeps its old date; the day a
+// listing sells and drops out of its offer list, that guide's date moves.
+//
+// The catalog stamps its own build time into the masthead ("Aktualizacja: …").
+// That byte changes nightly on its own, so it is stripped before hashing —
+// otherwise the homepage would report today forever and we'd have reproduced
+// the bug for the one URL that matters most.
+const VOLATILE_MARKUP = [
+  /(<span class="label label--soft">Aktualizacja: )[^<]*(<\/span>)/g,
+];
+
+function contentFingerprint(html) {
+  let stable = html == null ? '' : String(html);
+  for (const pattern of VOLATILE_MARKUP) {
+    stable = stable.replace(pattern, '$1$2');
+  }
+  return crypto.createHash('sha256').update(stable).digest('hex').slice(0, 16);
+}
+
+function loadPageState() {
+  if (!fs.existsSync(PAGE_STATE_FILE)) {
+    return {};
+  }
+  try {
+    const parsed = JSON.parse(fs.readFileSync(PAGE_STATE_FILE, 'utf8'));
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch (error) {
+    // A corrupt state file must not fail the deploy — the fallback is to stamp
+    // everything today, which is what the first run does anyway.
+    console.warn(`Could not read ${PAGE_STATE_FILE}: ${error.message}`);
+    return {};
+  }
+}
+
+// `pages` is [{ url, html }] in sitemap order. Returns the dates to emit plus
+// the state to persist for the next run. The state is rebuilt from `pages`
+// rather than merged into the old one, so a deleted guide's entry drops out
+// instead of accumulating forever.
+function resolvePageLastmod(pages, previousState, today) {
+  const previous = previousState || {};
+  const lastmod = new Map();
+  const state = {};
+
+  for (const page of pages) {
+    const fingerprint = contentFingerprint(page.html);
+    const known = previous[page.url];
+    // No previous entry (first run, new page) means we genuinely don't know an
+    // earlier date, so today is the most honest answer available.
+    const unchanged = !!known && known.fingerprint === fingerprint && !!known.lastmod;
+    const date = unchanged ? known.lastmod : today;
+    state[page.url] = { fingerprint, lastmod: date };
+    lastmod.set(page.url, date);
+  }
+
+  return { lastmod, state };
+}
+
+// `lastmod` maps URL → the date that page's content last changed. A URL missing
+// from the map gets no <lastmod> element at all: sitemaps.org makes it optional
+// and Google reads its absence as "no signal", which beats an invented date.
+function renderSitemap(guides, lastmod = new Map()) {
+  const dateElement = (url, indent = '    ') => (
+    lastmod.get(url) ? `\n${indent}<lastmod>${escapeXml(lastmod.get(url))}</lastmod>` : ''
+  );
+  const privacyUrl = `${SITE_URL}${PRIVACY_PATH}`;
+
   const guideEntries = (guides || loadGuides())
     .map((guide) => `  <url>
-    <loc>${escapeXml(guide.url)}</loc>
-    <lastmod>${lastmod}</lastmod>
+    <loc>${escapeXml(guide.url)}</loc>${dateElement(guide.url)}
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>`)
@@ -841,14 +930,13 @@ function renderSitemap(guides) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>${SITE_URL}</loc>
-    <lastmod>${lastmod}</lastmod>
+    <loc>${SITE_URL}</loc>${dateElement(SITE_URL)}
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
 ${guideEntries}
   <url>
-    <loc>${SITE_URL}${PRIVACY_PATH}</loc>
+    <loc>${privacyUrl}</loc>${dateElement(privacyUrl)}
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
@@ -1058,17 +1146,20 @@ function renderGuide(guide, guides, items, adsConfig) {
   return rendered;
 }
 
+// Returns [{ guide, html }] rather than just the guide metadata: the sitemap's
+// <lastmod> is derived from each page's rendered content, so the caller needs
+// the markup that was written, not only the description of it.
 function writeGuides(items, adsConfig) {
   const guides = loadGuides();
   if (guides.length === 0) {
-    return guides;
+    return [];
   }
   fs.mkdirSync(OUTPUT_GUIDES_DIR, { recursive: true });
-  for (const guide of guides) {
+  return guides.map((guide) => {
     const html = renderGuide(guide, guides, items, adsConfig);
     fs.writeFileSync(path.join(OUTPUT_GUIDES_DIR, `${guide.slug}.html`), html, 'utf8');
-  }
-  return guides;
+    return { guide, html };
+  });
 }
 
 // ── Google AdSense ─────────────────────────────────────────────────────────
@@ -1579,6 +1670,8 @@ module.exports = {
   renderAdUnit,
   renderAdsTxt,
   renderSitemap,
+  contentFingerprint,
+  resolvePageLastmod,
   renderPrivacyPolicy,
   assertNoPlaceholders,
   loadGuides,

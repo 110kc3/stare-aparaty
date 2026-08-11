@@ -55,10 +55,17 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          if git diff --quiet --exit-code; then
+          # Stage first, then ask whether anything is staged. `git diff` alone
+          # only sees tracked files, so a state file that is new on this run
+          # (scripts/page-state.json on the first build after it was added)
+          # would look like "no changes" and never get committed — and the run
+          # after it would start with no fingerprints to compare against.
+          git add index.html olx_meta.json product-links.txt sitemap.xml ads.txt \
+                  polityka-prywatnosci.html poradniki scripts/page-state.json
+
+          if git diff --cached --quiet --exit-code; then
             echo "No changes to commit."
           else
-            git add index.html olx_meta.json product-links.txt sitemap.xml ads.txt polityka-prywatnosci.html poradniki
             git commit -m "chore: auto-discover camera catalog"
             git push
           fi

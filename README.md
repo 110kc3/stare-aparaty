@@ -17,7 +17,17 @@ The camera list is produced in two steps:
 - `index.html` — the published page, rendered by filling in `templates/index.template.html`
 - `olx_meta.json` — the normalized camera data, also used as a cache on the next run so that transient fetch failures fall back to the previously-known title/image instead of a placeholder
 
+It also regenerates `sitemap.xml`, `ads.txt`, `polityka-prywatnosci.html`, `llms-full.txt`, the ten guide pages under `poradniki/`, and `scripts/page-state.json` (see [honest `<lastmod>`](#honest-lastmod-in-the-sitemap) below).
+
 The camera grid shows **4 cards per row**; the build renders every discovered camera (no cap), and a short final row is centered rather than stretched. The film & accessories section lives inside the template and is fully static — the build script does not touch it.
+
+### Honest `<lastmod>` in the sitemap
+
+Every page is re-rendered on every nightly build, so "the build ran" and "this page changed" are different facts. The sitemap reports the second one.
+
+Each generated page is fingerprinted (SHA-256 of its markup, with the masthead's own *Aktualizacja: …* build stamp stripped out — that byte changes nightly by itself). The fingerprint and the date it last moved are stored per URL in **`scripts/page-state.json`**, and that date is what `<lastmod>` carries. A guide whose prose and offer list are untouched keeps its old date; the day a listing sells and drops out of a guide's offer list, that guide's date advances.
+
+This matters because Google's sitemap documentation says it ignores `<lastmod>` when the value isn't credible, and "today, on all twelve URLs, every night" is the textbook example. The state file is **build state, not site content**: it is committed (the next run needs it to compare against) but never copied into `dist/`. If it is ever deleted or corrupt, the build stamps every page with today's date and starts over — no failure, just one day of lost precision.
 
 ### `scripts/discover-listings.js` — auto-discover my listings
 
@@ -45,7 +55,7 @@ The main workflow. Triggered on a **daily schedule** (`30 5 * * *`), on **push**
 
 1. Runs `discover-listings.js` to regenerate `product-links.txt` from my OLX user page.
 2. Runs `build-catalog.js` to rebuild `index.html` / `olx_meta.json`.
-3. Commits those files (via `github-actions[bot]`) if anything changed.
+3. Stages the generated files and commits them (via `github-actions[bot]`) if anything is actually staged. It stages *before* testing for changes on purpose: `git diff` alone only sees tracked files, so a state file that is new on that run would read as "nothing changed" and never get committed.
 4. Assembles a `dist/` folder of just the public files and publishes it straight to GitHub Pages — no second workflow needed. Only the public files ship; internal docs, scripts, and templates stay out of the deployed site.
 
 Discovery and deploy live in the same job on purpose: a push made with `GITHUB_TOKEN` can't trigger another workflow, and a self-contained run also avoids two workflows fighting over the shared `github-pages` concurrency group.
@@ -103,7 +113,8 @@ For copy, styling, or template changes: push to one of the branches above and `d
 | `favicon.svg`, `og-image.png` | Tab icon and social-share preview image |
 | `apple-touch-icon.png`, `icon-192.png`, `icon-512.png` | Raster app icons (iOS home screen + PWA manifest), generated from `favicon.svg` |
 | `site.webmanifest` | PWA manifest (name, theme color, icon) linked from the template `<head>` |
-| `robots.txt`, `sitemap.xml` | SEO basics; both reference the `stareaparaty.com` domain |
+| `robots.txt`, `sitemap.xml` | SEO basics; both reference the `stareaparaty.com` domain. The sitemap is generated, and its `<lastmod>` dates come from `scripts/page-state.json` |
+| `scripts/page-state.json` | Per-URL content fingerprint + the date that content last changed, so `<lastmod>` doesn't claim every page changed on every build. Committed as build state; not deployed |
 | `scripts/ads-config.json` | The only AdSense knob — publisher id, per-slot ids, and an `enabled` flag. Ships **disabled**: with `enabled: false` the build emits no ad markup and loads no third-party script |
 | `ads.txt` | Generated from `ads-config.json`; a comment-only placeholder while ads are off |
 | `ADSENSE.md` | Runbook for the dashboard-side activation steps (approval, ad units, GDPR consent message) |

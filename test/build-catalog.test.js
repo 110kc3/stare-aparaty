@@ -26,6 +26,8 @@ const {
   renderAdUnit,
   renderAdsTxt,
   renderSitemap,
+  contentFingerprint,
+  resolvePageLastmod,
   renderPrivacyPolicy,
   loadGuides,
   normalizeGuides,
@@ -307,6 +309,106 @@ test('sitemap lists the catalog, every guide, and the privacy policy', () => {
   for (const guide of loadGuides()) {
     assert.ok(xml.includes(`<loc>${guide.url}</loc>`), `sitemap is missing ${guide.slug}`);
   }
+});
+
+// ── Honest <lastmod> ────────────────────────────────────────────────────────
+// A sitemap that reports today for every URL on every nightly build is the one
+// case Google's docs say makes them ignore <lastmod> outright. These tests pin
+// the two halves of the fix: the fingerprint must ignore the masthead's own
+// build stamp, and an unchanged page must keep its previous date.
+
+const FINGERPRINT_ITEMS = [{
+  id: 1,
+  title: 'Zenit B',
+  image: 'https://example.com/z.jpg',
+  url: 'https://www.olx.pl/d/oferta/zenit.html',
+  host: 'olx.pl',
+  sold: false,
+  price: '250 zł',
+  oldPrice: '',
+}];
+
+test('contentFingerprint ignores the masthead build stamp but not real content', () => {
+  const page = renderIndex(FINGERPRINT_ITEMS, ADS_OFF);
+  assert.match(page, /Aktualizacja: /, 'template no longer stamps a build time — update VOLATILE_MARKUP');
+
+  // Same page, later build. Only the stamp differs, so the fingerprint must not.
+  const laterBuild = page.replace(
+    /(<span class="label label--soft">Aktualizacja: )[^<]*(<\/span>)/,
+    '$1' + '31 gru 2027, 23:59' + '$2',
+  );
+  assert.notEqual(laterBuild, page, 'the stamp substitution did not match the rendered markup');
+  assert.equal(contentFingerprint(laterBuild), contentFingerprint(page));
+
+  // A price change is real content, and must move the fingerprint.
+  const repriced = renderIndex(
+    FINGERPRINT_ITEMS.map((item) => ({ ...item, price: '999 zł' })),
+    ADS_OFF,
+  );
+  assert.notEqual(contentFingerprint(repriced), contentFingerprint(page));
+});
+
+test('resolvePageLastmod keeps the old date for unchanged pages and moves changed ones', () => {
+  const pages = [
+    { url: 'https://stareaparaty.com/', html: '<p>catalog v2</p>' },
+    { url: 'https://stareaparaty.com/poradniki/a.html', html: '<p>guide, untouched</p>' },
+  ];
+  const previous = {
+    'https://stareaparaty.com/': {
+      fingerprint: contentFingerprint('<p>catalog v1</p>'),
+      lastmod: '2026-08-01',
+    },
+    'https://stareaparaty.com/poradniki/a.html': {
+      fingerprint: contentFingerprint('<p>guide, untouched</p>'),
+      lastmod: '2026-07-14',
+    },
+  };
+
+  const { lastmod, state } = resolvePageLastmod(pages, previous, '2026-08-11');
+  assert.equal(lastmod.get('https://stareaparaty.com/'), '2026-08-11', 'changed page moves to today');
+  assert.equal(
+    lastmod.get('https://stareaparaty.com/poradniki/a.html'),
+    '2026-07-14',
+    'an untouched guide must not claim it changed tonight',
+  );
+  // The state carries the new fingerprints forward for the next run.
+  assert.equal(state['https://stareaparaty.com/'].fingerprint, contentFingerprint('<p>catalog v2</p>'));
+  assert.equal(Object.keys(state).length, 2, 'state is rebuilt from the page list, not merged');
+});
+
+test('resolvePageLastmod stamps today when there is nothing to compare against', () => {
+  const pages = [{ url: 'https://stareaparaty.com/poradniki/new.html', html: '<p>brand new</p>' }];
+
+  // First ever run: no state file.
+  const fresh = resolvePageLastmod(pages, {}, '2026-08-11');
+  assert.equal(fresh.lastmod.get('https://stareaparaty.com/poradniki/new.html'), '2026-08-11');
+
+  // A matching fingerprint with no recorded date is unusable — stamp today
+  // rather than emitting an empty <lastmod>.
+  const dateless = resolvePageLastmod(
+    pages,
+    { 'https://stareaparaty.com/poradniki/new.html': { fingerprint: contentFingerprint('<p>brand new</p>') } },
+    '2026-08-11',
+  );
+  assert.equal(dateless.lastmod.get('https://stareaparaty.com/poradniki/new.html'), '2026-08-11');
+});
+
+test('sitemap emits the per-page dates it is given and omits the rest', () => {
+  const guides = [
+    { slug: 'a', url: 'https://stareaparaty.com/poradniki/a.html' },
+    { slug: 'b', url: 'https://stareaparaty.com/poradniki/b.html' },
+  ];
+  const xml = renderSitemap(guides, new Map([
+    ['https://stareaparaty.com/', '2026-08-11'],
+    ['https://stareaparaty.com/poradniki/a.html', '2026-06-02'],
+  ]));
+
+  assert.match(xml, /<loc>https:\/\/stareaparaty\.com\/<\/loc>\n\s*<lastmod>2026-08-11<\/lastmod>/);
+  assert.match(xml, /poradniki\/a\.html<\/loc>\n\s*<lastmod>2026-06-02<\/lastmod>/);
+  // Guide b has no date, so it gets no element rather than an invented one.
+  assert.match(xml, /poradniki\/b\.html<\/loc>\n\s*<changefreq>/);
+  assert.equal(xml.match(/<lastmod>/g).length, 2);
+  assert.ok(!xml.includes('<lastmod></lastmod>'));
 });
 
 // ── Per-camera-type guides ──────────────────────────────────────────────────
