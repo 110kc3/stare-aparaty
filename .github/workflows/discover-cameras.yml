@@ -60,8 +60,13 @@ jobs:
           # (scripts/page-state.json on the first build after it was added)
           # would look like "no changes" and never get committed — and the run
           # after it would start with no fingerprints to compare against.
+          # Everything build-catalog.js writes. llms.txt and llms-full.txt are
+          # generated too (from templates/llms.template.txt + guides.json), so
+          # leaving them out would keep the committed copies frozen while the
+          # deployed ones moved — the repo would stop matching the live site.
           git add index.html olx_meta.json product-links.txt sitemap.xml ads.txt \
-                  polityka-prywatnosci.html poradniki scripts/page-state.json
+                  polityka-prywatnosci.html poradniki scripts/page-state.json \
+                  llms.txt llms-full.txt
 
           if git diff --cached --quiet --exit-code; then
             echo "No changes to commit."

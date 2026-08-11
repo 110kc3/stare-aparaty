@@ -17,7 +17,24 @@ The camera list is produced in two steps:
 - `index.html` — the published page, rendered by filling in `templates/index.template.html`
 - `olx_meta.json` — the normalized camera data, also used as a cache on the next run so that transient fetch failures fall back to the previously-known title/image instead of a placeholder
 
-It also regenerates `sitemap.xml`, `ads.txt`, `polityka-prywatnosci.html`, `llms-full.txt`, the ten guide pages under `poradniki/`, and `scripts/page-state.json` (see [honest `<lastmod>`](#honest-lastmod-in-the-sitemap) below).
+It also regenerates `sitemap.xml`, `ads.txt`, `polityka-prywatnosci.html`, `llms.txt`, `llms-full.txt`, the ten guide pages under `poradniki/`, and `scripts/page-state.json` (see [honest `<lastmod>`](#honest-lastmod-in-the-sitemap) below).
+
+**Generated files are never hand-edited.** `index.html`, `polityka-prywatnosci.html`, `poradniki/*.html`, `llms.txt`, `sitemap.xml` and `ads.txt` are all build output — edit the file in `templates/` (or the JSON in `scripts/`) and rebuild, or the next build discards the change.
+
+### One flag decides what the site says about advertising
+
+`scripts/ads-config.json` gates the AdSense loader, the four ad units and `ads.txt` — and, since 2026-08-11, every sentence that *describes* the ads:
+
+| Surface | With `enabled: false` |
+|---|---|
+| Privacy policy §2 | no "Dane reklamowe" bullet |
+| Privacy policy §3 | states that the site shows no ads, sets no cookies of its own, and therefore has no consent banner |
+| Privacy policy §5 | consent is not listed as a legal basis |
+| Privacy policy §8 | describes third-party cookies from OLX/Amazon/Allegro rather than ad personalization |
+| Homepage footer | drops "Strona wyświetla też reklamy Google." |
+| `llms.txt` | states that no advertising is displayed |
+
+The ads-on wording is the previously reviewed text, kept verbatim, so flipping the flag restores the policy word for word. It is gated because the ad *markup* was already config-driven while the ad *prose* was not: an ads-off build published a policy claiming AdSense served ads and promised a consent message that never appeared. Flipping the flag changes the published policy, so `PRIVACY_UPDATED` must be bumped at the same time — see `ADSENSE.md`.
 
 The camera grid shows **4 cards per row**; the build renders every discovered camera (no cap), and a short final row is centered rather than stretched. The film & accessories section lives inside the template and is fully static — the build script does not touch it.
 
@@ -93,7 +110,8 @@ For copy, styling, or template changes: push to one of the branches above and `d
 | `templates/index.template.html` | Source template. Placeholders: `{{COUNT}}`, `{{LAST_UPDATED}}`, `{{CAMERA_CARDS}}`, `{{CAMERA_JSONLD}}` (filled from OLX data), `{{PRICE_<ASIN>}}`, `{{IMAGE_<ASIN>}}`, `{{LAST_REFRESHED}}` (filled from `amazon-products.json`) and `{{ADSENSE_HEAD}}`, `{{AD_SLOT_MIDPAGE}}`, `{{AD_SLOT_INGRID}}`, `{{AD_SLOT_FOOTER}}` (filled from `ads-config.json`) |
 | `templates/privacy.template.html` | Source template for the privacy policy — generated, not hand-written, so the AdSense publisher id lives in exactly one place |
 | `polityka-prywatnosci.html` | Generated privacy & cookie policy, linked from the footer |
-| `scripts/guides.json` | Prose for the buyer guides. Two kinds: a `type` guide owns a catalog section (its `type` must match `camera-types.json` — the build fails otherwise, so a renamed section can't orphan its guide) and is what the homepage headings link to; a `model` guide sits underneath one and picks its listings with a `match` keyword list, so it survives the specific camera selling |
+| `scripts/guides.json` | Prose for the buyer guides. Two kinds: a `type` guide owns a catalog section (its `type` must match `camera-types.json` — the build fails otherwise, so a renamed section can't orphan its guide) and is what the homepage headings link to; a `model` guide sits underneath one and picks its listings with a `match` keyword list, so it survives the specific camera selling. Each guide also carries an `llms` one-line English summary, which is what the generated `llms.txt` publishes — a test fails if a guide is missing one, so a new guide can't ship undocumented |
+| `templates/llms.template.txt` | Source of the generated `llms.txt`: hand-written prose plus `{{GUIDE_PAGES}}` (built from `guides.json`) and `{{ADS_NOTE}}` (from `ads-config.json`) |
 | `templates/guide.template.html` | Shared shell for the guide pages |
 | `poradniki/` | Generated guide pages (five per type, two per model). Each ends with the cameras it matches, live in the catalog on build day, so the guides feed the OLX listings instead of dead-ending |
 | `scripts/discover-listings.js` | Auto-discovers my OLX offers and writes `product-links.txt` |

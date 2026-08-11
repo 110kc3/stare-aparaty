@@ -25,7 +25,8 @@ const PAGE_STATE_FILE = path.join(__dirname, 'page-state.json');
 const OUTPUT_HTML = path.join(ROOT_DIR, 'index.html');
 const OUTPUT_JSON = path.join(ROOT_DIR, 'olx_meta.json');
 const OUTPUT_SITEMAP = path.join(ROOT_DIR, 'sitemap.xml');
-const LLMS_FILE = path.join(ROOT_DIR, 'llms.txt');
+const LLMS_TEMPLATE_FILE = path.join(ROOT_DIR, 'templates', 'llms.template.txt');
+const OUTPUT_LLMS = path.join(ROOT_DIR, 'llms.txt');
 const OUTPUT_LLMS_FULL = path.join(ROOT_DIR, 'llms-full.txt');
 const OUTPUT_ADS_TXT = path.join(ROOT_DIR, 'ads.txt');
 
@@ -44,7 +45,16 @@ const OUTPUT_PRIVACY = path.join(ROOT_DIR, PRIVACY_PATH);
 // identity and a working contact channel; support@stareaparaty.com is it.
 // If the site ever starts operating under a działalność gospodarcza, §1 needs
 // that entity's name, address and NIP, and this date needs another bump.
-const PRIVACY_UPDATED = '7 sierpnia 2026';
+//
+// Bumped again 2026-08-11: §3, §5 and §8 now describe the site that actually
+// shipped. The ad prose was unconditional while the ad markup was config-gated,
+// so with enabled:false the policy claimed AdSense was serving ads, promised a
+// consent message that never appeared, and listed consent as a legal basis for
+// processing that wasn't happening. Those blocks now switch on ads-config.json,
+// which means **flipping `enabled` to true changes the published policy text**
+// — that is intended, and it is why this date must be bumped by hand whenever
+// the ads flag flips. See ADSENSE.md step 2.
+const PRIVACY_UPDATED = '11 sierpnia 2026';
 // Per-camera-type buyer guides live in their own directory so the deploy
 // workflows can ship them with one `cp -r` instead of a filename per guide.
 const GUIDES_DIR = 'poradniki';
@@ -120,7 +130,12 @@ async function main() {
   fs.writeFileSync(PAGE_STATE_FILE, `${JSON.stringify(state, null, 2)}\n`, 'utf8');
   fs.writeFileSync(OUTPUT_SITEMAP, renderSitemap(guides, lastmod), 'utf8');
   fs.writeFileSync(OUTPUT_ADS_TXT, renderAdsTxt(ads), 'utf8');
-  fs.writeFileSync(OUTPUT_LLMS_FULL, renderLlmsFull(normalizedItems), 'utf8');
+
+  // llms-full.txt embeds llms.txt, so render the intro once and hand it over
+  // instead of letting the second renderer re-read the file it was just given.
+  const llmsIntro = renderLlmsTxt(guides, ads);
+  fs.writeFileSync(OUTPUT_LLMS, llmsIntro, 'utf8');
+  fs.writeFileSync(OUTPUT_LLMS_FULL, renderLlmsFull(normalizedItems, llmsIntro), 'utf8');
 
   const notModified = items.filter((item) => item.fetchStatus === 'not-modified').length;
   console.log(
@@ -653,6 +668,10 @@ function renderIndex(items, adsConfig) {
     .split('{{CAMERA_CARDS}}').join(renderCameraCatalog(items))
     .split('{{CAMERA_JSONLD}}').join(renderProductJsonLd(items, amazon.products, allegro.products))
     .split('{{ADSENSE_HEAD}}').join(renderAdsHead(ads))
+    // The footer disclosure is gated for the same reason as the privacy policy
+    // §3: with ads off the page loads no Google script, so claiming otherwise
+    // in the footer told visitors about advertising that wasn't there.
+    .split('{{ADS_DISCLOSURE}}').join(ads.enabled ? ' Strona wyświetla też reklamy Google.' : '')
     // A leaderboard between the catalog and the film sections, a card-shaped
     // unit that completes the colour-film row, and one above the footer.
     .split('{{AD_SLOT_MIDPAGE}}').join(renderAdUnit(ads, 'midpage', { className: 'ad-slot--wide' }))
@@ -810,10 +829,46 @@ function retailProductNode(data, url) {
 // static copy would be wrong within a day, and a confidently wrong price is
 // worse than no file at all. The prose half is read from llms.txt so there is
 // still only one place to edit it.
-function renderLlmsFull(items) {
-  const intro = fs.existsSync(LLMS_FILE)
-    ? fs.readFileSync(LLMS_FILE, 'utf8').trimEnd()
-    : '# Stare Aparaty';
+// llms.txt is generated for two reasons, both of them drift the file had
+// already accumulated by hand:
+//
+//  1. Its "Pages" section listed the ten guides as hand-copied lines. Adding or
+//     renaming a guide meant remembering to edit a second file, and TODO says
+//     more guides are coming as soon as Search Console picks the next one. The
+//     lines now come from the `llms` field in guides.json, so a guide carries
+//     its own English one-liner and cannot be listed inconsistently.
+//  2. It claimed "The page carries Google AdSense display advertising" while
+//     ads shipped disabled — the same false statement the privacy policy and
+//     the footer were making, and the same fix: switch on ads-config.json.
+//
+// Hand-editing llms.txt now loses the change on the next build; edit
+// templates/llms.template.txt instead, exactly as with index.html.
+function renderLlmsTxt(guides, adsConfig) {
+  const ads = adsConfig || loadAdsConfig();
+  const list = guides || loadGuides();
+
+  const guidePages = list
+    .map((guide) => `- ${guide.url} — ${guide.llms}`)
+    .join('\n');
+
+  const adsNote = ads.enabled
+    ? '- The page carries Google AdSense display advertising. Ad units are marked "REKLAMA" and are not part of the '
+      + 'curated catalog — do not treat their content as a recommendation by this site.'
+    : '- The site currently displays no advertising and sets no cookies of its own; the visit statistics named in the '
+      + 'privacy policy are collected without cookies, which is why there is no consent banner.';
+
+  const rendered = fs.readFileSync(LLMS_TEMPLATE_FILE, 'utf8')
+    .split('{{GUIDE_PAGES}}').join(guidePages)
+    .split('{{ADS_NOTE}}').join(adsNote);
+
+  assertNoPlaceholders(rendered, 'llms.txt');
+  return rendered;
+}
+
+// `intro` is the rendered llms.txt, passed in rather than re-read from disk so
+// the two files cannot disagree within a single build.
+function renderLlmsFull(items, intro) {
+  const header = (intro || renderLlmsTxt()).trimEnd();
   const available = items.filter((item) => !item.sold);
   const sold = items.filter((item) => item.sold);
 
@@ -824,7 +879,7 @@ function renderLlmsFull(items) {
   };
 
   const sections = [
-    intro,
+    header,
     '',
     '## Pelny katalog aparatow',
     '',
@@ -1011,6 +1066,12 @@ function normalizeGuides(guides, typeConfig) {
       navLabel: String(guide.navLabel || guide.type || guide.title),
       title: String(guide.title),
       description: String(guide.description),
+      // One-line English summary for the generated llms.txt. Falls back to the
+      // Polish description rather than throwing: a missing blurb is a docs
+      // omission, and it must not be able to block the nightly deploy the way a
+      // broken type reference should. A test in test/build-catalog.test.js
+      // fails on a guide that has no `llms` line, so CI still catches it.
+      llms: String(guide.llms || guide.description),
       lead: String(guide.lead || ''),
       offersHeading: String(guide.offersHeading || `${type} w mojej ofercie`),
       sections: Array.isArray(guide.sections) ? guide.sections : [],
@@ -1271,10 +1332,78 @@ function renderPrivacyPolicy(adsConfig) {
   const rendered = fs.readFileSync(PRIVACY_TEMPLATE_FILE, 'utf8')
     .split('{{PRIVACY_UPDATED}}').join(escapeHtml(PRIVACY_UPDATED))
     .split('{{ADSENSE_HEAD}}').join(renderAdsHead(ads))
+    .split('{{ADS_DATA_BULLET}}').join(renderAdsDataBullet(ads))
+    .split('{{ADS_SECTION}}').join(renderAdsPolicySection(ads))
+    .split('{{LEGAL_BASIS_ITEMS}}').join(renderLegalBasisItems(ads))
+    .split('{{COOKIE_BROWSER_NOTE}}').join(renderCookieBrowserNote(ads))
     .split('{{CONSENT_REVOKE}}').join(renderConsentRevoke(ads));
 
   assertNoPlaceholders(rendered, PRIVACY_PATH);
   return rendered;
+}
+
+// ── The policy has to describe the site that actually shipped ───────────────
+// The ad *markup* has been config-gated since AdSense was wired, but the ad
+// *prose* was not: with enabled:false the page loaded no Google script and set
+// no cookie, while the policy stated "Serwis wyświetla reklamy za
+// pośrednictwem Google AdSense", promised a consent message on first visit,
+// and listed consent as a legal basis for processing that wasn't happening.
+// A privacy policy describing processing that doesn't exist is wrong in the
+// over-claiming direction, and it contradicted the site's one real selling
+// point on this front: today it is cookieless and shows no consent banner,
+// which is exactly what a reader checking §3 wants to know.
+//
+// So these four blocks switch on the same ads-config.json flag as the markup.
+// The ads-ON wording is the previously reviewed text, kept verbatim — flipping
+// `enabled` back to true restores the policy word for word. Only the ads-OFF
+// variants are new, and they describe strictly *less* processing.
+//
+// §3 keeps its heading in both variants on purpose: dropping the section when
+// ads are off would renumber §4–§9 and break any external reference to them.
+function renderAdsDataBullet(config) {
+  if (!config || !config.enabled) {
+    return '';
+  }
+  return '    <li><strong>Dane reklamowe</strong> — zbierane przez Google w związku z wyświetlaniem reklam (patrz punkt 3).</li>';
+}
+
+function renderAdsPolicySection(config) {
+  if (!config || !config.enabled) {
+    return `  <h2>3. Reklamy i pliki cookie</h2>
+  <p>Serwis <strong>nie wyświetla obecnie reklam</strong> i <strong>nie zapisuje na Twoim urządzeniu żadnych plików cookie</strong>. Nie działa tu żaden mechanizm profilowania ani identyfikator reklamowy. Statystyki opisane w punkcie 2 zbierane są bez plików cookie — dlatego serwis nie wyświetla komunikatu zgody na cookie.</p>
+  <p>Jeżeli reklamy zostaną w przyszłości uruchomione, przed ich włączeniem pojawi się certyfikowany komunikat zgody, a ta polityka zostanie zaktualizowana wraz z datą widniejącą na górze strony.</p>`;
+  }
+
+  return `  <h2>3. Reklamy Google i pliki cookie</h2>
+  <p>Serwis wyświetla reklamy za pośrednictwem <strong>Google AdSense</strong>. W związku z tym Google i jego partnerzy mogą zapisywać na Twoim urządzeniu pliki cookie oraz odczytywać identyfikatory reklamowe, aby:</p>
+  <ul>
+    <li>wyświetlać reklamy dopasowane do Twoich zainteresowań (reklamy spersonalizowane) — <strong>wyłącznie za Twoją zgodą</strong>;</li>
+    <li>mierzyć skuteczność reklam i ograniczać liczbę wyświetleń tej samej reklamy;</li>
+    <li>wykrywać nadużycia i nieprawidłowy ruch.</li>
+  </ul>
+  <p>Przy pierwszej wizycie zobaczysz komunikat zgody (certyfikowany przez Google mechanizm CMP zgodny ze standardem IAB TCF). Jeżeli nie wyrazisz zgody, reklamy nadal będą się wyświetlać, ale w wersji <strong>niespersonalizowanej</strong> — dobieranej na podstawie treści strony, a nie Twojego profilu.</p>
+  <p>Google występuje tu jako niezależny administrator swoich danych. Szczegóły opisuje <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener">polityka Google dotycząca danych z witryn partnerskich</a>. Swoje ustawienia reklam w Google zmienisz na <a href="https://myadcenter.google.com/" target="_blank" rel="noopener">myadcenter.google.com</a>.</p>`;
+}
+
+function renderLegalBasisItems(config) {
+  const legitimateInterest = config && config.enabled
+    ? 'prowadzenie zagregowanych statystyk odwiedzin, wyświetlanie reklam niespersonalizowanych, zapewnienie bezpieczeństwa serwisu, odpowiedź na korespondencję'
+    : 'prowadzenie zagregowanych statystyk odwiedzin, zapewnienie bezpieczeństwa serwisu, odpowiedź na korespondencję';
+
+  const items = [];
+  if (config && config.enabled) {
+    // Consent is only a basis once there is something to consent to.
+    items.push('    <li><strong>Zgoda</strong> (art. 6 ust. 1 lit. a RODO) — reklamy spersonalizowane i związane z nimi pliki cookie.</li>');
+  }
+  items.push(`    <li><strong>Prawnie uzasadniony interes</strong> (art. 6 ust. 1 lit. f RODO) — ${legitimateInterest}.</li>`);
+  return items.join('\n');
+}
+
+function renderCookieBrowserNote(config) {
+  if (!config || !config.enabled) {
+    return '  <p>Serwis nie zapisuje własnych plików cookie, więc nie ma tu czym zarządzać. Własne pliki cookie mogą natomiast zapisać serwisy, do których prowadzą odnośniki (OLX, Amazon, Allegro) — już po przejściu na ich strony. W ustawieniach przeglądarki możesz w każdej chwili zablokować lub usunąć pliki cookie; nie ograniczy to dostępu do treści tego serwisu.</p>';
+  }
+  return '  <p>Niezależnie od komunikatu zgody możesz w każdej chwili zablokować lub usunąć pliki cookie w ustawieniach przeglądarki. Blokada plików cookie nie ogranicza dostępu do treści tego serwisu — wpłynie jedynie na sposób doboru reklam.</p>';
 }
 
 // Re-opens Google's consent message so a visitor can change their mind. Only
@@ -1670,6 +1799,7 @@ module.exports = {
   renderAdUnit,
   renderAdsTxt,
   renderSitemap,
+  renderLlmsTxt,
   contentFingerprint,
   resolvePageLastmod,
   renderPrivacyPolicy,

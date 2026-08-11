@@ -26,6 +26,7 @@ const {
   renderAdUnit,
   renderAdsTxt,
   renderSitemap,
+  renderLlmsTxt,
   contentFingerprint,
   resolvePageLastmod,
   renderPrivacyPolicy,
@@ -302,6 +303,71 @@ test('renderPrivacyPolicy resolves its placeholders and gates the consent button
   assert.match(on, /showRevocationMessage/);
 });
 
+// ── The policy must describe the site that actually shipped ─────────────────
+// The ad markup has always been config-gated; the ad prose was not, so an
+// ads-off build published a policy claiming AdSense served ads, promising a
+// consent message that never appeared, and naming consent as a legal basis for
+// processing that wasn't happening.
+
+test('with ads off the policy claims no ads, no cookies and no consent banner', () => {
+  const off = renderPrivacyPolicy(ADS_OFF);
+
+  assert.ok(!/AdSense/.test(off), 'an ads-off page must not tell readers it serves AdSense');
+  assert.ok(!/Dane reklamowe/.test(off), '§2 must not list advertising data that is never collected');
+  assert.ok(
+    !/Przy pierwszej wizycie zobaczysz komunikat zgody/.test(off),
+    'no CMP is loaded, so the policy must not promise a consent message',
+  );
+  assert.ok(
+    !/art\. 6 ust\. 1 lit\. a RODO/.test(off),
+    'consent is only a legal basis once there is something to consent to',
+  );
+  assert.match(off, /nie wyświetla obecnie reklam/);
+  assert.match(off, /nie zapisuje na Twoim urządzeniu żadnych plików cookie/);
+});
+
+test('with ads on the policy carries the full Google disclosure again', () => {
+  const on = renderPrivacyPolicy(ADS_ON);
+
+  assert.match(on, /Serwis wyświetla reklamy za pośrednictwem <strong>Google AdSense<\/strong>/);
+  assert.match(on, /<li><strong>Dane reklamowe<\/strong>/);
+  assert.match(on, /Przy pierwszej wizycie zobaczysz komunikat zgody/);
+  assert.match(on, /art\. 6 ust\. 1 lit\. a RODO/);
+  assert.match(on, /wyświetlanie reklam niespersonalizowanych/);
+});
+
+test('the policy keeps its section numbering in both ad states', () => {
+  // §3 stays present-but-rewritten rather than disappearing: dropping it would
+  // renumber §4–§9 and break any outside reference to a numbered section.
+  for (const [label, config] of [['off', ADS_OFF], ['on', ADS_ON]]) {
+    const html = renderPrivacyPolicy(config);
+    for (let section = 1; section <= 9; section += 1) {
+      assert.match(html, new RegExp(`<h2>${section}\\. `), `ads ${label}: §${section} is missing`);
+    }
+  }
+});
+
+test('the footer only mentions Google ads when ads are actually on', () => {
+  const items = [{
+    id: 1,
+    title: 'Zenit B',
+    image: 'https://example.com/z.jpg',
+    url: 'https://www.olx.pl/d/oferta/zenit.html',
+    host: 'olx.pl',
+    sold: false,
+    price: '',
+    oldPrice: '',
+  }];
+
+  const off = renderIndex(items, ADS_OFF);
+  assert.ok(!off.includes('reklamy Google'), 'ads-off footer must not advertise ads that do not load');
+  // The rest of the disclosure (affiliate links, price freshness) must survive.
+  assert.match(off, /linki afiliacyjne/);
+  assert.match(off, /Ceny orientacyjne/);
+
+  assert.match(renderIndex(items, ADS_ON), /Strona wyświetla też reklamy Google\./);
+});
+
 test('sitemap lists the catalog, every guide, and the privacy policy', () => {
   const xml = renderSitemap();
   assert.match(xml, /<loc>https:\/\/stareaparaty\.com\/<\/loc>/);
@@ -309,6 +375,49 @@ test('sitemap lists the catalog, every guide, and the privacy policy', () => {
   for (const guide of loadGuides()) {
     assert.ok(xml.includes(`<loc>${guide.url}</loc>`), `sitemap is missing ${guide.slug}`);
   }
+});
+
+// ── llms.txt is generated, so it cannot drift from guides.json ──────────────
+
+test('llms.txt lists every guide, from the guide definitions themselves', () => {
+  const rendered = renderLlmsTxt(loadGuides(), ADS_OFF);
+  const guides = loadGuides();
+  assert.ok(guides.length >= 10, `expected the committed guides, found ${guides.length}`);
+
+  for (const guide of guides) {
+    assert.ok(
+      rendered.includes(`- ${guide.url} — ${guide.llms}`),
+      `llms.txt is missing the line for ${guide.slug}`,
+    );
+  }
+  // No placeholder may survive into a published file.
+  assert.ok(!/\{\{[A-Z0-9_]+\}\}/.test(rendered));
+});
+
+test('every guide carries its own English llms.txt blurb', () => {
+  // The point of the `llms` field: adding a guide cannot silently leave the
+  // published index describing nine of ten pages. The fallback in
+  // normalizeGuides keeps a missing blurb from breaking the nightly deploy, so
+  // this test is what actually enforces the field.
+  for (const guide of loadGuides()) {
+    assert.ok(guide.llms, `${guide.slug} has no llms blurb`);
+    assert.notEqual(
+      guide.llms,
+      guide.description,
+      `${guide.slug} fell back to its Polish description — add an "llms" line to guides.json`,
+    );
+    assert.match(guide.llms, /guide \(Polish\):/, `${guide.slug}: keep the "<kind> guide (Polish): …" shape`);
+  }
+});
+
+test('llms.txt describes the advertising the site actually runs', () => {
+  const off = renderLlmsTxt(loadGuides(), ADS_OFF);
+  assert.match(off, /currently displays no advertising/);
+  assert.ok(!/AdSense/.test(off), 'an ads-off build must not tell agents the page carries AdSense');
+
+  const on = renderLlmsTxt(loadGuides(), ADS_ON);
+  assert.match(on, /carries Google AdSense display advertising/);
+  assert.match(on, /marked "REKLAMA"/);
 });
 
 // ── Honest <lastmod> ────────────────────────────────────────────────────────

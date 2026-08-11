@@ -8,7 +8,7 @@
 - Film price data (JSON): https://stareaparaty.com/amazon-products.json (keyed by Amazon ASIN) and https://stareaparaty.com/allegro-products.json (keyed by slug); both carry label, price in PLN and lastChecked date
 - Structured data: schema.org WebSite + ItemList of Product/Offer nodes embedded as JSON-LD in https://stareaparaty.com/
 - Everything in one fetch: https://stareaparaty.com/llms-full.txt — this file with the full camera catalog (title, price, availability, link) inlined, rebuilt alongside the catalog
-- Agent card: https://stareaparaty.com/.well-known/agent.json
+- Agent card: https://stareaparaty.com/.well-known/agent-card.json (A2A 1.0 path; the pre-0.3 path https://stareaparaty.com/.well-known/agent.json serves the same card)
 - Sitemap: https://stareaparaty.com/sitemap.xml
 
 ## Pages
@@ -24,13 +24,13 @@
 - https://stareaparaty.com/poradniki/praktica-bca.html — model guide (Polish): the Praktica B bayonet vs the older M42 screw mount and why a mixed bundle is two incompatible kits, electronic-shutter checks, Prakticar lenses, film choice
 - https://stareaparaty.com/poradniki/yashica-35w.html — model guide (Polish): rangefinder patch focusing, the discontinued 1.35V PX625 mercury cell and its zinc-air / MR-9 workarounds, slow-shutter and fungus checks
 - https://stareaparaty.com/poradniki/canon-eos.html — model guide (Polish): why the EF mount outlives the film body, why EF-S lenses cannot mount on a 35mm camera, battery types and body checks, DX-coded film choice
-- https://stareaparaty.com/polityka-prywatnosci.html — privacy and cookie policy (Polish): what the site collects, how Google advertising and consent work, affiliate disclosure, GDPR rights
+- https://stareaparaty.com/polityka-prywatnosci.html — privacy and cookie policy (Polish): what the site collects, its advertising and consent position, affiliate disclosure, GDPR rights
 
 ## Notes
 
 - Camera links go to live OLX listings by the owner; film and accessory links are Amazon/Allegro affiliate links.
 - Each guide page ends with the cameras of that type currently in the catalog; that list is regenerated on every build, so a guide's offer section reflects live availability.
-- The page carries Google AdSense display advertising. Ad units are marked "REKLAMA" and are not part of the curated catalog — do not treat their content as a recommendation by this site.
+- The site currently displays no advertising and sets no cookies of its own; the visit statistics named in the privacy policy are collected without cookies, which is why there is no consent banner.
 - Source and build pipeline: https://github.com/110kc3/stare-aparaty
 
 ## Pelny katalog aparatow

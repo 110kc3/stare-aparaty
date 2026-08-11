@@ -8,6 +8,7 @@
       "type": "Lustrzanki (SLR)",
       "title": "Lustrzanka analogowa — poradnik dla początkujących",
       "description": "Jak działa lustrzanka na film, na co zwrócić uwagę kupując używaną i jaki film wybrać na pierwszą rolkę.",
+      "llms": "buyer's guide (Polish): how an SLR works, what to check on a used body, lens mounts, first film",
       "lead": "Lustrzanka jednoobiektywowa (SLR) to najbardziej uniwersalny aparat analogowy i najczęstszy pierwszy wybór. Widzisz w wizjerze dokładnie to, co zarejestruje film, a korpus możesz rozbudowywać kolejnymi obiektywami zamiast wymieniać na nowy.",
       "sections": [
         {
@@ -51,6 +52,7 @@
       "type": "Kompaktowe",
       "title": "Kompakt analogowy — jaki wybrać na start",
       "description": "Kompakty na film: focus free kontra autofocus, na co uważać przy zakupie i jaki film sprawdzi się najlepiej.",
+      "llms": "buyer's guide (Polish): compact film cameras, focus-free vs autofocus, what to check, film speed",
       "lead": "Kompakt to aparat do noszenia w kieszeni i pstrykania bez myślenia. Wszystko dzieje się automatycznie: ekspozycja, przewijanie, często też ostrzenie. Jeśli szukasz aparatu na wyjazd albo na imprezę, a nie projektu do nauki fotografii — to jest ta półka.",
       "sections": [
         {
@@ -85,6 +87,7 @@
       "type": "Dalmierzowe",
       "title": "Aparat dalmierzowy — ostrzenie na plamkę",
       "description": "Jak działa dalmierz, czym różni się od lustrzanki i co sprawdzić w używanym egzemplarzu.",
+      "llms": "buyer's guide (Polish): rangefinder focusing, strengths and limits, patch and calibration checks",
       "lead": "Dalmierz ostrzy się inaczej niż lustrzanka: w środku wizjera widzisz jaśniejszy prostokąt z „duchem” drugiego obrazu. Kręcisz pierścieniem, aż oba obrazy się zejdą — i to jest ostrość. Brzmi dziwnie, po dwóch rolkach jest szybsze od autofokusa.",
       "sections": [
         {
@@ -124,6 +127,7 @@
       "type": "Zestawy",
       "title": "Zestaw aparatów analogowych — czy warto kupić kilka naraz",
       "description": "Kiedy zestaw kilku aparatów ma sens, a kiedy to worek części. Na co patrzeć w opisie i dla kogo to dobry zakup.",
+      "llms": "buyer's guide (Polish): when a multi-camera bundle is worth buying and how to read the listing",
       "lead": "Zestaw to kilka korpusów i obiektywów sprzedawanych razem, zwykle wyraźnie taniej niż osobno. Bywa świetnym wejściem w temat i bywa pudełkiem złomu — różnica leży w opisie i w tym, po co go kupujesz.",
       "sections": [
         {
@@ -157,6 +161,7 @@
       "type": "Obiektywy i akcesoria",
       "title": "Stary obiektyw — jak dobrać mocowanie i czego unikać",
       "description": "Mocowania M42, Pentax K, Praktica B i Minolta MD, adaptery na cyfrę oraz wady, których nie da się naprawić.",
+      "llms": "buyer's guide (Polish): M42 / Pentax K / Praktica B / Minolta MD mounts, adapters, unfixable lens faults",
       "lead": "Stare szkła manualne są tanie, świetnie zbudowane i pasują — po adapterze — również do współczesnych bezlusterkowców. Trzeba tylko trafić w mocowanie i unikać kilku wad, których nie opłaca się naprawiać.",
       "sections": [
         {
@@ -201,6 +206,7 @@
       "offersHeading": "Pentax ME i MV w mojej ofercie",
       "title": "Pentax ME — recenzja i jaki film wybrać",
       "description": "Pentax ME i bliźniacza MV: czym się różnią, co sprawdzić w używanym egzemplarzu, jakie obiektywy pasują i jaki film do nich dobrać.",
+      "llms": "model guide (Polish): Pentax ME vs MV vs ME Super, what to check on a used body, K-mount lenses, film choice",
       "lead": "Pentax ME z 1976 r. to jedna z najmniejszych lustrzanek 35 mm, jakie zbudowano — i najlepszy argument za tym, że aparat, który nosisz przy sobie, bije aparat, który zostaje w domu. Jest w pełni automatyczna: ustawiasz przysłonę, ona dobiera czas.",
       "sections": [
         {
@@ -248,6 +254,7 @@
       "offersHeading": "Zenity i Heliosy w mojej ofercie",
       "title": "Zenit B z Heliosem 44-2 — instrukcja dla początkujących",
       "description": "W pełni mechaniczna radziecka lustrzanka bez światłomierza: jak ustawić ekspozycję bez baterii, na co uważać przy zakupie i skąd bierze się słynne bokeh Heliosa.",
+      "llms": "model guide (Polish): metering a meterless Zenit with Sunny 16, the wind-then-set-shutter order, and the Helios 44-2 swirly bokeh",
       "lead": "Zenit B to aparat bez elektroniki. Nie ma baterii, nie ma światłomierza, nie ma automatyki — jest sprężyna, migawka i Ty. To najtańszy sposób, żeby naprawdę zrozumieć ekspozycję, i jeden z najtrudniejszych aparatów do zepsucia.",
       "sections": [
         {
@@ -307,6 +314,7 @@
       "offersHeading": "Praktica w mojej ofercie",
       "title": "Praktica BCA — co kupujesz i jaki film wybrać",
       "description": "Praktica BCA i bagnet PB: czym różni się od gwintowanych Praktic, na co uważać przy zestawie z obiektywami i jaki film dobrać do wschodnioniemieckiej lustrzanki.",
+      "llms": "model guide (Polish): the Praktica B bayonet vs the older M42 screw mount and why a mixed bundle is two incompatible kits, electronic-shutter checks, Prakticar lenses, film choice",
       "lead": "Praktica BCA to wschodnioniemiecka lustrzanka z drezdeńskiego Pentacona, z pierwszej połowy lat 80. Kupuje się ją dla jednej rzeczy: to jeden z najtańszych sposobów, żeby wejść w fotografię lustrzanką z automatyką przysłony — pod warunkiem, że rozumiesz, które obiektywy do niej pasują.",
       "sections": [
         {
@@ -356,6 +364,7 @@
       "offersHeading": "Yashica 35 w mojej ofercie",
       "title": "Yashica 35 — dalmierz na pierwszy film",
       "description": "Yashica z serii 35: jak działa ostrzenie dalmierzem, pułapka baterii rtęciowych w aparatach z lat 60. i jaki film wybrać na start.",
+      "llms": "model guide (Polish): rangefinder patch focusing, the discontinued 1.35V PX625 mercury cell and its zinc-air / MR-9 workarounds, slow-shutter and fungus checks",
       "lead": "Yashica 35 to japoński dalmierz z lat 60. — stałoogniskowy obiektyw, ostrzenie na plamkę i korpus lżejszy niż lustrzanka z tej samej epoki. Dla wielu osób to najprzyjemniejszy sposób, żeby zacząć fotografować na filmie, bo nie ma tu nic do ustawiania poza ostrością i ekspozycją.",
       "sections": [
         {
@@ -403,6 +412,7 @@
       "offersHeading": "Canon EOS w mojej ofercie",
       "title": "Canon EOS na film — autofokus na start",
       "description": "Analogowe korpusy Canon EOS: dlaczego mocowanie EF jest ich największą zaletą, których obiektywów EF-S nie założysz i jaki film wybrać.",
+      "llms": "model guide (Polish): why the EF mount outlives the film body, why EF-S lenses cannot mount on a 35mm camera, battery types and body checks, DX-coded film choice",
       "lead": "Analogowe EOS-y to najbardziej niedoceniany zakup na rynku używanym. System wystartował w 1987 r. i Canon **do dziś** używa tego samego mocowania EF — więc korpus na film, kosztujący tyle co dwa filmy, przyjmie każdy współczesny obiektyw Canona. Jeśli masz już lustrzankę cyfrową tej marki, właśnie dostałeś drugi aparat niemal za darmo.",
       "sections": [
         {

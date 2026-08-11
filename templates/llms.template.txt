@@ -14,21 +14,12 @@
 ## Pages
 
 - https://stareaparaty.com/ — the full catalog on one page: analog cameras for sale (#aparaty), black-and-white films (#filmy-bw), color films (#filmy-kolor), developing and scanning gear (#wywolywanie)
-- https://stareaparaty.com/poradniki/lustrzanki-slr.html — buyer's guide (Polish): how an SLR works, what to check on a used body, lens mounts, first film
-- https://stareaparaty.com/poradniki/kompaktowe.html — buyer's guide (Polish): compact film cameras, focus-free vs autofocus, what to check, film speed
-- https://stareaparaty.com/poradniki/dalmierzowe.html — buyer's guide (Polish): rangefinder focusing, strengths and limits, patch and calibration checks
-- https://stareaparaty.com/poradniki/zestawy.html — buyer's guide (Polish): when a multi-camera bundle is worth buying and how to read the listing
-- https://stareaparaty.com/poradniki/obiektywy.html — buyer's guide (Polish): M42 / Pentax K / Praktica B / Minolta MD mounts, adapters, unfixable lens faults
-- https://stareaparaty.com/poradniki/pentax-me.html — model guide (Polish): Pentax ME vs MV vs ME Super, what to check on a used body, K-mount lenses, film choice
-- https://stareaparaty.com/poradniki/zenit-b-helios-44-2.html — model guide (Polish): metering a meterless Zenit with Sunny 16, the wind-then-set-shutter order, and the Helios 44-2 swirly bokeh
-- https://stareaparaty.com/poradniki/praktica-bca.html — model guide (Polish): the Praktica B bayonet vs the older M42 screw mount and why a mixed bundle is two incompatible kits, electronic-shutter checks, Prakticar lenses, film choice
-- https://stareaparaty.com/poradniki/yashica-35w.html — model guide (Polish): rangefinder patch focusing, the discontinued 1.35V PX625 mercury cell and its zinc-air / MR-9 workarounds, slow-shutter and fungus checks
-- https://stareaparaty.com/poradniki/canon-eos.html — model guide (Polish): why the EF mount outlives the film body, why EF-S lenses cannot mount on a 35mm camera, battery types and body checks, DX-coded film choice
+{{GUIDE_PAGES}}
 - https://stareaparaty.com/polityka-prywatnosci.html — privacy and cookie policy (Polish): what the site collects, its advertising and consent position, affiliate disclosure, GDPR rights
 
 ## Notes
 
 - Camera links go to live OLX listings by the owner; film and accessory links are Amazon/Allegro affiliate links.
 - Each guide page ends with the cameras of that type currently in the catalog; that list is regenerated on every build, so a guide's offer section reflects live availability.
-- The site currently displays no advertising and sets no cookies of its own; the visit statistics named in the privacy policy are collected without cookies, which is why there is no consent banner.
+{{ADS_NOTE}}
 - Source and build pipeline: https://github.com/110kc3/stare-aparaty
