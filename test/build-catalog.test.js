@@ -42,6 +42,8 @@ const {
   loadCameraNotes,
   summarizeFetchHealth,
   reportFetchHealth,
+  summarizePriceFreshness,
+  reportPriceFreshness,
 } = require('../scripts/build-catalog.js');
 
 // Stands in for a live scripts/ads-config.json without needing the real
@@ -374,6 +376,107 @@ test('sitemap lists the catalog, every guide, and the privacy policy', () => {
   assert.match(xml, /<loc>https:\/\/stareaparaty\.com\/polityka-prywatnosci\.html<\/loc>/);
   for (const guide of loadGuides()) {
     assert.ok(xml.includes(`<loc>${guide.url}</loc>`), `sitemap is missing ${guide.slug}`);
+  }
+});
+
+// ── Price freshness ─────────────────────────────────────────────────────────
+// The footer's "sprawdzone <date>" is the OLDEST lastChecked across both
+// marketplaces, so one forgotten entry sets the promise for every card. That is
+// honest but silent, and it stayed silent for over a month.
+
+const MARKETPLACES = [
+  {
+    name: 'amazon',
+    products: {
+      FRESH1: { label: 'Fresh film', price: '30 zł', lastChecked: '2026-08-01' },
+      LAGGARD: { label: 'Forgotten film', price: '45 zł', lastChecked: '2026-06-22' },
+      NODATE: { label: 'Undated film', price: '50 zł' },
+    },
+  },
+  {
+    name: 'allegro',
+    products: {
+      fresh2: { label: 'Another fresh film', price: '35 zł', lastChecked: '2026-07-20' },
+    },
+  },
+];
+
+test('summarizePriceFreshness names the entry that sets the published date', () => {
+  const summary = summarizePriceFreshness(MARKETPLACES, '2026-08-11');
+
+  assert.equal(summary.published, '2026-06-22', 'the footer date is the oldest lastChecked');
+  assert.deepEqual(summary.laggards.map((entry) => entry.key), ['LAGGARD']);
+  assert.equal(summary.nextDate, '2026-07-20', 'refreshing the laggard would move the date here');
+
+  // Only the 50-day-old entry is past the 30-day threshold.
+  assert.deepEqual(summary.stale.map((entry) => entry.key), ['LAGGARD']);
+  assert.equal(summary.stale[0].ageDays, 50);
+});
+
+test('summarizePriceFreshness flags an entry with no lastChecked at all', () => {
+  // A dateless entry never enters the minimum, so its price escapes the footer
+  // promise entirely — the one way a stale price can hide completely.
+  const summary = summarizePriceFreshness(MARKETPLACES, '2026-08-11');
+  assert.deepEqual(summary.undated.map((entry) => entry.key), ['NODATE']);
+});
+
+test('reportPriceFreshness collapses the all-stale case into one line', () => {
+  const warnings = [];
+  const original = console.warn;
+  console.warn = (message) => warnings.push(message);
+  try {
+    // Everything old: the current real state, and the case that would otherwise
+    // print one near-identical line per entry on every nightly run.
+    reportPriceFreshness(summarizePriceFreshness([
+      {
+        name: 'amazon',
+        products: {
+          A: { label: 'A', lastChecked: '2026-06-22' },
+          B: { label: 'B', lastChecked: '2026-07-06' },
+          C: { label: 'C', lastChecked: '2026-07-06' },
+        },
+      },
+    ], '2026-08-11'));
+  } finally {
+    console.warn = original;
+  }
+
+  const stalenessLines = warnings.filter((line) => /nieodświeżan/.test(line));
+  assert.equal(stalenessLines.length, 1, `expected one collapsed line, got:\n${warnings.join('\n')}`);
+  assert.match(stalenessLines[0], /Wszystkie 3 cen/);
+  // The actionable line survives regardless.
+  assert.ok(warnings.some((line) => /ustawiana przez: amazon\/A/.test(line)));
+});
+
+test('reportPriceFreshness stays quiet when every price is fresh', () => {
+  const warnings = [];
+  const original = console.warn;
+  console.warn = (message) => warnings.push(message);
+  try {
+    reportPriceFreshness(summarizePriceFreshness([
+      { name: 'amazon', products: { A: { label: 'A', lastChecked: '2026-08-10' } } },
+    ], '2026-08-11'));
+  } finally {
+    console.warn = original;
+  }
+  assert.deepEqual(warnings, []);
+});
+
+test('committed price data: every entry carries a lastChecked date', () => {
+  // Enforced as a test rather than in the build: a dateless entry should be
+  // caught in review, not by breaking the nightly deploy.
+  for (const file of ['amazon-products.json', 'allegro-products.json']) {
+    const products = JSON.parse(
+      fs.readFileSync(path.join(__dirname, '..', 'scripts', file), 'utf8'),
+    );
+    assert.ok(Object.keys(products).length > 0, `${file} is empty`);
+    for (const [key, data] of Object.entries(products)) {
+      assert.match(
+        String(data.lastChecked || ''),
+        /^\d{4}-\d{2}-\d{2}$/,
+        `${file}: ${key} has no ISO lastChecked date, so its price escapes the footer's promise`,
+      );
+    }
   }
 });
 

@@ -96,6 +96,20 @@ async function main() {
     annotate: !!process.env.GITHUB_ACTIONS,
   });
 
+  // Prices are hand-maintained (the scraper is captcha-blocked), so surface
+  // staleness on the run page instead of letting one forgotten entry quietly
+  // set the footer's "sprawdzone" date for the whole catalog.
+  reportPriceFreshness(
+    summarizePriceFreshness(
+      [
+        { name: 'amazon', products: loadAmazonProducts().products },
+        { name: 'allegro', products: loadAllegroProducts().products },
+      ],
+      today,
+    ),
+    { annotate: !!process.env.GITHUB_ACTIONS },
+  );
+
   if (args.writeLinksFile) {
     fs.writeFileSync(LINKS_FILE, `${links.join('\n')}\n`, 'utf8');
   }
@@ -1457,6 +1471,113 @@ function priceToNumber(formatted) {
   return match ? match[0].replace(',', '.') : '';
 }
 
+// ── Price freshness ────────────────────────────────────────────────────────
+// The footer promises "Ceny orientacyjne — sprawdzone <date>", and that date is
+// the OLDEST lastChecked across both marketplaces, so one forgotten entry sets
+// the claim for all seventeen cards. Taking the minimum is the honest choice —
+// but it made the rot invisible: a single Ilford entry left at 2026-06-22 held
+// the published date two weeks behind the other sixteen for over a month, and
+// nothing in the build, the logs or the run page mentioned it. PLAN-2026-07-03
+// spotted it by hand and it still went unfixed.
+//
+// The Amazon scraper is captcha-blocked and PA-API is deliberately deferred
+// (see TODO), so refreshes are manual — which is precisely the case that needs a
+// loud reminder instead of a silent minimum. Warn-only, always: unlike a
+// placeholder camera card, a stale price still renders a usable page, and no CI
+// run can fix it. Failing the deploy over it would only stop the other 17 cards
+// and the whole camera catalog from shipping.
+const PRICE_STALE_DAYS = 30;
+
+function daysBetween(fromIsoDate, toIsoDate) {
+  const from = Date.parse(fromIsoDate);
+  const to = Date.parse(toIsoDate);
+  if (Number.isNaN(from) || Number.isNaN(to)) {
+    return null;
+  }
+  return Math.floor((to - from) / 86400000);
+}
+
+// `marketplaces` is [{ name, products }]. Returns the entries worth complaining
+// about, plus which ones are holding the published date back.
+function summarizePriceFreshness(marketplaces, today, staleDays = PRICE_STALE_DAYS) {
+  const entries = [];
+  for (const marketplace of marketplaces) {
+    for (const [key, data] of Object.entries(marketplace.products || {})) {
+      entries.push({
+        marketplace: marketplace.name,
+        key,
+        label: (data && data.label) || key,
+        lastChecked: (data && data.lastChecked) || '',
+        ageDays: data && data.lastChecked ? daysBetween(data.lastChecked, today) : null,
+      });
+    }
+  }
+
+  // An entry with no lastChecked never enters the minimum, so its price escapes
+  // the footer's promise entirely. That is worth naming separately.
+  const undated = entries.filter((entry) => !entry.lastChecked);
+  const dated = entries.filter((entry) => entry.lastChecked);
+  const stale = dated
+    .filter((entry) => entry.ageDays !== null && entry.ageDays > staleDays)
+    .sort((a, b) => b.ageDays - a.ageDays);
+
+  const published = dated.map((entry) => entry.lastChecked).sort()[0] || '';
+  const laggards = dated.filter((entry) => entry.lastChecked === published);
+  // What the footer would say if only the laggards were refreshed — the payoff
+  // for the smallest possible bit of work.
+  const nextDate = [...new Set(dated.map((entry) => entry.lastChecked))].sort()[1] || '';
+
+  return { entries, stale, undated, published, laggards, nextDate };
+}
+
+function reportPriceFreshness(summary, { annotate = false } = {}) {
+  const warn = (message) => {
+    if (annotate) {
+      console.log(`::warning::${message}`);
+    } else {
+      console.warn(`warning: ${message}`);
+    }
+  };
+
+  for (const entry of summary.undated) {
+    warn(`Cena bez daty sprawdzenia: ${entry.marketplace}/${entry.key} (${entry.label}) `
+      + '— nie wchodzi do daty w stopce, więc może być dowolnie stara.');
+  }
+
+  // Enumerating every entry is right when a few have fallen behind and useless
+  // when the whole set has: seventeen near-identical lines per nightly run is
+  // how a warning gets trained out of being read. So the all-stale case — which
+  // is the current one, with the scraper disabled — collapses to one line.
+  const dated = summary.entries.filter((entry) => entry.lastChecked);
+  if (summary.stale.length > 0 && summary.stale.length === dated.length) {
+    const newest = dated.map((entry) => entry.lastChecked).sort().pop();
+    warn(`Wszystkie ${dated.length} cen jest nieodświeżanych od ponad ${PRICE_STALE_DAYS} dni `
+      + `(najstarsza ${summary.published}, najnowsza ${newest}). `
+      + 'Odśwież scripts/amazon-products.json i scripts/allegro-products.json.');
+  } else {
+    const listed = summary.stale.slice(0, 5);
+    for (const entry of listed) {
+      warn(`Cena nieodświeżana ${entry.ageDays} dni: ${entry.marketplace}/${entry.key} `
+        + `(${entry.label}, ${entry.lastChecked}).`);
+    }
+    if (summary.stale.length > listed.length) {
+      warn(`…oraz ${summary.stale.length - listed.length} kolejnych pozycji z ceną starszą `
+        + `niż ${PRICE_STALE_DAYS} dni.`);
+    }
+  }
+
+  // Only interesting when something newer exists: if every entry shares one
+  // date, naming them all as laggards is noise.
+  if (summary.nextDate && summary.laggards.length > 0) {
+    const names = summary.laggards.map((entry) => `${entry.marketplace}/${entry.key}`).join(', ');
+    const action = summary.laggards.length === 1
+      ? 'Odświeżenie tej jednej pozycji przesunie ją'
+      : `Odświeżenie tych ${summary.laggards.length} pozycji przesunie ją`;
+    warn(`Data w stopce (${summary.published}) jest ustawiana przez: ${names}. `
+      + `${action} na ${summary.nextDate}.`);
+  }
+}
+
 function loadAmazonProducts() {
   if (!fs.existsSync(AMAZON_PRODUCTS_FILE)) {
     return { products: {}, lastRefreshed: '' };
@@ -1816,4 +1937,6 @@ module.exports = {
   loadCameraNotes,
   summarizeFetchHealth,
   reportFetchHealth,
+  summarizePriceFreshness,
+  reportPriceFreshness,
 };
