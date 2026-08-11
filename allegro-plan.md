@@ -1,5 +1,28 @@
 # Allegro switch plan & additions
 
+> ## ⚠️ Research snapshot — reviewed 2026-08-11
+>
+> Prices below are from **2026-06-23** and are no longer current. Status:
+>
+> - **The switch verdicts were executed.** All six "Switch" rows landed as live
+>   Allegro cards — Tri-X 400, Kentmere 400, Ektar 100, Fujifilm 400, Ilford
+>   ID-11 and the Kodak Slide N Scan are the matching keys in
+>   `scripts/allegro-products.json`. The catalog now runs 10 Allegro to 5 Amazon.
+> - **The "possible new cards" lists were not used.** None of the suggestions
+>   below is live. The Allegro cards that exist beyond the six switches
+>   (CineStill 500T, Vision3 250D, Vision3 500T, Lomography Orca 110) came from a
+>   later pass, not from this list — note CineStill **800T** is suggested here,
+>   while **500T** is what shipped. So this remains an unused candidate list.
+> - **⚠️ Do not paste these URLs into a card as-is.** They are
+>   `allegro.pl/listing?string=…` *search* links. A product card must point at a
+>   retail `/produkt/` or `business.allegro.pl/oferta/` page wrapped in the
+>   `allegro.pl/affiliate?redirect_url=…` deep link — a search URL, an
+>   auction-format listing, or anything under "Kolekcja i Sztuka" earns **no
+>   commission**. See the standing rules in `TODO.md`.
+> - Adding a card also means adding its price and `lastChecked` to
+>   `scripts/allegro-products.json`, or the footer's "sprawdzone" date starts
+>   lying. The build warns about a missing date since 2026-08-11.
+
 Prices checked live on **allegro.pl, 2026-06-23**. "Allegro" column = lowest sensible offer for the **same unit** as the Amazon card (single 36-exp roll, 1 L developer, or the exact scanner model). Amazon prices from `scripts/amazon-products.json`.
 
 Campaign joined: **Allegro.pl – Wszystkie kategorie** (CPS, 16% of Allegro's commission, 24h last-click). All items below are standard retail (not auction / not "Kolekcja i sztuka"), so all are commission-eligible.
