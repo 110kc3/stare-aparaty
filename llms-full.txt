@@ -35,11 +35,12 @@
 
 ## Pelny katalog aparatow
 
-Wygenerowane z olx_meta.json przy ostatnim buildzie. Dostepne: 18, sprzedane: 0.
+Wygenerowane z olx_meta.json przy ostatnim buildzie. Dostepne: 19, sprzedane: 0.
 
 ### Dostepne
 
 - Analogowy aparat Yashica 35W, sprawny w bardzo dobrym stanie, na film Gliwice Wojska Polskiego — 390 zł — https://www.olx.pl/d/oferta/analogowy-aparat-yashica-35w-sprawny-w-bardzo-dobrym-stanie-na-film-CID99-ID130b45.html
+- Aparat analogowy Minolta 5000 Gliwice Wojska Polskiego — 70 zł — https://www.olx.pl/d/oferta/aparat-analogowy-minolta-5000-CID99-ID13N2w7.html
 - Aparat analogowy pudełkowy Coronet Ambassador, sprawny Gliwice Sikornik — 70 zł (wczesniej 80 zł) — https://www.olx.pl/d/oferta/aparat-analogowy-pudelkowy-coronet-ambassador-sprawny-CID4042-ID17hzHB.html
 - Aparat analogowy Zenit-B Gliwice Sikornik — 100 zł — https://www.olx.pl/d/oferta/aparat-analogowy-zenit-b-CID99-ID1bXnaP.html
 - Aparat na film Chinon CE-5 z Auto Chinon 50mm f/1.9 Chinon PW-530 Gliwice Sikornik — 500 zł — https://www.olx.pl/d/oferta/aparat-na-film-chinon-ce-5-z-auto-chinon-50mm-f-1-9-chinon-pw-530-CID99-ID12T9tS.html
