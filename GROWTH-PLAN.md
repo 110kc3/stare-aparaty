@@ -1,5 +1,8 @@
 # Growth & Monetization Plan
 
+> Current marketplace decision, 2026-10-13: all 15 film/accessory cards use Allegro. Amazon account/API/scraper directions below are historical and superseded. See README and the current section of TODO.md for implementation and pending verification.
+
+
 *June 2026. Based on: ~56 affiliate clicks / 30 days, 0 Amazon sales, zł0 earnings.*
 
 ## Reality check

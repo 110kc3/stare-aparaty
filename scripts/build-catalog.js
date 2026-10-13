@@ -10,8 +10,8 @@ const TEMPLATE_FILE = path.join(ROOT_DIR, 'templates', 'index.template.html');
 const PRIVACY_TEMPLATE_FILE = path.join(ROOT_DIR, 'templates', 'privacy.template.html');
 const GUIDE_TEMPLATE_FILE = path.join(ROOT_DIR, 'templates', 'guide.template.html');
 const GUIDES_FILE = path.join(__dirname, 'guides.json');
-const AMAZON_PRODUCTS_FILE = path.join(__dirname, 'amazon-products.json');
 const ALLEGRO_PRODUCTS_FILE = path.join(__dirname, 'allegro-products.json');
+const ALLEGRO_CAMPAIGN_ID = '8902aaa9-6bd4-43f8-8111-28eb4c6a3dde';
 const CAMERA_TYPES_FILE = path.join(__dirname, 'camera-types.json');
 const CAMERA_NOTES_FILE = path.join(__dirname, 'camera-notes.json');
 // How long a freshly-discovered listing keeps its NOWE chip.
@@ -54,7 +54,8 @@ const OUTPUT_PRIVACY = path.join(ROOT_DIR, PRIVACY_PATH);
 // which means **flipping `enabled` to true changes the published policy text**
 // — that is intended, and it is why this date must be bumped by hand whenever
 // the ads flag flips. See ADSENSE.md step 2.
-const PRIVACY_UPDATED = '11 sierpnia 2026';
+// Bumped 2026-10-13: film and gear links now use Allegro only.
+const PRIVACY_UPDATED = '13 października 2026';
 // Per-camera-type buyer guides live in their own directory so the deploy
 // workflows can ship them with one `cp -r` instead of a filename per guide.
 const GUIDES_DIR = 'poradniki';
@@ -96,13 +97,12 @@ async function main() {
     annotate: !!process.env.GITHUB_ACTIONS,
   });
 
-  // Prices are hand-maintained (the scraper is captcha-blocked), so surface
+  // Allegro prices are hand-maintained, so surface
   // staleness on the run page instead of letting one forgotten entry quietly
   // set the footer's "sprawdzone" date for the whole catalog.
   reportPriceFreshness(
     summarizePriceFreshness(
       [
-        { name: 'amazon', products: loadAmazonProducts().products },
         { name: 'allegro', products: loadAllegroProducts().products },
       ],
       today,
@@ -668,9 +668,7 @@ function renderIndex(items, adsConfig) {
     timeZone: 'Europe/Warsaw',
   }).format(new Date());
 
-  // Amazon/Allegro data is loaded up front because it feeds both the price
-  // placeholders below and the film/accessory Product nodes in the JSON-LD.
-  const amazon = loadAmazonProducts();
+  // Allegro data feeds the links, prices, images and retail structured data.
   const allegro = loadAllegroProducts();
 
   // split/join instead of String.replace: a listing title containing a `$&`,
@@ -680,7 +678,7 @@ function renderIndex(items, adsConfig) {
     .split('{{COUNT}}').join(String(items.length))
     .split('{{LAST_UPDATED}}').join(escapeHtml(lastUpdated))
     .split('{{CAMERA_CARDS}}').join(renderCameraCatalog(items))
-    .split('{{CAMERA_JSONLD}}').join(renderProductJsonLd(items, amazon.products, allegro.products))
+    .split('{{CAMERA_JSONLD}}').join(renderProductJsonLd(items, allegro.products))
     .split('{{ADSENSE_HEAD}}').join(renderAdsHead(ads))
     // The footer disclosure is gated for the same reason as the privacy policy
     // §3: with ads off the page loads no Google script, so claiming otherwise
@@ -698,24 +696,13 @@ function renderIndex(items, adsConfig) {
     )
     .split('{{AD_SLOT_FOOTER}}').join(renderAdUnit(ads, 'footer', { className: 'ad-slot--wide' }));
 
-  // Inject Amazon prices + images (managed by scripts/amazon-products.json).
-  for (const [asin, data] of Object.entries(amazon.products)) {
-    rendered = rendered
-      .split(`{{PRICE_${asin}}}`)
-      .join(escapeHtml(data.price || ''));
-    if (data.image) {
-      rendered = rendered
-        .split(`{{IMAGE_${asin}}}`)
-        .join(escapeAttribute(data.image));
-    }
-  }
-
-  // Inject Allegro prices + images (managed by scripts/allegro-products.json).
-  // Same manual workflow as Amazon: edit the JSON, rebuild, the cards update.
+  // URLs, prices and product images share one source of truth.
   for (const [key, data] of Object.entries(allegro.products)) {
     rendered = rendered
+      .split(`{{ALLEGRO_URL_${key}}}`)
+      .join(escapeAttribute(buildAllegroAffiliateUrl(data.url)))
       .split(`{{ALLEGRO_PRICE_${key}}}`)
-      .join(escapeHtml(data.price || ''));
+      .join(escapeHtml(data.available === false ? 'Obecnie niedostępny' : data.price || ''));
     if (data.image) {
       rendered = rendered
         .split(`{{ALLEGRO_IMAGE_${key}}}`)
@@ -723,14 +710,10 @@ function renderIndex(items, adsConfig) {
     }
   }
 
-  // "Sprawdzone" date = the OLDEST lastChecked across BOTH marketplaces, so it
-  // only advances once every displayed price (Amazon and Allegro) is current.
-  const lastRefreshed = [amazon.lastRefreshed, allegro.lastRefreshed]
-    .filter(Boolean)
-    .sort()[0] || '';
+  // Only advance the footer date once every displayed price is current.
   rendered = rendered
     .split('{{LAST_REFRESHED}}')
-    .join(escapeHtml(lastRefreshed));
+    .join(escapeHtml(allegro.lastRefreshed));
 
   return rendered;
 }
@@ -739,7 +722,7 @@ function renderIndex(items, adsConfig) {
 // camera catalog as an ItemList of Product/Offer nodes (sold listings
 // advertise SoldOut, the rest InStock), and one Product per film/accessory
 // card so the whole page — not just the OLX section — is machine-readable.
-function renderProductJsonLd(items, amazonProducts = {}, allegroProducts = {}) {
+function renderProductJsonLd(items, allegroProducts = {}) {
   const organization = {
     '@type': 'Organization',
     name: 'Stare Aparaty',
@@ -793,9 +776,6 @@ function renderProductJsonLd(items, amazonProducts = {}, allegroProducts = {}) {
 
   // Plain product URLs (no affiliate tag) go into the structured data; the
   // affiliate links stay in the visible cards only.
-  for (const [asin, data] of Object.entries(amazonProducts)) {
-    graph.push(retailProductNode(data, `https://www.amazon.pl/dp/${asin}`));
-  }
   for (const data of Object.values(allegroProducts)) {
     graph.push(retailProductNode(data, data && data.url));
   }
@@ -806,7 +786,7 @@ function renderProductJsonLd(items, amazonProducts = {}, allegroProducts = {}) {
   return `<script type="application/ld+json">\n${json}\n  </script>`;
 }
 
-// Product node for a film/accessory card sold new on Amazon/Allegro. Returns
+// Product node for a film/accessory card sold new on Allegro. Returns
 // null for malformed entries so a bad JSON row degrades to "not in the graph"
 // instead of a broken node.
 function retailProductNode(data, url) {
@@ -817,7 +797,7 @@ function retailProductNode(data, url) {
     '@type': 'Offer',
     url,
     itemCondition: 'https://schema.org/NewCondition',
-    availability: 'https://schema.org/InStock',
+    availability: data.available === false ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
   };
   const priceNumber = priceToNumber(data.price);
   if (priceNumber) {
@@ -1415,7 +1395,7 @@ function renderLegalBasisItems(config) {
 
 function renderCookieBrowserNote(config) {
   if (!config || !config.enabled) {
-    return '  <p>Serwis nie zapisuje własnych plików cookie, więc nie ma tu czym zarządzać. Własne pliki cookie mogą natomiast zapisać serwisy, do których prowadzą odnośniki (OLX, Amazon, Allegro) — już po przejściu na ich strony. W ustawieniach przeglądarki możesz w każdej chwili zablokować lub usunąć pliki cookie; nie ograniczy to dostępu do treści tego serwisu.</p>';
+    return '  <p>Serwis nie zapisuje własnych plików cookie, więc nie ma tu czym zarządzać. Własne pliki cookie mogą natomiast zapisać serwisy, do których prowadzą odnośniki (OLX, Allegro) — już po przejściu na ich strony. W ustawieniach przeglądarki możesz w każdej chwili zablokować lub usunąć pliki cookie; nie ograniczy to dostępu do treści tego serwisu.</p>';
   }
   return '  <p>Niezależnie od komunikatu zgody możesz w każdej chwili zablokować lub usunąć pliki cookie w ustawieniach przeglądarki. Blokada plików cookie nie ogranicza dostępu do treści tego serwisu — wpłynie jedynie na sposób doboru reklam.</p>';
 }
@@ -1472,20 +1452,8 @@ function priceToNumber(formatted) {
 }
 
 // ── Price freshness ────────────────────────────────────────────────────────
-// The footer promises "Ceny orientacyjne — sprawdzone <date>", and that date is
-// the OLDEST lastChecked across both marketplaces, so one forgotten entry sets
-// the claim for all seventeen cards. Taking the minimum is the honest choice —
-// but it made the rot invisible: a single Ilford entry left at 2026-06-22 held
-// the published date two weeks behind the other sixteen for over a month, and
-// nothing in the build, the logs or the run page mentioned it. PLAN-2026-07-03
-// spotted it by hand and it still went unfixed.
-//
-// The Amazon scraper is captcha-blocked and PA-API is deliberately deferred
-// (see TODO), so refreshes are manual — which is precisely the case that needs a
-// loud reminder instead of a silent minimum. Warn-only, always: unlike a
-// placeholder camera card, a stale price still renders a usable page, and no CI
-// run can fix it. Failing the deploy over it would only stop the other 17 cards
-// and the whole camera catalog from shipping.
+// The footer uses the oldest lastChecked among displayed Allegro products.
+// Refreshes are manual; warn about forgotten dates without blocking cameras.
 const PRICE_STALE_DAYS = 30;
 
 function daysBetween(fromIsoDate, toIsoDate) {
@@ -1553,7 +1521,7 @@ function reportPriceFreshness(summary, { annotate = false } = {}) {
     const newest = dated.map((entry) => entry.lastChecked).sort().pop();
     warn(`Wszystkie ${dated.length} cen jest nieodświeżanych od ponad ${PRICE_STALE_DAYS} dni `
       + `(najstarsza ${summary.published}, najnowsza ${newest}). `
-      + 'Odśwież scripts/amazon-products.json i scripts/allegro-products.json.');
+      + 'Odśwież scripts/allegro-products.json.');
   } else {
     const listed = summary.stale.slice(0, 5);
     for (const entry of listed) {
@@ -1578,22 +1546,20 @@ function reportPriceFreshness(summary, { annotate = false } = {}) {
   }
 }
 
-function loadAmazonProducts() {
-  if (!fs.existsSync(AMAZON_PRODUCTS_FILE)) {
-    return { products: {}, lastRefreshed: '' };
+// Preserve offerId (used to pin multipacks) inside the tracked destination.
+function buildAllegroAffiliateUrl(rawUrl) {
+  const destination = new URL(rawUrl);
+  const retail = (destination.hostname === 'allegro.pl' && destination.pathname.startsWith('/produkt/'))
+    || (destination.hostname === 'business.allegro.pl' && destination.pathname.startsWith('/oferta/'));
+  if (destination.protocol !== 'https:' || !retail || destination.username || destination.password) {
+    throw new Error(`Expected an Allegro retail product URL: ${rawUrl}`);
   }
-  try {
-    const products = JSON.parse(fs.readFileSync(AMAZON_PRODUCTS_FILE, 'utf8'));
-    // Oldest lastChecked across the catalog is the honest "as of" date.
-    const dates = Object.values(products)
-      .map((p) => p && p.lastChecked)
-      .filter(Boolean)
-      .sort();
-    return { products, lastRefreshed: dates[0] || '' };
-  } catch (error) {
-    console.warn(`Could not read ${AMAZON_PRODUCTS_FILE}: ${error.message}`);
-    return { products: {}, lastRefreshed: '' };
-  }
+  destination.searchParams.set('utm_medium', 'afiliacja');
+  destination.searchParams.set('utm_source', 'ctr_b');
+  destination.searchParams.set('utm_campaign', ALLEGRO_CAMPAIGN_ID);
+  const affiliate = new URL('https://allegro.pl/affiliate');
+  affiliate.searchParams.set('redirect_url', destination.href);
+  return affiliate.href;
 }
 
 function loadAllegroProducts() {
@@ -1914,6 +1880,7 @@ module.exports = {
   escapeHtml,
   escapeAttribute,
   loadAllegroProducts,
+  buildAllegroAffiliateUrl,
   loadAdsConfig,
   normalizeAdsConfig,
   renderAdsHead,

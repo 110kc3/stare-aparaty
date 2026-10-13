@@ -20,6 +20,7 @@ const {
   groupByType,
   renderCard,
   loadAllegroProducts,
+  buildAllegroAffiliateUrl,
   loadAdsConfig,
   normalizeAdsConfig,
   renderAdsHead,
@@ -386,7 +387,7 @@ test('sitemap lists the catalog, every guide, and the privacy policy', () => {
 
 const MARKETPLACES = [
   {
-    name: 'amazon',
+    name: 'allegro',
     products: {
       FRESH1: { label: 'Fresh film', price: '30 zł', lastChecked: '2026-08-01' },
       LAGGARD: { label: 'Forgotten film', price: '45 zł', lastChecked: '2026-06-22' },
@@ -429,7 +430,7 @@ test('reportPriceFreshness collapses the all-stale case into one line', () => {
     // print one near-identical line per entry on every nightly run.
     reportPriceFreshness(summarizePriceFreshness([
       {
-        name: 'amazon',
+        name: 'allegro',
         products: {
           A: { label: 'A', lastChecked: '2026-06-22' },
           B: { label: 'B', lastChecked: '2026-07-06' },
@@ -445,7 +446,7 @@ test('reportPriceFreshness collapses the all-stale case into one line', () => {
   assert.equal(stalenessLines.length, 1, `expected one collapsed line, got:\n${warnings.join('\n')}`);
   assert.match(stalenessLines[0], /Wszystkie 3 cen/);
   // The actionable line survives regardless.
-  assert.ok(warnings.some((line) => /ustawiana przez: amazon\/A/.test(line)));
+  assert.ok(warnings.some((line) => /ustawiana przez: allegro\/A/.test(line)));
 });
 
 test('reportPriceFreshness stays quiet when every price is fresh', () => {
@@ -454,7 +455,7 @@ test('reportPriceFreshness stays quiet when every price is fresh', () => {
   console.warn = (message) => warnings.push(message);
   try {
     reportPriceFreshness(summarizePriceFreshness([
-      { name: 'amazon', products: { A: { label: 'A', lastChecked: '2026-08-10' } } },
+      { name: 'allegro', products: { A: { label: 'A', lastChecked: '2026-08-10' } } },
     ], '2026-08-11'));
   } finally {
     console.warn = original;
@@ -465,7 +466,7 @@ test('reportPriceFreshness stays quiet when every price is fresh', () => {
 test('committed price data: every entry carries a lastChecked date', () => {
   // Enforced as a test rather than in the build: a dateless entry should be
   // caught in review, not by breaking the nightly deploy.
-  for (const file of ['amazon-products.json', 'allegro-products.json']) {
+  for (const file of ['allegro-products.json']) {
     const products = JSON.parse(
       fs.readFileSync(path.join(__dirname, '..', 'scripts', file), 'utf8'),
     );
@@ -1018,7 +1019,7 @@ test('camera-types.json: a plural "Aparaty …" multi-camera listing is a Zestaw
 
 // --- Allegro manual price data -------------------------------------------
 // Allegro card prices are data-driven from scripts/allegro-products.json the
-// same way Amazon prices come from amazon-products.json. These guard that the
+// only source of retail product data. These guard that the
 // data file and the template never drift apart (a mismatch would either leave
 // a {{ALLEGRO_PRICE_*}} placeholder in the page or silently drop a price).
 
@@ -1034,7 +1035,7 @@ test('allegro-products.json entries are well-formed', () => {
   for (const key of keys) {
     const data = ALLEGRO_PRODUCTS[key];
     assert.ok(
-      typeof data.price === 'string' && data.price.trim().length > 0,
+      typeof data.price === 'string' && (data.available === false || data.price.trim().length > 0),
       `${key}: price must be a non-empty string`,
     );
     assert.match(data.url, /^https:\/\/(www\.|business\.)?allegro\.pl\//, `${key}: url`);
@@ -1057,4 +1058,56 @@ test('loadAllegroProducts returns products and the oldest lastChecked date', () 
   assert.match(loaded.lastRefreshed, /^\d{4}-\d{2}-\d{2}$/);
   const allDates = Object.values(loaded.products).map((p) => p.lastChecked).sort();
   assert.equal(loaded.lastRefreshed, allDates[0]);
+});
+
+test('all retail cards use the configured Allegro destination and campaign', () => {
+  const html = renderIndex([]);
+  assertRenderedOutput(html, 0);
+  assert.doesNotMatch(html, /amazon|blueprintkc0a-21/i);
+  const cards = [...html.matchAll(/<a class="product-card" href="([^"]+)"[^>]*>[\s\S]*?<\/a>/g)];
+  assert.equal(cards.length, 15);
+  const destinations = cards.map((card) => {
+    assert.match(card[0], /rel="sponsored noopener"/);
+    const affiliate = new URL(card[1].replace(/&amp;/g, '&'));
+    assert.equal(affiliate.origin + affiliate.pathname, 'https://allegro.pl/affiliate');
+    assert.equal([...affiliate.searchParams.keys()].join(','), 'redirect_url');
+    const destination = new URL(affiliate.searchParams.get('redirect_url'));
+    assert.equal(destination.searchParams.get('utm_medium'), 'afiliacja');
+    assert.equal(destination.searchParams.get('utm_source'), 'ctr_b');
+    assert.equal(destination.searchParams.get('utm_campaign'), '8902aaa9-6bd4-43f8-8111-28eb4c6a3dde');
+    for (const key of ['utm_medium', 'utm_source', 'utm_campaign']) {
+      destination.searchParams.delete(key);
+    }
+    return destination.href;
+  });
+  assert.deepEqual(destinations.sort(), Object.values(ALLEGRO_PRODUCTS).map((p) => p.url).sort());
+  const scanner = cards.find((card) => card[0].includes('<h3>Mobilny skaner Kodak 6×6</h3>'))[0];
+  assert.match(scanner, /120\/220/);
+  assert.match(scanner, /Obecnie niedostępny/);
+  assert.match(scanner, /Sprawdź dostępność na Allegro/);
+  assert.doesNotMatch(scanner, /35 mm/);
+});
+
+test('Allegro deep links preserve multipack offers and reject non-retail destinations', () => {
+  const raw = ALLEGRO_PRODUCTS['portra-400-5-pack'].url;
+  const affiliate = new URL(buildAllegroAffiliateUrl(raw));
+  const destination = new URL(affiliate.searchParams.get('redirect_url'));
+  assert.equal(destination.searchParams.get('offerId'), '17741420194');
+  for (const invalid of [
+    'https://allegro.pl/listing?string=film',
+    'https://allegrolokalnie.pl/oferta/film',
+    'https://example.com/produkt/film',
+    'http://allegro.pl/produkt/film',
+    'https://allegro.pl/oferta/film',
+  ]) {
+    assert.throws(() => buildAllegroAffiliateUrl(invalid), /retail product URL/);
+  }
+});
+
+test('Allegro link and image placeholders each have matching product data', () => {
+  const links = [...TEMPLATE_HTML.matchAll(/\{\{ALLEGRO_URL_([a-z0-9-]+)\}\}/g)].map((m) => m[1]);
+  assert.deepEqual(links.sort(), Object.keys(ALLEGRO_PRODUCTS).sort());
+  for (const [, key] of TEMPLATE_HTML.matchAll(/\{\{ALLEGRO_IMAGE_([a-z0-9-]+)\}\}/g)) {
+    assert.match(ALLEGRO_PRODUCTS[key].image, /^https:\/\/[a-z0-9]+\.allegroimg\.com\//);
+  }
 });

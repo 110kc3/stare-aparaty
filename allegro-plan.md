@@ -1,5 +1,26 @@
 # Allegro switch plan & additions
 
+## Full migration — 2026-10-13
+
+The owner requested Allegro for every film/accessory card, superseding the June price-comparison verdicts below. The existing campaign remains `8902aaa9-6bd4-43f8-8111-28eb4c6a3dde`. All 15 cards now use URLs from `scripts/allegro-products.json`, including their affiliate tracking; Amazon scraping, data and public references were removed. OLX camera listings remain the camera source.
+
+Freshly opened Allegro pages on 2026-10-13 supplied these observed prices (not a claim of the cheapest offer):
+
+| Card / unit | Observed price | Source |
+|---|---:|---|
+| AgfaPhoto APX 100, 135/36 | 27,71 zł | [Retail product](https://allegro.pl/produkt/klisza-negatywowa-agfaphoto-apx-100-36-klatek-135-bec289b8-5964-4903-add6-5f7aa5e6fe12) |
+| Ilford HP5 Plus, 135/36 | 65,00 zł | [Retail product](https://allegro.pl/produkt/film-czarno-bialy-ilford-hp5-plus-400-36-8efec28b-e359-48ff-a888-c2af36cd9695) |
+| Kodak Portra 400, 5 × 135/36 | 499,12 zł | [Five-roll retail offer](https://allegro.pl/oferta/kodak-1x5-portra-400-135-36-17741420194) — the destination uses the product URL with `offerId=17741420194` to preserve pack size |
+| Kodak Gold 200, 3 × 135/36 | 140,00 zł | [Retail product](https://allegro.pl/produkt/film-kodak-gold-200-135-36-zdjec-x-3-ded11920-32a6-4f45-997d-ed2f69363fe6) |
+| Ilford ID-11, 1 L | 67,43 zł | [Retail product](https://allegro.pl/produkt/wywolywacz-do-negatywow-ilford-id-11-1-litr-b45e9eee-45c7-4cd0-8912-95f80359821a) — image also moved off Amazon |
+| Kodak Slide N Scan RODFS50, 5-inch | 699,00 zł | [Retail product](https://allegro.pl/produkt/kodak-slide-n-scan-rodfs50-skaner-do-filmow-i-slajdow-5-sd-usb-hdmi-e1a42b34-4e83-4c94-a898-728f6d57d309) — image also moved off Amazon |
+| Kodak 6×6 smartphone scanner, 120/220 | Unavailable; no current price | [Product page](https://allegro.pl/produkt/mobilny-skaner-klisz-kodak-6x6-f4f4539e-6761-4f66-81b2-c9a9ec841ba5) — owner-approved replacement for RODMFS50; fresh page reports unavailable despite an older indexed offer |
+
+The other eight entries keep their existing prices and 2026-07-06 dates. The footer therefore stays at that oldest check date. The new scanner card says "Obecnie niedostępny" and links to availability rather than advertising the old indexed price. Price refresh remains manual; Allegro API automation is deferred. Account closure or changes to any external scheduled browser task are outside repository access.
+
+## Historical research
+
+
 > ## ⚠️ Research snapshot — reviewed 2026-08-11
 >
 > Prices below are from **2026-06-23** and are no longer current. Status:

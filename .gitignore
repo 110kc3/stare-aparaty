@@ -1,8 +1,4 @@
-# Node / Playwright
-# The refresh-amazon workflow installs Playwright ad-hoc on the runner and
-# cleans up after itself, but if you run `node scripts/refresh-amazon.js`
-# locally you'll end up with these scratch files — none of them belong in
-# the repo.
+# Node scratch files (the build is dependency-free; tooling may use npx).
 node_modules/
 package.json
 package-lock.json

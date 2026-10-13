@@ -11,7 +11,7 @@
  *
  *   node scripts/generate-icons.js
  *
- * Needs Playwright + Chromium (a devDependency, same as refresh-amazon.js).
+ * Needs Playwright + Chromium installed in the environment.
  */
 
 const fs = require('node:fs');

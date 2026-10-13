@@ -1,5 +1,8 @@
 # Status Report — Bug Check & Future Steps Audit
 
+> Current marketplace decision, 2026-10-13: all 15 film/accessory cards use Allegro. Amazon account/API/scraper directions below are historical and superseded. See README and the current section of TODO.md for implementation and pending verification.
+
+
 *Generated 2026-06-13. Covers: full review of scripts, workflows, templates, generated output, and planning docs (TODO.md, GROWTH-PLAN.md).*
 *Last refreshed 2026-08-11 — see "Session 8" below.*
 

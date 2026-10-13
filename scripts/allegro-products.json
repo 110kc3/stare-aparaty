@@ -49,14 +49,48 @@
   },
   "ilford-id-11": {
     "label": "Ilford ID-11",
-    "price": "od 66,29 zł",
+    "price": "67,43 zł",
     "url": "https://allegro.pl/produkt/wywolywacz-do-negatywow-ilford-id-11-1-litr-b45e9eee-45c7-4cd0-8912-95f80359821a",
-    "lastChecked": "2026-07-06"
+    "lastChecked": "2026-10-13",
+    "image": "https://a.allegroimg.com/s720/112b6f/670467394fd6ba4a8c89ea99c8fe/Ilford-ID-11-1-L-wywolywacz-negatywowy"
   },
   "slide-n-scan": {
     "label": "Kodak Slide N Scan 5\"",
-    "price": "od 849,98 zł",
+    "price": "699,00 zł",
     "url": "https://allegro.pl/produkt/kodak-slide-n-scan-rodfs50-skaner-do-filmow-i-slajdow-5-sd-usb-hdmi-e1a42b34-4e83-4c94-a898-728f6d57d309",
-    "lastChecked": "2026-07-06"
+    "lastChecked": "2026-10-13",
+    "image": "https://a.allegroimg.com/s720/11bd0e/baabbef84c0f8a10f0b1816bde8c/Skaner-Kodak-Slide-N-Scan-RODFS50-do-negatywow-slajdow-klisz-zdjecia-LCD-5"
+  },
+  "agfaphoto-apx-100": {
+    "label": "AgfaPhoto APX 100 (135/36)",
+    "price": "27,71 zł",
+    "url": "https://allegro.pl/produkt/klisza-negatywowa-agfaphoto-apx-100-36-klatek-135-bec289b8-5964-4903-add6-5f7aa5e6fe12",
+    "lastChecked": "2026-10-13"
+  },
+  "ilford-hp5-plus": {
+    "label": "Ilford HP5 Plus (135/36)",
+    "price": "65,00 zł",
+    "url": "https://allegro.pl/produkt/film-czarno-bialy-ilford-hp5-plus-400-36-8efec28b-e359-48ff-a888-c2af36cd9695",
+    "lastChecked": "2026-10-13"
+  },
+  "portra-400-5-pack": {
+    "label": "Kodak Portra 400 (5 × 135/36)",
+    "price": "499,12 zł",
+    "url": "https://allegro.pl/produkt/film-kodak-portra-400-135-36-klatek-professional-1-szt-db291570-160e-43fc-ae84-63d91c761b15?offerId=17741420194",
+    "lastChecked": "2026-10-13"
+  },
+  "gold-200-3-pack": {
+    "label": "Kodak Gold 200 (3 × 135/36)",
+    "price": "140,00 zł",
+    "url": "https://allegro.pl/produkt/film-kodak-gold-200-135-36-zdjec-x-3-ded11920-32a6-4f45-997d-ed2f69363fe6",
+    "lastChecked": "2026-10-13"
+  },
+  "mobile-scanner-6x6": {
+    "label": "Mobilny skaner Kodak 6×6 (120/220)",
+    "price": "",
+    "available": false,
+    "url": "https://allegro.pl/produkt/mobilny-skaner-klisz-kodak-6x6-f4f4539e-6761-4f66-81b2-c9a9ec841ba5",
+    "image": "https://a.allegroimg.com/s720/115c04/a632b6704d3a898961faddfd51e8",
+    "lastChecked": "2026-10-13"
   }
 }

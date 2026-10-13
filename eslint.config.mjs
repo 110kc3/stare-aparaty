@@ -53,17 +53,4 @@ export default [
       'prefer-const': 'error',
     },
   },
-  {
-    // refresh-amazon.js passes callbacks to Playwright's page.evaluate(), whose
-    // bodies execute in the browser — those reference browser globals that do
-    // not exist in the Node scope around them.
-    files: ['scripts/refresh-amazon.js'],
-    languageOptions: {
-      globals: {
-        navigator: 'readonly',
-        window: 'readonly',
-        document: 'readonly',
-      },
-    },
-  },
 ];

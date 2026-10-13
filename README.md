@@ -1,11 +1,11 @@
 # Stare Aparaty
 
-A small static site that lists my vintage cameras for sale on OLX alongside a curated selection of film stocks and accessories on Amazon. The site is hosted on GitHub Pages; the public copy is in Polish, the code and this README are in English.
+A small static site that lists my vintage cameras for sale on OLX alongside a curated selection of film stocks and accessories on Allegro. The site is hosted on GitHub Pages; the public copy is in Polish, the code and this README are in English.
 
 ## What the site is
 
 - **Cameras section** — each card is generated from a live OLX listing URL. Title and cover image are fetched from the listing's metadata and the card links straight to the ad.
-- **Film & accessories section** — hand-picked products on Amazon.pl. Every link carries the `blueprintkc0a-21` affiliate tag, so qualifying purchases support the site.
+- **Film & accessories section** — 15 hand-picked products on Allegro.pl. Links use the existing Allegro Affiliate campaign (`8902aaa9-6bd4-43f8-8111-28eb4c6a3dde`), so qualifying purchases support the site.
 
 ## How the build works
 
@@ -30,13 +30,13 @@ It also regenerates `sitemap.xml`, `ads.txt`, `polityka-prywatnosci.html`, `llms
 | Privacy policy §2 | no "Dane reklamowe" bullet |
 | Privacy policy §3 | states that the site shows no ads, sets no cookies of its own, and therefore has no consent banner |
 | Privacy policy §5 | consent is not listed as a legal basis |
-| Privacy policy §8 | describes third-party cookies from OLX/Amazon/Allegro rather than ad personalization |
+| Privacy policy §8 | describes third-party cookies from OLX/Allegro rather than ad personalization |
 | Homepage footer | drops "Strona wyświetla też reklamy Google." |
 | `llms.txt` | states that no advertising is displayed |
 
 The ads-on wording is the previously reviewed text, kept verbatim, so flipping the flag restores the policy word for word. It is gated because the ad *markup* was already config-driven while the ad *prose* was not: an ads-off build published a policy claiming AdSense served ads and promised a consent message that never appeared. Flipping the flag changes the published policy, so `PRIVACY_UPDATED` must be bumped at the same time — see `ADSENSE.md`.
 
-The camera grid shows **4 cards per row**; the build renders every discovered camera (no cap), and a short final row is centered rather than stretched. The film & accessories section lives inside the template and is fully static — the build script does not touch it.
+The camera grid shows **4 cards per row**; the build renders every discovered camera (no cap), and a short final row is centered rather than stretched. The film & accessories card copy lives in the template; the build fills its Allegro links, prices and product images from `scripts/allegro-products.json`.
 
 ### Honest `<lastmod>` in the sitemap
 
@@ -85,10 +85,6 @@ Now `workflow_dispatch`-only. `discover-cameras.yml` owns automatic deploys; thi
 
 Runs on every pull request and on pushes to `main` / `master` / `update-film-info`. Executes `node --test`, which exercises the pure helpers in `scripts/build-catalog.js` and `scripts/discover-listings.js` (price/entity parsing, the OLX offer parsers, the rendered-output guard). No dependencies are installed — the scripts and tests use only Node's built-in modules.
 
-### `refresh-amazon.yml` — refresh Amazon prices and product images
-
-Currently disabled (`refresh-amazon.yml.disabled`). When enabled it runs weekly, drives `scripts/refresh-amazon.js` with Playwright + Chromium to update prices/images in `scripts/amazon-products.json`, and commits any changes.
-
 ### How they chain
 
 The camera flow is fully automatic — discovery and publish happen in one run:
@@ -107,7 +103,7 @@ For copy, styling, or template changes: push to one of the branches above and `d
 | Path | Purpose |
 | --- | --- |
 | `index.html` | Generated static page published on GitHub Pages |
-| `templates/index.template.html` | Source template. Placeholders: `{{COUNT}}`, `{{LAST_UPDATED}}`, `{{CAMERA_CARDS}}`, `{{CAMERA_JSONLD}}` (filled from OLX data), `{{PRICE_<ASIN>}}`, `{{IMAGE_<ASIN>}}`, `{{LAST_REFRESHED}}` (filled from `amazon-products.json`) and `{{ADSENSE_HEAD}}`, `{{AD_SLOT_MIDPAGE}}`, `{{AD_SLOT_INGRID}}`, `{{AD_SLOT_FOOTER}}` (filled from `ads-config.json`) |
+| `templates/index.template.html` | Source template. Placeholders: `{{COUNT}}`, `{{LAST_UPDATED}}`, `{{CAMERA_CARDS}}`, `{{CAMERA_JSONLD}}` (filled from OLX data), `{{ALLEGRO_URL_<slug>}}`, `{{ALLEGRO_PRICE_<slug>}}`, `{{ALLEGRO_IMAGE_<slug>}}`, `{{LAST_REFRESHED}}` (filled from `allegro-products.json`) and `{{ADSENSE_HEAD}}`, `{{AD_SLOT_MIDPAGE}}`, `{{AD_SLOT_INGRID}}`, `{{AD_SLOT_FOOTER}}` (filled from `ads-config.json`) |
 | `templates/privacy.template.html` | Source template for the privacy policy — generated, not hand-written, so the AdSense publisher id lives in exactly one place |
 | `polityka-prywatnosci.html` | Generated privacy & cookie policy, linked from the footer |
 | `scripts/guides.json` | Prose for the buyer guides. Two kinds: a `type` guide owns a catalog section (its `type` must match `camera-types.json` — the build fails otherwise, so a renamed section can't orphan its guide) and is what the homepage headings link to; a `model` guide sits underneath one and picks its listings with a `match` keyword list, so it survives the specific camera selling. Each guide also carries an `llms` one-line English summary, which is what the generated `llms.txt` publishes — a test fails if a guide is missing one, so a new guide can't ship undocumented |
@@ -121,8 +117,7 @@ For copy, styling, or template changes: push to one of the branches above and `d
 | `scripts/generate-icons.js` | Rasterizes `favicon.svg` into the PNG app icons (run when the favicon changes) |
 | `scripts/fetch-fonts.js` | Downloads the self-hosted `woff2` fonts + generates `fonts/fonts.css` (run when the font set changes) |
 | `fonts/` | Self-hosted Inter / Cormorant Garamond / Press Start 2P (`woff2`, latin + latin-ext) and `fonts.css` |
-| `scripts/refresh-amazon.js` | Headless-browser scraper that updates Amazon prices + images in `amazon-products.json` |
-| `scripts/amazon-products.json` | Source of truth for Amazon prices and (for dev/scanner cards) product images. Every entry needs a `lastChecked` date — the footer's "sprawdzone" claim is the oldest one across both marketplaces, and the build warns about entries that fall behind or carry no date at all |
+| `scripts/allegro-products.json` | Source of truth for Allegro destinations, prices, optional product images and availability. Every entry carries `lastChecked`; the footer uses the oldest date, and the build warns when data is stale |
 | `product-links.txt` | List of OLX camera URLs (generated by `discover-listings.js`) |
 | `olx_meta.json` | Cached camera metadata (title / image / host / price / `firstSeen` for the NOWE chip / `etag` + `lastModified` for conditional refetching) |
 | `eslint.config.mjs` | Flat ESLint config, correctness rules only. Run it the same way CI does: `npx --yes eslint@9 .` — nothing is installed into the repo |
@@ -140,8 +135,13 @@ For copy, styling, or template changes: push to one of the branches above and `d
 | `test/` | `node:test` suites: `build-catalog.test.js` / `discover-listings.test.js` cover the script helpers, `links.test.js` crawls the generated HTML and fails on a broken internal link, anchor, canonical URL or sitemap entry |
 | `.github/workflows/ci.yml` | Three jobs: `node --test` on PRs and pushes, ESLint via `npx`, and Lighthouse CI on PRs only |
 | `.github/workflows/discover-cameras.yml` | Scheduled/push workflow: auto-discover cameras, rebuild, and deploy |
-| `.github/workflows/refresh-amazon.yml.disabled` | Weekly cron workflow to refresh Amazon prices and product images. **Disabled** (the `.disabled` suffix parks it so Actions skips it) — see TODO.md for why |
 | `.github/workflows/deploy-pages.yml` | Manual fallback deploy workflow for GitHub Pages |
+
+## Maintaining film and accessory cards
+
+Edit `scripts/allegro-products.json` for links, prices and product images, then rebuild. Use a retail `/produkt/` URL or `business.allegro.pl/oferta/` URL, avoiding auctions and the "Kolekcje i sztuka" category. The builder adds campaign tracking and wraps the complete destination in `allegro.pl/affiliate?redirect_url=…`; existing query parameters such as `offerId` survive. Keep the product and pack size consistent with the card: Portra is five 135/36 rolls (pinned to offer `17741420194`, because the generic product page represents one roll); Gold is three 135/36 rolls.
+
+Prices are maintained manually. Check the destination before changing `price` and `lastChecked`; rebuilding alone does not refresh either. For an unavailable product, set `available: false` and `price: ""`: the chip says "Obecnie niedostępny" and structured data reports `SoldOut` without a price. The Kodak smartphone scanner card is now the **6×6 model for 120/220 film**, currently unavailable as checked on 2026-10-13. See [allegro-plan.md](allegro-plan.md) for migration sources. No automated Allegro refresh has been enabled.
 
 ## Local usage
 
@@ -176,7 +176,7 @@ python -m http.server 8000 --bind 127.0.0.1
 Run the checks CI runs (no install step — both use only what's already available):
 
 ```bash
-node --test                 # 82 tests: script helpers + generated-link integrity
+node --test --test-reporter=dot # script helpers + generated-link integrity
 npx --yes eslint@9 .        # correctness rules only, no formatting opinions
 ```
 

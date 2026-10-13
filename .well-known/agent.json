@@ -32,7 +32,7 @@
     {
       "id": "film_and_gear_prices",
       "name": "Film stock and developing gear prices",
-      "description": "GET /amazon-products.json (keyed by Amazon ASIN) and /allegro-products.json (keyed by slug) return {label, price in PLN, lastChecked} for the recommended film stocks and developing/scanning equipment.",
+      "description": "GET /allegro-products.json (keyed by slug) returns {label, price in PLN, lastChecked, optional available}; unavailable entries have an empty price for the recommended film stocks and developing/scanning equipment.",
       "tags": ["film", "prices", "accessories"],
       "examples": [
         "What black-and-white film does this site recommend and what does it cost?"
@@ -45,7 +45,6 @@
     "llms_txt": "https://stareaparaty.com/llms.txt",
     "llms_full_txt": "https://stareaparaty.com/llms-full.txt",
     "camera_catalog_json": "https://stareaparaty.com/olx_meta.json",
-    "amazon_products_json": "https://stareaparaty.com/amazon-products.json",
     "allegro_products_json": "https://stareaparaty.com/allegro-products.json",
     "sitemap": "https://stareaparaty.com/sitemap.xml"
   },
