@@ -74,8 +74,8 @@ const LINKS_FILE = path.resolve(__dirname, '..', 'product-links.txt');
 //
 // A real day's shrinkage is one or two sold cameras. A third of the list
 // vanishing at once is a failed scrape until proven otherwise, so we refuse to
-// write and exit non-zero: the workflow stops before rebuilding, and the live
-// site keeps yesterday's complete catalog instead of publishing a partial one.
+// write and exit non-zero. The workflow reports the discovery failure and
+// rebuilds from the saved complete list, so site changes can still publish.
 // Override with --allow-shrink when you really have removed a lot of listings.
 const SHRINK_MIN_PREVIOUS = 5;
 const SHRINK_MAX_FRACTION = 0.3;

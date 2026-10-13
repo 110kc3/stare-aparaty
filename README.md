@@ -60,7 +60,7 @@ The OLX user page is a client-rendered app, but it still ships the current page'
 - `USER_PAGES` — my OLX user listing page(s); list only the first page of each, pagination is automatic. `categoryId=99` is the Foto category.
 - `KEYWORDS` — the "is it actually a camera" filter (case-insensitive). Defaults to `aparat` / `analog` plus common analog-camera brands, since some cameras are titled by model only (e.g. *Pentax SF7*). Set to `[]` to keep every offer in the category.
 
-Two guards protect `product-links.txt` from a bad scrape, because overwriting it with a short list quietly removes cameras from the live site. A run that finds **zero** offers leaves the file alone, and a run that loses more than **30%** of the previous list (`SHRINK_MAX_FRACTION`, floor of 5 links) refuses to write and exits non-zero — so the workflow stops before rebuilding and the deployed site keeps the last complete catalog. Pass `--allow-shrink` when you have genuinely removed a lot of listings.
+Two guards protect `product-links.txt` from a bad scrape, because overwriting it with a short list quietly removes cameras from the live site. A run that finds **zero** offers leaves the file alone, and a run that loses more than **30%** of the previous list (`SHRINK_MAX_FRACTION`, floor of 5 links) refuses to write and exits non-zero. The workflow warns about failed discovery and rebuilds from the saved list, preserving the complete catalog while still publishing template, film and accessory updates. Pass `--allow-shrink` when you have genuinely removed a lot of listings.
 
 ## Workflows
 
@@ -70,7 +70,7 @@ The repo ships these GitHub Actions workflows:
 
 The main workflow. Triggered on a **daily schedule** (`30 5 * * *`), on **push** to `main` / `master` / `update-film-info`, and manually via `workflow_dispatch`. In a single run it:
 
-1. Runs `discover-listings.js` to regenerate `product-links.txt` from my OLX user page.
+1. Runs `discover-listings.js` to regenerate `product-links.txt` from my OLX user page. On failure, emits a warning and continues with the unchanged saved list; OLX outages must not block publishing independent site changes.
 2. Runs `build-catalog.js` to rebuild `index.html` / `olx_meta.json`.
 3. Stages the generated files and commits them (via `github-actions[bot]`) if anything is actually staged. It stages *before* testing for changes on purpose: `git diff` alone only sees tracked files, so a state file that is new on that run would read as "nothing changed" and never get committed.
 4. Assembles a `dist/` folder of just the public files and publishes it straight to GitHub Pages — no second workflow needed. Only the public files ship; internal docs, scripts, and templates stay out of the deployed site.

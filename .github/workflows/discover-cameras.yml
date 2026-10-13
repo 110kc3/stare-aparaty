@@ -41,7 +41,16 @@ jobs:
           node-version: 20
 
       - name: Discover listings from OLX user page
+        id: discovery
+        # Discovery refuses to overwrite product-links.txt on an empty or
+        # partial scrape. Keep publishing template/product updates from that
+        # saved list when OLX is unavailable.
+        continue-on-error: true
         run: node scripts/discover-listings.js
+
+      - name: Report discovery fallback
+        if: steps.discovery.outcome == 'failure'
+        run: echo '::warning::OLX discovery failed; publishing with the saved camera list. Check discovery logs before accepting any inventory shrink.'
 
       # build-catalog.js emits ::warning:: annotations for any listing it could
       # not fetch, so a degraded card shows up on the run page instead of only
