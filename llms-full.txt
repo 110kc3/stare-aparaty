@@ -35,7 +35,7 @@
 
 ## Pelny katalog aparatow
 
-Wygenerowane z olx_meta.json przy ostatnim buildzie. Dostepne: 17, sprzedane: 0.
+Wygenerowane z olx_meta.json przy ostatnim buildzie. Dostepne: 16, sprzedane: 1.
 
 ### Dostepne
 
@@ -46,8 +46,7 @@ Wygenerowane z olx_meta.json przy ostatnim buildzie. Dostepne: 17, sprzedane: 0.
 - Aparat na film: Chinon Auto GX Motorized Focus Free z futerałem Gliwice Sikornik — 60 zł — https://www.olx.pl/d/oferta/aparat-na-film-chinon-auto-gx-motorized-focus-free-z-futeralem-CID99-ID13I4Bv.html
 - Aparat PETRI FT EE FULLY AUTOMATIC z Petri C.C Auto 55mm F/1.8 na film Gliwice Sikornik — 350 zł (wczesniej 400 zł) — https://www.olx.pl/d/oferta/aparat-petri-ft-ee-fully-automatic-z-petri-c-c-auto-55mm-f-1-8-na-film-CID99-ID12T8Az.html
 - Aparat Yashica FX-2 z obiektywem Super Paragon PMC II Auto Tele Zoom Gliwice Wojska Polskiego — 150 zł (wczesniej 180 zł) — https://www.olx.pl/d/oferta/aparat-yashica-fx-2-z-obiektywem-super-paragon-pmc-ii-auto-tele-zoom-CID4042-ID13GFxk.html
-- Aparaty marki Praktica BCA, TL 2 + obiektywy Palar i PMC Gliwice Sikornik — 399 zł — https://www.olx.pl/d/oferta/aparaty-marki-praktica-bca-tl-2-obiektywy-palar-i-pmc-CID4042-ID136V3O.html
-- Aparaty na film Kodak Duaflex II, Brownie Cresta 3, Retina If Gliwice Sikornik — 333 zł (wczesniej 350 zł) — https://www.olx.pl/d/oferta/aparaty-na-film-kodak-duaflex-ii-brownie-cresta-3-retina-if-CID4042-ID13Iqft.html
+- Aparaty na film Kodak Duaflex II, Brownie Cresta 3, Retina If Gliwice Sikornik — 250 zł (wczesniej 350 zł) — https://www.olx.pl/d/oferta/aparaty-na-film-kodak-duaflex-ii-brownie-cresta-3-retina-if-CID4042-ID13Iqft.html
 - Kolekcja aparatów Canon EOS analogi cyfrowe i manualne Gierałtowice — 1700 zł — https://www.olx.pl/d/oferta/kolekcja-aparatow-canon-eos-analogi-cyfrowe-i-manualne-CID99-ID14b1Zp.html
 - Obiektyw Topman MC 28mm f/2.8, japońskiej produkcji Gliwice Sikornik — 100 zł — https://www.olx.pl/d/oferta/obiektyw-topman-mc-28mm-f-2-8-japonskiej-produkcji-CID99-ID12Vf8L.html
 - Olympus AM-100 Quartzdate, aparat kompaktowy na film Gliwice Sikornik — 165 zł — https://www.olx.pl/d/oferta/olympus-am-100-quartzdate-aparat-kompaktowy-na-film-CID99-ID12VaGV.html
@@ -56,3 +55,7 @@ Wygenerowane z olx_meta.json przy ostatnim buildzie. Dostepne: 17, sprzedane: 0.
 - Pentax SF7 z obiektywami Pentax-F Zoom 28-80mm i SMC Pentax-F 35-80mm Gliwice Sikornik — 300 zł — https://www.olx.pl/d/oferta/pentax-sf7-z-obiektywami-pentax-f-zoom-28-80mm-i-smc-pentax-f-35-80mm-CID99-ID15n0RK.html
 - Praktica BCA z obiektywem Prakticar PB 80-200mm f/4.5-5.6 MC Pentacon Gliwice Wojska Polskiego — 135 zł (wczesniej 180 zł) — https://www.olx.pl/d/oferta/praktica-bca-z-obiektywem-prakticar-pb-80-200mm-f-4-5-5-6-mc-pentacon-CID99-ID13N2HX.html
 - Quasar Smart - klasyczny aparat analogowy na film, sprawny Gliwice Wojska Polskiego — 35 zł (wczesniej 39 zł) — https://www.olx.pl/d/oferta/quasar-smart-klasyczny-aparat-analogowy-na-film-sprawny-CID99-ID13GEOp.html
+
+### Sprzedane (archiwum)
+
+- Aparaty marki Praktica BCA, TL 2 + obiektywy Palar i PMC Gliwice Sikornik — 399 zł — https://www.olx.pl/d/oferta/aparaty-marki-praktica-bca-tl-2-obiektywy-palar-i-pmc-CID4042-ID136V3O.html
