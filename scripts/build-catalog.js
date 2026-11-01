@@ -267,8 +267,18 @@ function normalizeLinks(rawText) {
   return [...new Set(extractedLinks.map((entry) => entry.trim().replace(/[),]+$/g, '')).filter(Boolean))];
 }
 
-function todayInWarsaw() {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Warsaw' }).format(new Date());
+function todayInWarsaw(date = new Date()) {
+  // Do not rely on en-CA rendering as YYYY-MM-DD: small-ICU environments may
+  // fall back to M/D/YYYY, which is invalid in sitemap <lastmod> and cannot be
+  // parsed by isNewArrival once "T00:00:00Z" is appended.
+  const parts = new Intl.DateTimeFormat('en', {
+    timeZone: 'Europe/Warsaw',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
 }
 
 // When a listing first showed up in the catalog, used for the NOWE badge.
@@ -668,7 +678,10 @@ function renderIndex(items, adsConfig) {
     timeZone: 'Europe/Warsaw',
   }).format(new Date());
 
-  // Allegro data feeds the links, prices, images and retail structured data.
+  // Allegro data feeds the price and image placeholders below. It is
+  // deliberately not emitted as Product structured data: this page is a
+  // multi-product catalogue that links to third-party marketplaces, not a
+  // single-product purchase page.
   const allegro = loadAllegroProducts();
 
   // split/join instead of String.replace: a listing title containing a `$&`,
@@ -678,7 +691,7 @@ function renderIndex(items, adsConfig) {
     .split('{{COUNT}}').join(String(items.length))
     .split('{{LAST_UPDATED}}').join(escapeHtml(lastUpdated))
     .split('{{CAMERA_CARDS}}').join(renderCameraCatalog(items))
-    .split('{{CAMERA_JSONLD}}').join(renderProductJsonLd(items, allegro.products))
+    .split('{{SITE_JSONLD}}').join(renderSiteJsonLd(items))
     .split('{{ADSENSE_HEAD}}').join(renderAdsHead(ads))
     // The footer disclosure is gated for the same reason as the privacy policy
     // §3: with ads off the page loads no Google script, so claiming otherwise
@@ -718,11 +731,13 @@ function renderIndex(items, adsConfig) {
   return rendered;
 }
 
-// Emit schema.org structured data: a WebSite/Organization identity node, the
-// camera catalog as an ItemList of Product/Offer nodes (sold listings
-// advertise SoldOut, the rest InStock), and one Product per film/accessory
-// card so the whole page — not just the OLX section — is machine-readable.
-function renderProductJsonLd(items, allegroProducts = {}) {
+// Emit schema.org identity data plus a generic ItemList for the camera
+// catalogue. Do not mark the cards as Product/Offer: Google's product rich
+// results only support pages focused on one product, while this homepage lists
+// many products and sends visitors to OLX/Allegro to buy them. Product
+// markup here made Search Console treat the catalogue as a merchant page and
+// report inapplicable image/review/rating issues.
+function renderSiteJsonLd(items) {
   const organization = {
     '@type': 'Organization',
     name: 'Stare Aparaty',
@@ -746,73 +761,22 @@ function renderProductJsonLd(items, allegroProducts = {}) {
       '@type': 'ItemList',
       name: 'Aparaty analogowe w ofercie',
       numberOfItems: items.length,
-      itemListElement: items.map((item, index) => {
-        const offer = {
-          '@type': 'Offer',
-          url: item.url,
-          itemCondition: 'https://schema.org/UsedCondition',
-          availability: item.sold
-            ? 'https://schema.org/SoldOut'
-            : 'https://schema.org/InStock',
-        };
-        const priceNumber = priceToNumber(item.price);
-        if (priceNumber) {
-          offer.price = priceNumber;
-          offer.priceCurrency = 'PLN';
-        }
-        return {
-          '@type': 'ListItem',
-          position: index + 1,
-          item: {
-            '@type': 'Product',
-            name: item.title,
-            image: item.image,
-            offers: offer,
-          },
-        };
-      }),
+      itemListElement: items.map((item, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        item: {
+          '@id': item.url,
+          name: item.title,
+          image: item.image,
+        },
+      })),
     });
   }
 
-  // Plain product URLs (no affiliate tag) go into the structured data; the
-  // affiliate links stay in the visible cards only.
-  for (const data of Object.values(allegroProducts)) {
-    graph.push(retailProductNode(data, data && data.url));
-  }
-
-  const wrapped = { '@context': 'https://schema.org', '@graph': graph.filter(Boolean) };
+  const wrapped = { '@context': 'https://schema.org', '@graph': graph };
   // Escape "<" so a listing title can never break out of the <script> element.
   const json = JSON.stringify(wrapped, null, 2).replace(/</g, '\\u003c');
   return `<script type="application/ld+json">\n${json}\n  </script>`;
-}
-
-// Product node for a film/accessory card sold new on Allegro. Returns
-// null for malformed entries so a bad JSON row degrades to "not in the graph"
-// instead of a broken node.
-function retailProductNode(data, url) {
-  if (!data || !data.label || !url) {
-    return null;
-  }
-  const offer = {
-    '@type': 'Offer',
-    url,
-    itemCondition: 'https://schema.org/NewCondition',
-    availability: data.available === false ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
-  };
-  const priceNumber = priceToNumber(data.price);
-  if (priceNumber) {
-    offer.price = priceNumber;
-    offer.priceCurrency = 'PLN';
-  }
-  const product = {
-    '@type': 'Product',
-    name: data.label,
-    offers: offer,
-  };
-  if (data.image) {
-    product.image = data.image;
-  }
-  return product;
 }
 
 // llms-full.txt = the hand-written llms.txt prose with the live catalog inlined
@@ -1866,12 +1830,14 @@ module.exports = {
   formatPrice,
   getMetaContent,
   renderIndex,
+  renderSiteJsonLd,
   decodeHtmlEntities,
   priceToNumber,
   priceNumber,
   resolveOldPrice,
   cleanupText,
   normalizeLinks,
+  todayInWarsaw,
   assertRenderedOutput,
   mapWithConcurrency,
   classifyType,

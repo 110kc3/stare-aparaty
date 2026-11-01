@@ -9,11 +9,13 @@ const {
   formatPrice,
   getMetaContent,
   renderIndex,
+  renderSiteJsonLd,
   decodeHtmlEntities,
   priceToNumber,
   resolveOldPrice,
   cleanupText,
   normalizeLinks,
+  todayInWarsaw,
   assertRenderedOutput,
   mapWithConcurrency,
   classifyType,
@@ -126,6 +128,32 @@ test('renderIndex survives $-replacement sequences in listing titles', () => {
   assert.doesNotThrow(() => assertRenderedOutput(html, items.length));
 });
 
+test('catalog JSON-LD avoids inapplicable Product and Offer rich-result markup', () => {
+  const item = {
+    title: 'Zenit B',
+    image: 'https://example.com/zenit.jpg',
+    url: 'https://www.olx.pl/d/oferta/zenit.html',
+  };
+  const markup = renderSiteJsonLd([item]);
+  const payload = JSON.parse(markup.match(/<script[^>]*>([\s\S]*)<\/script>/)[1]);
+  const serialized = JSON.stringify(payload);
+
+  assert.ok(!serialized.includes('"@type":"Product"'));
+  assert.ok(!serialized.includes('"@type":"Offer"'));
+
+  const list = payload['@graph'].find((node) => node['@type'] === 'ItemList');
+  assert.equal(list.numberOfItems, 1);
+  assert.deepEqual(list.itemListElement[0], {
+    '@type': 'ListItem',
+    position: 1,
+    item: {
+      '@id': item.url,
+      name: item.title,
+      image: item.image,
+    },
+  });
+});
+
 test('priceToNumber extracts a bare numeric value', () => {
   assert.equal(priceToNumber('120 zł'), '120');
   assert.equal(priceToNumber('1 234,56 zł'), '1234.56');
@@ -143,6 +171,11 @@ test('normalizeLinks dedupes and trims trailing punctuation', () => {
     'https://olx.pl/a, https://olx.pl/b\nhttps://olx.pl/a;https://olx.pl/c)',
   );
   assert.deepEqual(out, ['https://olx.pl/a', 'https://olx.pl/b', 'https://olx.pl/c']);
+});
+
+test('todayInWarsaw always emits an ISO date and observes the Warsaw boundary', () => {
+  assert.equal(todayInWarsaw(new Date('2026-01-01T23:30:00Z')), '2026-01-02');
+  assert.match(todayInWarsaw(new Date('2026-08-24T12:00:00Z')), /^\d{4}-\d{2}-\d{2}$/);
 });
 
 test('assertRenderedOutput rejects leftover placeholders', () => {
