@@ -1,0 +1,54 @@
+name: Refresh Allegro prices
+
+on:
+  schedule:
+    # Every Monday at 06:00 UTC
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-allegro
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Refresh Allegro prices
+        run: node scripts/refresh-allegro.js
+        env:
+          ALLEGRO_CLIENT_ID: ${{ secrets.ALLEGRO_CLIENT_ID }}
+          ALLEGRO_CLIENT_SECRET: ${{ secrets.ALLEGRO_CLIENT_SECRET }}
+
+      - name: Rebuild catalog if prices updated
+        run: |
+          if [ -n "$(git status --porcelain scripts/allegro-products.json)" ]; then
+            echo "Allegro products changed. Rebuilding catalog..."
+            node scripts/build-catalog.js
+          fi
+
+      - name: Commit refreshed product data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add scripts/allegro-products.json index.html scripts/page-state.json sitemap.xml llms.txt llms-full.txt
+
+          if git diff --cached --quiet --exit-code; then
+            echo "No changes to commit."
+          else
+            git commit -m "chore(allegro): refresh product prices via official API"
+            git push
+          fi
