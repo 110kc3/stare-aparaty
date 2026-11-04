@@ -450,6 +450,54 @@
           ]
         }
       ]
+    },
+    {
+      "slug": "minolta-5000",
+      "kind": "model",
+      "navLabel": "Minolta 5000",
+      "type": "Lustrzanki (SLR)",
+      "match": [
+        "minolta 5000",
+        "minolta af"
+      ],
+      "offersHeading": "Minolta 5000 w ofercie",
+      "title": "Minolta 5000 — pierwsza fala autofokusa i bagnet A",
+      "description": "Minolta 5000: dlaczego bagnet Minolta A żyje do dziś w lustrzankach Sony Alpha, zalety zasilania bateriami AAA i na co uważać przy zakupie.",
+      "llms": "model guide (Polish): the 1986 Minolta 5000 AF SLR, Minolta A-mount cross-compatibility with Sony Alpha DSLRs, standard AAA battery power, LCD bleed check, first film choice",
+      "lead": "Minolta 5000 z 1986 r. to uproszczona siostra legendarnej 7000 — aparatu, który rozpoczął masową erę autofokusa w lustrzankach. Wyróżnia się prostotą obsługi, zasilaniem na tanie i wszędzie dostępne baterie AAA oraz bagnetem Minolta A, którego optykę można do dziś wykorzystywać na lustrzankach cyfrowych Sony Alpha.",
+      "sections": [
+        {
+          "heading": "Bagnet Minolta A: obiektywy, które pasują do cyfry",
+          "paragraphs": [
+            "Minolta zrewolucjonizowała rynek w 1985 roku, wprowadzając całkowicie elektroniczny bagnet A z napędem autofokusa z korpusu (tzw. śrubokręt). Gdy w 2006 roku Sony przejęło dział fotograficzny Konica Minolta, zachowało ten sam bagnet w swoich lustrzankach cyfrowych Sony Alpha (np. A100, A58, A700, A900).",
+            "Oznacza to, że obiektywy Minolta AF kupione do korpusu na film pasują bezpośrednio do cyfrowych lustrzanek Sony Alpha oraz — przez fabryczne adaptery Sony LA-EA — do bezlusterkowców Sony E. Jasne stałki z tej epoki (jak Minolta AF 50 mm f/1.7) oferują rewelacyjną ostrość i plastykę za ułamek ceny współczesnych szkieł."
+          ]
+        },
+        {
+          "heading": "Zasilanie: koniec z drogimi bateriami fotograficznymi",
+          "paragraphs": [
+            "Większość późniejszych lustrzanek z autofokusem (np. Canon EOS czy późniejsze Minolty Dynax) wymaga drogich i trudniej dostępnych baterii litowych 2CR5 lub CR123A. Minolta 5000 ma zintegrowany koszyk w rękojeści na 4 standardowe baterie AAA (paluszki R03).",
+            "Baterie AAA kupisz w każdym kiosku za kilka złotych, więc aparat nie zaskoczy Cię brakiem prądu w podróży. Istnieje też opcjonalny powiększony grip na popularne baterie AA (R6)."
+          ]
+        },
+        {
+          "heading": "Na co uważać przy zakupie używanej",
+          "list": [
+            "**Rozlanie ciekłych kryształów (LCD bleed).** Górny wyświetlacz to najdelikatniejszy punkt korpusów z tej epoki. Sprawdź, czy na krawędziach ekranu nie pojawiają się czarne plamy, które zasłaniają licznik klatek lub czasy naświetlania.",
+            "**Komora baterii.** Otwórz koszyk baterii w rękojeści i sprawdź sprężynki. Pozostawione na lata baterie alkaliczne mogły wylać i pokryć styki zielonym lub białym nalotem.",
+            "**Sprawność autofokusa.** Skieruj aparat na kontrastowy obiekt i wciśnij spust do połowy. Silnik w korpusie powinien pewnie i szybko ustawić ostrość, a w wizjerze zapali się zielona kropka potwierdzenia ostrości.",
+            "**Przełącznik AF/M.** Przełącznik na ściance bocznej powinien gładko rozłączać sprzęgło napędu ostrości, pozwalając na swobodne ręczne ostrzenie pierścieniem na obiektywie.",
+            "**Automatyczne ładowanie i naciąg.** Po włożeniu kasetki i zamknięciu tylnej ścianki aparat powinien sam przewinąć film do pierwszej klatki."
+          ]
+        },
+        {
+          "heading": "Jaki film na start",
+          "paragraphs": [
+            "Minolta 5000 posiada czytnik kodów DX na kasecie filmu w zakresie od 25 do 5000 ISO. Wkładasz film, a aparat sam rozpoznaje jego czułość i dobiera właściwy algorytm naświetlania.",
+            "Na pierwszą rolkę polecamy klasyczny uniwersalny film 400 ISO — czarno-biały Kentmere 400 albo kolorowy Kodak Ultramax 400. Dają one dużą swobodę fotografowania z ręki bez konieczności używania statywu nawet przy słabszym świetle dziennym."
+          ]
+        }
+      ]
     }
   ]
 }

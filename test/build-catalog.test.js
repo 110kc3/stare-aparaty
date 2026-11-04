@@ -702,6 +702,22 @@ test('a model guide selects listings by keyword, not by type', () => {
   assert.match(html, /Pentax ME i MV w mojej ofercie/);
 });
 
+test('minolta-5000 model guide selects Minolta listings and excludes others', () => {
+  const guides = loadGuides();
+  const minolta = guides.find((guide) => guide.slug === 'minolta-5000');
+  assert.ok(minolta, 'expected the Minolta 5000 guide');
+  assert.equal(minolta.kind, 'model');
+
+  const items = [
+    { title: 'Aparat analogowy Minolta 5000 Gliwice', url: 'https://olx.pl/m5000.html', price: '60 zł', sold: false },
+    { title: 'Pentax ME z obiektywem Takumar', url: 'https://olx.pl/me.html', price: '330 zł', sold: false },
+  ];
+  const html = renderGuide(minolta, guides, items, ADS_OFF);
+  assert.ok(html.includes('https://olx.pl/m5000.html'), 'expected matching Minolta body in offers');
+  assert.ok(!html.includes('https://olx.pl/me.html'), 'unrelated offer URL must not be listed');
+  assert.match(html, /Minolta 5000 w ofercie/);
+});
+
 test('model guides stay out of the homepage type headings', () => {
   // Two model guides share the SLR type; letting them into the heading map
   // would mean they silently overwrite each other and the type guide.
