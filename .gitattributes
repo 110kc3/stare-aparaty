@@ -10,6 +10,8 @@
 # throughout. Binaries are pinned so they are never touched. After adding this,
 # run once to clear any already-CRLF blobs:  git add --renormalize . && commit.
 * text=auto eol=lf
+*.md text eol=lf
+*.yml text eol=lf
 *.png binary
 *.ico binary
 *.zip binary
