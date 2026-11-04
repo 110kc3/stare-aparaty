@@ -9,6 +9,7 @@
     { "match": ["pentax sf7", "pentax sf"], "note": "Lustrzanka z 1988 r. — jeden z pierwszych autofocusów Pentaxa, z wbudowaną lampą." },
     { "match": ["pentax"], "note": "Japońska szkoła lustrzanek — kompaktowe korpusy i ceniona optyka SMC." },
     { "match": ["yashica 35"], "note": "Dalmierz z lat 60. — stałoogniskowy obiektyw i klasyczne ostrzenie na plamkę." },
+    { "match": ["yashica fx"], "note": "Mechaniczna lustrzanka z bagnetem Contax/Yashica (C/Y) — bezpośredni dostęp do szkieł Carl Zeiss T*." },
     { "match": ["yashica"], "note": "Japońska marka z Nagano, znana z przystępnych korpusów i optyki spod znaku Contax/Zeiss." },
     { "match": ["chinon"], "note": "Japoński producent z Nagano — solidne korpusy, często sprzedawane pod cudzymi markami." },
     { "match": ["petri"], "note": "Tokijska wytwórnia z lat 60.–70., ceniona za jasne obiektywy w niskiej cenie." },

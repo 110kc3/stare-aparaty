@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yashica FX — bagnet Contax/Yashica i optyka Carl Zeiss · Stare Aparaty</title>
+  <meta name="description" content="Yashica FX-2 i FX-3: czym jest bagnet C/Y, dlaczego pozwala montować legendarne obiektywy Carl Zeiss T* i na co zwrócić uwagę przed zakupem japońskiej lustrzanki.">
+  <link rel="canonical" href="https://stareaparaty.com/poradniki/yashica-fx.html">
+
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Stare Aparaty">
+  <meta property="og:title" content="Yashica FX — bagnet Contax/Yashica i optyka Carl Zeiss">
+  <meta property="og:description" content="Yashica FX-2 i FX-3: czym jest bagnet C/Y, dlaczego pozwala montować legendarne obiektywy Carl Zeiss T* i na co zwrócić uwagę przed zakupem japońskiej lustrzanki.">
+  <meta property="og:url" content="https://stareaparaty.com/poradniki/yashica-fx.html">
+  <meta property="og:image" content="https://stareaparaty.com/og-image.png">
+  <meta property="og:locale" content="pl_PL">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Yashica FX — bagnet Contax/Yashica i optyka Carl Zeiss">
+  <meta name="twitter:description" content="Yashica FX-2 i FX-3: czym jest bagnet C/Y, dlaczego pozwala montować legendarne obiektywy Carl Zeiss T* i na co zwrócić uwagę przed zakupem japońskiej lustrzanki.">
+  <meta name="twitter:image" content="https://stareaparaty.com/og-image.png">
+
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+  <meta name="theme-color" content="#0e0b08">
+
+  <link rel="stylesheet" href="../fonts/fonts.css">
+  <script>
+    (function(){
+      try {
+        var t = localStorage.getItem('theme');
+        document.documentElement.setAttribute('data-theme', t === 'light' ? 'light' : 'dark');
+      } catch(e) {}
+    })();
+  </script>
+  <style>
+    :root {
+      --bg:        #0e0b08;
+      --bg-2:      #141009;
+      --bg-strip:  #1a1612;
+      --ink:       #f2e8d8;
+      --ink-soft:  #7a6e60;
+      --ink-faint: #3a3127;
+      --gold:      #f5d06e;
+      --gold-dim:  #c4a044;
+      --line:      #2a2218;
+      --line-gold: #f5d06e;
+      --retro:     "Press Start 2P", "Courier New", monospace;
+      --serif:     "Cormorant Garamond", "Times New Roman", serif;
+      --sans:      "Inter", "Segoe UI", sans-serif;
+    }
+    [data-theme="light"] {
+      --bg:        #f6f1e8;
+      --bg-2:      #faf7f2;
+      --bg-strip:  #e8e0d4;
+      --ink:       #1c1815;
+      --ink-soft:  #5f564d;
+      --ink-faint: #c8bfb4;
+      --gold:      #7a5a18;
+      --gold-dim:  #9a7428;
+      --line:      #d8cfc3;
+      --line-gold: #7a5a18;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--sans);
+      line-height: 1.75;
+      padding: 32px 24px 56px;
+      transition: background 200ms, color 200ms;
+    }
+    .shell { width: min(760px, 100%); margin: 0 auto; }
+
+    .label {
+      display: inline-block;
+      font-family: var(--retro);
+      font-size: 7px;
+      letter-spacing: 0.1em;
+      line-height: 1.6;
+      color: var(--gold);
+      padding: 3px 10px;
+      border: 1px solid var(--gold-dim);
+      text-decoration: none;
+    }
+    .label--soft { color: var(--ink-soft); border-color: var(--line); }
+
+    .crumb { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+    .filmstrip {
+      height: 18px;
+      margin: 22px 0 30px;
+      background: var(--bg-strip);
+      border-top: 2px solid var(--line-gold);
+      border-bottom: 2px solid var(--line-gold);
+      background-image: repeating-linear-gradient(
+        90deg,
+        transparent 0, transparent 52px,
+        var(--ink-faint) 52px, var(--ink-faint) 60px
+      );
+    }
+
+    h1 {
+      font-family: var(--serif);
+      font-size: clamp(2.2rem, 5vw, 3.4rem);
+      font-weight: 500;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+    }
+    .lead {
+      font-size: 16px;
+      color: var(--ink);
+      margin-top: 16px;
+      padding-left: 16px;
+      border-left: 2px solid var(--gold-dim);
+    }
+
+    h2 {
+      font-family: var(--serif);
+      font-size: 1.6rem;
+      font-weight: 500;
+      margin: 36px 0 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--line);
+    }
+    p, li { font-size: 14px; color: var(--ink-soft); }
+    p { margin-bottom: 12px; }
+    ul { margin: 0 0 12px 20px; }
+    li { margin-bottom: 8px; }
+    strong { color: var(--ink); font-weight: 600; }
+    em { font-style: italic; }
+    a { color: var(--gold-dim); }
+    a:hover { color: var(--gold); }
+
+    /* Live listings of this type, pulled from the catalog at build time. */
+    .offers { margin: 10px 0 0; display: grid; gap: 8px; }
+    .offer {
+      display: flex; justify-content: space-between; align-items: center; gap: 14px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      background: var(--bg-2);
+      text-decoration: none;
+      transition: border-color 150ms, transform 150ms;
+    }
+    .offer:hover { border-color: var(--gold-dim); transform: translateX(2px); }
+    .offer__name { font-size: 13px; color: var(--ink); font-weight: 500; }
+    .offer__price {
+      font-size: 13px; font-weight: 700; color: var(--gold);
+      white-space: nowrap;
+    }
+    .offer--sold { pointer-events: none; opacity: 0.55; }
+    .offer--sold .offer__price { color: var(--ink-soft); }
+    .offers__empty {
+      padding: 14px; border: 1px dashed var(--line);
+      font-size: 13px; color: var(--ink-soft);
+    }
+
+    .related { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .related a {
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      font-size: 12px;
+      text-decoration: none;
+      transition: border-color 150ms;
+    }
+    .related a:hover { border-color: var(--gold-dim); }
+
+    .footer {
+      margin-top: 44px;
+      border-top: 2px solid var(--line-gold);
+      padding-top: 18px;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 12px;
+    }
+    .footer p { font-size: 11px; margin: 0; }
+    .footer a { text-decoration: none; font-size: 12px; }
+
+    /* Ad slots — see ADSENSE.md. Labelled for the same reason as on the
+       catalog page: an unmarked unit inside editorial copy reads as advice. */
+    .ad-slot {
+      display: flex; flex-direction: column; gap: 8px;
+      border: 1px dashed var(--line);
+      background: var(--bg-2);
+      padding: 12px;
+      margin-top: 36px;
+      overflow: hidden;
+    }
+    .ad-slot__label {
+      font-family: var(--retro);
+      font-size: 7px;
+      letter-spacing: 0.12em;
+      color: var(--ink-faint);
+      align-self: flex-start;
+    }
+    .ad-slot__ins { width: 100%; min-height: 100px; }
+    .ad-slot:has(> .ad-slot__ins[data-ad-status="unfilled"]) { display: none; }
+
+    a:focus-visible, button:focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .offer:hover { transform: none; }
+    }
+  </style>
+
+</head>
+<body>
+<div class="shell">
+
+  <nav class="crumb">
+    <a class="label" href="../">STARE APARATY</a>
+    <a class="label label--soft" href="../#aparaty">KATALOG</a>
+  </nav>
+  <div class="filmstrip" aria-hidden="true"></div>
+
+  <article>
+    <h1>Yashica FX — bagnet Contax/Yashica i optyka Carl Zeiss</h1>
+    <p class="lead">Lustrzanki Yashica z serii FX (FX-2, FX-3) to jedne z najbardziej pożądanych mechanicznych korpusów dla osób szukających bezkompromisowej optyki. Dzielą wspólny bagnet Contax/Yashica (C/Y) z luksusowymi korpusami Contax, co otwiera bezpośredni dostęp do legendarnych obiektywów Carl Zeiss T* bez żadnych adapterów.</p>
+
+    <h2>Bagnet Contax/Yashica (C/Y): brama do szkieł Carl Zeiss</h2>
+    <p>W 1974 roku Yashica połączyła siły z niemieckim gigantem optycznym Carl Zeiss, tworząc wspólny bagnet C/Y. Korpusy Contax (RTS, 139, 159) były luksusowe i naszpikowane elektroniką, natomiast Yashica produkowała prostsze, wysoce niezawodne korpusy mechaniczne.</p>
+    <p>Dla kupującego oznacza to genialną synergię: możesz kupić niedrogi, w pełni mechaniczny korpus Yashica FX-2 lub FX-3 i założyć na niego kultowy Carl Zeiss Planar 50 mm f/1.4 T*, Tessar 45 mm czy Distagon 28 mm. Z kolei obiektywy Yashica ML i DSB stanowią znakomitą i wielokrotnie tańszą alternatywę na start.</p>
+
+    <h2>Mechaniczna migawka: niezależność od baterii</h2>
+    <p>Yashica FX-2 posiada w pełni mechaniczną migawkę szczelinową o czasach od 1 s do 1/1000 s oraz tryb B. Bateria (dwie standardowe pastylki LR44 lub SR44) zasila wyłącznie wewnętrzny światłomierz CdS z igłą w wizjerze.</p>
+    <p>Oznacza to, że nawet przy całkowicie rozładowanej baterii na mrozie aparat naświetla każdą klatkę z pełną precyzją czasów. Nie grozi Ci sytuacja znana z aparatów w pełni elektronicznych, gdzie padnięte ogniwo blokuje lustro i zamienia korpus w bezużyteczny rekwizyt.</p>
+
+    <h2>Na co sprawdzić używany egzemplarz</h2>
+    <ul>
+      <li><strong>Działanie migawki na długich czasach.</strong> Ustaw czas 1 s oraz 1/2 s i wsłuchaj się w pracę opóźniacza. Dźwięk powinien być równomierny, a migawka musi domykać się bez wahania.</li>
+      <li><strong>Okładziny korpusu (leatherette).</strong> Fabryczna skóropodobna okładzina w aparatach Yashica z lat 70. i 80. z czasem kruszy się i łuszczy. To wyłącznie defekt kosmetyczny (w sieci dostępne są gotowe samoprzylepne zestawy do renowacji), ale świetny powód do utargowania ceny.</li>
+      <li><strong>Czystość matówki i pryzmatu.</strong> Spójrz przez wizjer w jasne niebo. Sprawdź, czy klin mierniczy i raster mikropryzmatyczny są czytelne i czy w pryzmacie nie ma czarnej linii rozklejenia srebra.</li>
+      <li><strong>Czystość styków baterii i igła światłomierza.</strong> W komorze baterii na spodzie korpusu nie może być śladów kwasu. Po włożeniu baterii i naciśnięciu przycisku testu igła w wizjerze powinna płynnie reagować na światło.</li>
+      <li><strong>Płynność pierścieni obiektywu.</strong> Pierścień ostrości powinien obracać się z jednolitym oporem, a przysłona zamykać się błyskawicznie bez śladów zaolejenia na listkach.</li>
+    </ul>
+
+    <h2>Jaki film na start</h2>
+    <p>Jasna matówka z klinem ułatwia precyzyjne ostrzenie nawet w trudnych warunkach. Na pierwszą rolkę polecamy klasyczny negatyw czarno-biały Kentmere 400 lub Ilford HP5 Plus — świetnie oddają mikrokontrast japońskiej i niemieckiej optyki i mają ogromną tolerancję na drobne błędy naświetlania.</p>
+    <p>Do fotografii barwnej w słoneczny dzień doskonałym wyborem będzie Kodak Gold 200 lub ColorPlus 200, dające ciepłe, analogowe nasycenie barw, z którego słynie zestawienie optyki Yashica z filmem Kodaka.</p>
+
+    <h2>Yashica FX w ofercie</h2>
+    <div class="offers">
+      <a class="offer" href="https://www.olx.pl/d/oferta/aparat-yashica-fx-2-z-obiektywem-super-paragon-pmc-ii-auto-tele-zoom-CID4042-ID13GFxk.html" target="_blank" rel="noopener noreferrer"><span class="offer__name">Aparat Yashica FX-2 z obiektywem Super Paragon PMC II Auto Tele Zoom Gliwice Wojska Polskiego</span><span class="offer__price">140 zł →</span></a>
+    </div>
+
+    <h2>Dobierz film</h2>
+    <p>Filmy i chemię do wywoływania znajdziesz w katalogu — z aktualnymi cenami i linkami do sklepów.</p>
+    <div class="related">
+      <a href="../#filmy-bw">Filmy czarno-białe</a>
+      <a href="../#filmy-kolor">Filmy kolorowe</a>
+      <a href="../#wywolywanie">Wywoływanie i skanowanie</a>
+    </div>
+
+    <h2>Pozostałe poradniki</h2>
+    <div class="related">
+      <a href="lustrzanki-slr.html">Lustrzanki (SLR)</a>
+      <a href="kompaktowe.html">Kompaktowe</a>
+      <a href="dalmierzowe.html">Dalmierzowe</a>
+      <a href="zestawy.html">Zestawy</a>
+      <a href="obiektywy.html">Obiektywy</a>
+      <a href="pentax-me.html">Pentax ME</a>
+      <a href="zenit-b-helios-44-2.html">Zenit + Helios</a>
+      <a href="praktica-bca.html">Praktica BCA</a>
+      <a href="yashica-35w.html">Yashica 35</a>
+      <a href="canon-eos.html">Canon EOS</a>
+      <a href="minolta-5000.html">Minolta 5000</a>
+    </div>
+  </article>
+
+
+
+  <footer class="footer">
+    <p class="label label--soft">STARE APARATY</p>
+    <p><a href="../polityka-prywatnosci.html">Polityka prywatności</a></p>
+    <p><a href="mailto:support@stareaparaty.com">support@stareaparaty.com</a></p>
+  </footer>
+
+</div>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Yashica FX — bagnet Contax/Yashica i optyka Carl Zeiss",
+  "description": "Yashica FX-2 i FX-3: czym jest bagnet C/Y, dlaczego pozwala montować legendarne obiektywy Carl Zeiss T* i na co zwrócić uwagę przed zakupem japońskiej lustrzanki.",
+  "inLanguage": "pl-PL",
+  "mainEntityOfPage": "https://stareaparaty.com/poradniki/yashica-fx.html",
+  "author": {
+    "@type": "Organization",
+    "name": "Stare Aparaty",
+    "url": "https://stareaparaty.com/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Stare Aparaty",
+    "url": "https://stareaparaty.com/",
+    "logo": "https://stareaparaty.com/icon-512.png"
+  }
+}
+</script>
+</body>
+</html>

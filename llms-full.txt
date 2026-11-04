@@ -25,6 +25,7 @@
 - https://stareaparaty.com/poradniki/yashica-35w.html — model guide (Polish): rangefinder patch focusing, the discontinued 1.35V PX625 mercury cell and its zinc-air / MR-9 workarounds, slow-shutter and fungus checks
 - https://stareaparaty.com/poradniki/canon-eos.html — model guide (Polish): why the EF mount outlives the film body, why EF-S lenses cannot mount on a 35mm camera, battery types and body checks, DX-coded film choice
 - https://stareaparaty.com/poradniki/minolta-5000.html — model guide (Polish): the 1986 Minolta 5000 AF SLR, Minolta A-mount cross-compatibility with Sony Alpha DSLRs, standard AAA battery power, LCD bleed check, first film choice
+- https://stareaparaty.com/poradniki/yashica-fx.html — model guide (Polish): the Yashica FX SLR series (FX-2, FX-3), the Contax/Yashica (C/Y) bayonet mount, Carl Zeiss T* lens compatibility, mechanical shutter reliability, first film choice
 - https://stareaparaty.com/polityka-prywatnosci.html — privacy and cookie policy (Polish): what the site collects, its advertising and consent position, affiliate disclosure, GDPR rights
 
 ## Notes

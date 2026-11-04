@@ -718,6 +718,24 @@ test('minolta-5000 model guide selects Minolta listings and excludes others', ()
   assert.match(html, /Minolta 5000 w ofercie/);
 });
 
+test('yashica-fx model guide selects Yashica FX listings and excludes others', () => {
+  const guides = loadGuides();
+  const yashica = guides.find((g) => g.slug === 'yashica-fx');
+  assert.ok(yashica, 'yashica-fx guide not found in guides.json');
+  assert.equal(yashica.kind, 'model');
+
+  const items = [
+    { title: 'Aparat Yashica FX-2 z obiektywem Super Paragon', url: 'https://olx.pl/fx2.html', price: '140 zł', sold: false },
+    { title: 'Analogowy aparat Yashica 35W sprawny', url: 'https://olx.pl/35w.html', price: '349 zł', sold: false },
+    { title: 'Pentax ME z obiektywem Takumar', url: 'https://olx.pl/me.html', price: '330 zł', sold: false },
+  ];
+  const html = renderGuide(yashica, guides, items, ADS_OFF);
+  assert.ok(html.includes('https://olx.pl/fx2.html'), 'expected matching Yashica FX-2 in offers');
+  assert.ok(!html.includes('https://olx.pl/35w.html'), 'Yashica 35W rangefinder must not be in FX SLR offers');
+  assert.ok(!html.includes('https://olx.pl/me.html'), 'unrelated Pentax must not be listed');
+  assert.match(html, /Yashica FX w ofercie/);
+});
+
 test('model guides stay out of the homepage type headings', () => {
   // Two model guides share the SLR type; letting them into the heading map
   // would mean they silently overwrite each other and the type guide.

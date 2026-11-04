@@ -498,6 +498,55 @@
           ]
         }
       ]
+    },
+    {
+      "slug": "yashica-fx",
+      "kind": "model",
+      "navLabel": "Yashica FX",
+      "type": "Lustrzanki (SLR)",
+      "match": [
+        "yashica fx",
+        "fx-2",
+        "fx-3"
+      ],
+      "offersHeading": "Yashica FX w ofercie",
+      "title": "Yashica FX — bagnet Contax/Yashica i optyka Carl Zeiss",
+      "description": "Yashica FX-2 i FX-3: czym jest bagnet C/Y, dlaczego pozwala montować legendarne obiektywy Carl Zeiss T* i na co zwrócić uwagę przed zakupem japońskiej lustrzanki.",
+      "llms": "model guide (Polish): the Yashica FX SLR series (FX-2, FX-3), the Contax/Yashica (C/Y) bayonet mount, Carl Zeiss T* lens compatibility, mechanical shutter reliability, first film choice",
+      "lead": "Lustrzanki Yashica z serii FX (FX-2, FX-3) to jedne z najbardziej pożądanych mechanicznych korpusów dla osób szukających bezkompromisowej optyki. Dzielą wspólny bagnet Contax/Yashica (C/Y) z luksusowymi korpusami Contax, co otwiera bezpośredni dostęp do legendarnych obiektywów Carl Zeiss T* bez żadnych adapterów.",
+      "sections": [
+        {
+          "heading": "Bagnet Contax/Yashica (C/Y): brama do szkieł Carl Zeiss",
+          "paragraphs": [
+            "W 1974 roku Yashica połączyła siły z niemieckim gigantem optycznym Carl Zeiss, tworząc wspólny bagnet C/Y. Korpusy Contax (RTS, 139, 159) były luksusowe i naszpikowane elektroniką, natomiast Yashica produkowała prostsze, wysoce niezawodne korpusy mechaniczne.",
+            "Dla kupującego oznacza to genialną synergię: możesz kupić niedrogi, w pełni mechaniczny korpus Yashica FX-2 lub FX-3 i założyć na niego kultowy Carl Zeiss Planar 50 mm f/1.4 T*, Tessar 45 mm czy Distagon 28 mm. Z kolei obiektywy Yashica ML i DSB stanowią znakomitą i wielokrotnie tańszą alternatywę na start."
+          ]
+        },
+        {
+          "heading": "Mechaniczna migawka: niezależność od baterii",
+          "paragraphs": [
+            "Yashica FX-2 posiada w pełni mechaniczną migawkę szczelinową o czasach od 1 s do 1/1000 s oraz tryb B. Bateria (dwie standardowe pastylki LR44 lub SR44) zasila wyłącznie wewnętrzny światłomierz CdS z igłą w wizjerze.",
+            "Oznacza to, że nawet przy całkowicie rozładowanej baterii na mrozie aparat naświetla każdą klatkę z pełną precyzją czasów. Nie grozi Ci sytuacja znana z aparatów w pełni elektronicznych, gdzie padnięte ogniwo blokuje lustro i zamienia korpus w bezużyteczny rekwizyt."
+          ]
+        },
+        {
+          "heading": "Na co sprawdzić używany egzemplarz",
+          "list": [
+            "**Działanie migawki na długich czasach.** Ustaw czas 1 s oraz 1/2 s i wsłuchaj się w pracę opóźniacza. Dźwięk powinien być równomierny, a migawka musi domykać się bez wahania.",
+            "**Okładziny korpusu (leatherette).** Fabryczna skóropodobna okładzina w aparatach Yashica z lat 70. i 80. z czasem kruszy się i łuszczy. To wyłącznie defekt kosmetyczny (w sieci dostępne są gotowe samoprzylepne zestawy do renowacji), ale świetny powód do utargowania ceny.",
+            "**Czystość matówki i pryzmatu.** Spójrz przez wizjer w jasne niebo. Sprawdź, czy klin mierniczy i raster mikropryzmatyczny są czytelne i czy w pryzmacie nie ma czarnej linii rozklejenia srebra.",
+            "**Czystość styków baterii i igła światłomierza.** W komorze baterii na spodzie korpusu nie może być śladów kwasu. Po włożeniu baterii i naciśnięciu przycisku testu igła w wizjerze powinna płynnie reagować na światło.",
+            "**Płynność pierścieni obiektywu.** Pierścień ostrości powinien obracać się z jednolitym oporem, a przysłona zamykać się błyskawicznie bez śladów zaolejenia na listkach."
+          ]
+        },
+        {
+          "heading": "Jaki film na start",
+          "paragraphs": [
+            "Jasna matówka z klinem ułatwia precyzyjne ostrzenie nawet w trudnych warunkach. Na pierwszą rolkę polecamy klasyczny negatyw czarno-biały Kentmere 400 lub Ilford HP5 Plus — świetnie oddają mikrokontrast japońskiej i niemieckiej optyki i mają ogromną tolerancję na drobne błędy naświetlania.",
+            "Do fotografii barwnej w słoneczny dzień doskonałym wyborem będzie Kodak Gold 200 lub ColorPlus 200, dające ciepłe, analogowe nasycenie barw, z którego słynie zestawienie optyki Yashica z filmem Kodaka."
+          ]
+        }
+      ]
     }
   ]
 }
