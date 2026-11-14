@@ -14,13 +14,8 @@ const ALLEGRO_PRODUCTS_FILE = path.join(__dirname, 'allegro-products.json');
 const ALLEGRO_CAMPAIGN_ID = '8902aaa9-6bd4-43f8-8111-28eb4c6a3dde';
 const CAMERA_TYPES_FILE = path.join(__dirname, 'camera-types.json');
 const CAMERA_NOTES_FILE = path.join(__dirname, 'camera-notes.json');
-// How long a freshly-discovered listing keeps its NOWE chip.
 const NEW_ARRIVAL_DAYS = 14;
 const ADS_CONFIG_FILE = path.join(__dirname, 'ads-config.json');
-// Per-page content fingerprints, so <lastmod> can say when a page's content
-// actually changed instead of when the build last ran. Build state, not site
-// content: it is committed (the next run needs it to compare against) but not
-// copied into dist/.
 const PAGE_STATE_FILE = path.join(__dirname, 'page-state.json');
 const OUTPUT_HTML = path.join(ROOT_DIR, 'index.html');
 const OUTPUT_JSON = path.join(ROOT_DIR, 'olx_meta.json');
@@ -33,37 +28,10 @@ const OUTPUT_ADS_TXT = path.join(ROOT_DIR, 'ads.txt');
 const SITE_URL = 'https://stareaparaty.com/';
 const PRIVACY_PATH = 'polityka-prywatnosci.html';
 const OUTPUT_PRIVACY = path.join(ROOT_DIR, PRIVACY_PATH);
-// Bumped by hand when the policy text itself changes. Deliberately NOT the
-// build date: the page rebuilds daily with the catalog, and a date that moved
-// every night would tell readers "this policy changed" when it hadn't.
-//
-// Last bump 2026-08-07, when §1 (data controller) was settled. The site is run
-// by a private individual, not a registered business, so the policy names a
-// natural person and carries no company name, address or NIP — that is
-// deliberate, not an unfilled placeholder, and it should not be "fixed" by
-// inventing business details. RODO art. 13(1)(a-b) wants the controller's
-// identity and a working contact channel; support@stareaparaty.com is it.
-// If the site ever starts operating under a działalność gospodarcza, §1 needs
-// that entity's name, address and NIP, and this date needs another bump.
-//
-// Bumped again 2026-08-11: §3, §5 and §8 now describe the site that actually
-// shipped. The ad prose was unconditional while the ad markup was config-gated,
-// so with enabled:false the policy claimed AdSense was serving ads, promised a
-// consent message that never appeared, and listed consent as a legal basis for
-// processing that wasn't happening. Those blocks now switch on ads-config.json,
-// which means **flipping `enabled` to true changes the published policy text**
-// — that is intended, and it is why this date must be bumped by hand whenever
-// the ads flag flips. See ADSENSE.md step 2.
-// Bumped 2026-10-13: film and gear links now use Allegro only.
 const PRIVACY_UPDATED = '13 października 2026';
-// Per-camera-type buyer guides live in their own directory so the deploy
-// workflows can ship them with one `cp -r` instead of a filename per guide.
 const GUIDES_DIR = 'poradniki';
 const OUTPUT_GUIDES_DIR = path.join(ROOT_DIR, GUIDES_DIR);
 
-// Up to this many listings are fetched at once. OLX tolerates a handful of
-// concurrent requests fine, and a bounded pool keeps the whole catalog from
-// rebuilding strictly one-at-a-time.
 const FETCH_CONCURRENCY = 5;
 
 async function main() {
@@ -71,7 +39,6 @@ async function main() {
   const links = loadLinks(args);
   const previousMetadata = loadPreviousMetadata();
 
-  // Fetch listings concurrently (bounded) but keep the original link order.
   const items = await mapWithConcurrency(links, FETCH_CONCURRENCY, (link) =>
     buildItem(link, previousMetadata.get(link)),
   );
@@ -87,7 +54,6 @@ async function main() {
     price: item.price || '',
     oldPrice: item.oldPrice || '',
     firstSeen: resolveFirstSeen(item.url, previousMetadata, today),
-    // HTTP validators, persisted so the next run can send a conditional request.
     etag: item.etag || '',
     lastModified: item.lastModified || '',
   }));
@@ -97,9 +63,6 @@ async function main() {
     annotate: !!process.env.GITHUB_ACTIONS,
   });
 
-  // Allegro prices are hand-maintained, so surface
-  // staleness on the run page instead of letting one forgotten entry quietly
-  // set the footer's "sprawdzone" date for the whole catalog.
   reportPriceFreshness(
     summarizePriceFreshness(
       [
@@ -114,8 +77,6 @@ async function main() {
     fs.writeFileSync(LINKS_FILE, `${links.join('\n')}\n`, 'utf8');
   }
 
-  // Loaded once so the page markup and ads.txt can never disagree about which
-  // publisher account this domain belongs to.
   const ads = loadAdsConfig();
 
   const html = renderIndex(normalizedItems, ads);
@@ -125,9 +86,6 @@ async function main() {
   const guidePages = writeGuides(normalizedItems, ads);
   const guides = guidePages.map((page) => page.guide);
 
-  // Every page that appears in the sitemap, in sitemap order, so <lastmod> can
-  // report when each one's content actually changed rather than when the build
-  // last ran. See resolvePageLastmod.
   const { lastmod, state } = resolvePageLastmod(
     [
       { url: SITE_URL, html },
@@ -145,8 +103,6 @@ async function main() {
   fs.writeFileSync(OUTPUT_SITEMAP, renderSitemap(guides, lastmod), 'utf8');
   fs.writeFileSync(OUTPUT_ADS_TXT, renderAdsTxt(ads), 'utf8');
 
-  // llms-full.txt embeds llms.txt, so render the intro once and hand it over
-  // instead of letting the second renderer re-read the file it was just given.
   const llmsIntro = renderLlmsTxt(guides, ads);
   fs.writeFileSync(OUTPUT_LLMS, llmsIntro, 'utf8');
   fs.writeFileSync(OUTPUT_LLMS_FULL, renderLlmsFull(normalizedItems, llmsIntro), 'utf8');
@@ -159,8 +115,6 @@ async function main() {
   );
 }
 
-// Run `fn` over `items` with at most `limit` in flight, preserving input order
-// in the returned results array.
 async function mapWithConcurrency(items, limit, fn) {
   const results = new Array(items.length);
   let cursor = 0;
@@ -182,8 +136,6 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// fetch() with a hard timeout and one retry. Without this a single hung OLX
-// connection would stall the entire build (and the daily CI job) indefinitely.
 async function fetchWithRetry(url, options = {}, { timeoutMs = 10000, retries = 1 } = {}) {
   let lastError;
   for (let attempt = 0; attempt <= retries; attempt += 1) {
@@ -199,8 +151,6 @@ async function fetchWithRetry(url, options = {}, { timeoutMs = 10000, retries = 
   throw lastError;
 }
 
-// Guard against shipping a half-rendered page: any leftover {{PLACEHOLDER}} or
-// (when we have links) a card-less grid means the template/data drifted.
 function assertRenderedOutput(html, itemCount) {
   assertNoPlaceholders(html, 'index.html');
   if (itemCount > 0 && !html.includes('cam-card')) {
@@ -208,7 +158,6 @@ function assertRenderedOutput(html, itemCount) {
   }
 }
 
-// Shared by every templated page, so a new placeholder can never ship raw.
 function assertNoPlaceholders(html, fileLabel) {
   const leftover = html.match(/\{\{[A-Z0-9_]+\}\}/g);
   if (leftover) {
@@ -236,8 +185,6 @@ function parseArgs(argv) {
     } else if (argument === '--write-links-file') {
       parsed.writeLinksFile = true;
     } else if (argument === '--strict') {
-      // Opt-in: fail the run if any listing would ship as a placeholder card.
-      // Off by default so one dead OLX link can't block the daily deploy.
       parsed.strict = true;
     }
   }
@@ -268,9 +215,6 @@ function normalizeLinks(rawText) {
 }
 
 function todayInWarsaw(date = new Date()) {
-  // Do not rely on en-CA rendering as YYYY-MM-DD: small-ICU environments may
-  // fall back to M/D/YYYY, which is invalid in sitemap <lastmod> and cannot be
-  // parsed by isNewArrival once "T00:00:00Z" is appended.
   const parts = new Intl.DateTimeFormat('en', {
     timeZone: 'Europe/Warsaw',
     year: 'numeric',
@@ -281,11 +225,6 @@ function todayInWarsaw(date = new Date()) {
   return `${values.year}-${values.month}-${values.day}`;
 }
 
-// When a listing first showed up in the catalog, used for the NOWE badge.
-//
-// Listings already known before this field existed keep an empty firstSeen and
-// are treated as not-new — otherwise the first build after adding the badge
-// would stamp every camera in the catalog as a new arrival at once.
 function resolveFirstSeen(url, previousMetadata, today) {
   const previous = previousMetadata.get(url);
   if (!previous) {
@@ -294,7 +233,6 @@ function resolveFirstSeen(url, previousMetadata, today) {
   return typeof previous.firstSeen === 'string' ? previous.firstSeen : '';
 }
 
-// A camera counts as a new arrival for NEW_ARRIVAL_DAYS after it first appeared.
 function isNewArrival(item, today = todayInWarsaw()) {
   if (!item || !item.firstSeen || item.sold) {
     return false;
@@ -327,10 +265,6 @@ function loadPreviousMetadata() {
 
 async function buildItem(url, fallbackItem) {
   try {
-    // Conditional request: if we stored a validator last run, let OLX tell us
-    // the listing is unchanged (304) instead of re-sending the whole page. Costs
-    // nothing when OLX sends no validators — the headers are simply omitted and
-    // every request stays a normal 200. Reduces load on OLX either way.
     const conditionalHeaders = {};
     if (fallbackItem?.etag) {
       conditionalHeaders['if-none-match'] = fallbackItem.etag;
@@ -348,8 +282,6 @@ async function buildItem(url, fallbackItem) {
       redirect: 'follow',
     });
 
-    // 304 Not Modified — the listing is byte-identical to what we already have,
-    // so reuse it wholesale (including the sold state and price).
     if (response.status === 304 && fallbackItem) {
       return {
         title: fallbackItem.title,
@@ -365,11 +297,6 @@ async function buildItem(url, fallbackItem) {
       };
     }
 
-    // OLX returns 410 (Gone) when a listing is permanently removed, which
-    // almost always means the camera was sold. Mark the card so the template
-    // can render a SPRZEDANE state instead of a broken click. A 404, by
-    // contrast, can be a transient CDN hiccup, so we deliberately do NOT flip
-    // to sold on it — it falls through to the !response.ok path below, which
     // preserves whatever sold state we already knew.
     if (response.status === 410) {
       console.warn(`Listing gone (HTTP ${response.status}) — marking sold: ${url}`);
@@ -381,7 +308,6 @@ async function buildItem(url, fallbackItem) {
         sold: true,
         price: fallbackItem?.price || '',
         oldPrice: fallbackItem?.oldPrice || '',
-        // A gone listing will never validate again — drop the stale validators.
         etag: '',
         lastModified: '',
         fetchStatus: 'sold',
@@ -405,12 +331,9 @@ async function buildItem(url, fallbackItem) {
       oldPrice: resolveOldPrice(price, fallbackItem),
       etag: response.headers.get('etag') || '',
       lastModified: response.headers.get('last-modified') || '',
-      // A 200 that yields no title/image means the page shape changed — the
-      // card still renders, but from a placeholder, so flag it like a failure.
       fetchStatus: extracted.title && extracted.image ? 'ok' : 'placeholder',
     };
   } catch (error) {
-    // Transient errors (timeout, DNS, etc.) shouldn't unset a previously-detected sold state.
     console.warn(`Falling back for ${url}: ${error.message}`);
     return {
       title: fallbackItem?.title || buildFallbackTitle(url),
@@ -420,28 +343,20 @@ async function buildItem(url, fallbackItem) {
       sold: !!fallbackItem?.sold,
       price: fallbackItem?.price || '',
       oldPrice: fallbackItem?.oldPrice || '',
-      // Keep the validators so the next run can still ask conditionally.
       etag: fallbackItem?.etag || '',
       lastModified: fallbackItem?.lastModified || '',
-      // Cached data is a soft landing; no cache means a placeholder card ships.
       fetchStatus: fallbackItem ? 'cached' : 'placeholder',
       fetchError: error.message,
     };
   }
 }
 
-// Group the run's fetch outcomes so the workflow can surface them. A placeholder
-// card is the one that actually reaches visitors as a broken-looking entry, so
-// it is reported separately from a listing that merely fell back to cache.
 function summarizeFetchHealth(items) {
   const placeholders = items.filter((item) => item.fetchStatus === 'placeholder');
   const cached = items.filter((item) => item.fetchStatus === 'cached');
   return { placeholders, cached };
 }
 
-// GitHub Actions renders ::warning:: / ::error:: lines in the job summary and
-// on the workflow run page, so a degraded listing is visible without digging
-// through the log.
 function reportFetchHealth({ placeholders, cached }, { strict = false, annotate = false } = {}) {
   const annotation = (level, message) => {
     if (annotate) {
@@ -503,8 +418,6 @@ function extractJsonLdPrice(html) {
 }
 
 function formatPrice(amount, currency) {
-  // Strip whitespace thousands separators (incl. NBSP/thin space) and treat a
-  // comma as the decimal point, so "1 234,56" parses instead of becoming NaN.
   const value = Number(String(amount).replace(/\s/g, '').replace(',', '.'));
   if (!Number.isFinite(value) || value <= 0) {
     return '';
@@ -515,26 +428,16 @@ function formatPrice(amount, currency) {
   return currency === 'PLN' ? `${formatted} zł` : `${formatted} ${currency}`;
 }
 
-// --- Old-price tracking ----------------------------------------------------
 
-// Bare numeric value of a formatted price ("1 234,56 zł" -> 1234.56); 0 if none.
 function priceNumber(formatted) {
   const n = Number(priceToNumber(formatted));
   return Number.isFinite(n) ? n : 0;
 }
 
-// Track a listing's all-time HIGH price and surface it as the struck-through
-// "old" price only while the current price sits below that high — i.e. a
-// genuine markdown. `currentPrice` is the freshly-fetched formatted price;
-// `fallbackItem` is the listing's previous olx_meta.json snapshot, which carries
-// forward both the last `price` and the last stored high in `oldPrice`. Returns
-// the formatted old price to store/show, or '' when there is no active drop.
 function resolveOldPrice(currentPrice, fallbackItem) {
   const curNum = priceNumber(currentPrice);
-  // Unknown current price: don't recompute — keep whatever old price we had.
   if (curNum <= 0) return fallbackItem?.oldPrice || '';
 
-  // Highest price seen so far = the larger of the last current and last high.
   let highStr = '';
   let highNum = 0;
   for (const candidate of [fallbackItem?.price, fallbackItem?.oldPrice]) {
@@ -545,15 +448,11 @@ function resolveOldPrice(currentPrice, fallbackItem) {
     }
   }
 
-  // Current is at/above the previous high -> it's a new high, nothing to strike.
   if (curNum >= highNum) return '';
-  // Current sits below a previously seen higher price -> show that original high.
   return highStr;
 }
 
 function getMetaContent(html, attributeName, attributeValue) {
-  // The content value only ends at a quote MATCHING the opening one, so an
-  // apostrophe inside a double-quoted title ("Canon's AE-1") doesn't cut it off.
   const attributePart = `${attributeName}=["']${escapeRegex(attributeValue)}["']`;
   const contentPart = `content=(?:"([^"]+)"|'([^']+)')`;
   const pattern = new RegExp(`<meta[^>]*${attributePart}[^>]*${contentPart}[^>]*>`, 'i');
@@ -678,15 +577,8 @@ function renderIndex(items, adsConfig) {
     timeZone: 'Europe/Warsaw',
   }).format(new Date());
 
-  // Allegro data feeds the price and image placeholders below. It is
-  // deliberately not emitted as Product structured data: this page is a
-  // multi-product catalogue that links to third-party marketplaces, not a
-  // single-product purchase page.
   const allegro = loadAllegroProducts();
 
-  // split/join instead of String.replace: a listing title containing a `$&`,
-  // `$'` or "$`" sequence would otherwise be expanded as a replacement pattern
-  // and corrupt the page.
   rendered = rendered
     .split('{{COUNT}}').join(String(items.length))
     .split('{{LAST_UPDATED}}').join(escapeHtml(lastUpdated))
@@ -709,7 +601,6 @@ function renderIndex(items, adsConfig) {
     )
     .split('{{AD_SLOT_FOOTER}}').join(renderAdUnit(ads, 'footer', { className: 'ad-slot--wide' }));
 
-  // URLs, prices and product images share one source of truth.
   for (const [key, data] of Object.entries(allegro.products)) {
     rendered = rendered
       .split(`{{ALLEGRO_URL_${key}}}`)
@@ -723,7 +614,6 @@ function renderIndex(items, adsConfig) {
     }
   }
 
-  // Only advance the footer date once every displayed price is current.
   rendered = rendered
     .split('{{LAST_REFRESHED}}')
     .join(escapeHtml(allegro.lastRefreshed));
@@ -731,12 +621,6 @@ function renderIndex(items, adsConfig) {
   return rendered;
 }
 
-// Emit schema.org identity data plus a generic ItemList for the camera
-// catalogue. Do not mark the cards as Product/Offer: Google's product rich
-// results only support pages focused on one product, while this homepage lists
-// many products and sends visitors to OLX/Allegro to buy them. Product
-// markup here made Search Console treat the catalogue as a merchant page and
-// report inapplicable image/review/rating issues.
 function renderSiteJsonLd(items) {
   const organization = {
     '@type': 'Organization',
@@ -774,33 +658,10 @@ function renderSiteJsonLd(items) {
   }
 
   const wrapped = { '@context': 'https://schema.org', '@graph': graph };
-  // Escape "<" so a listing title can never break out of the <script> element.
   const json = JSON.stringify(wrapped, null, 2).replace(/</g, '\\u003c');
   return `<script type="application/ld+json">\n${json}\n  </script>`;
 }
 
-// llms-full.txt = the hand-written llms.txt prose with the live catalog inlined
-// underneath, so an agent gets every camera, price and availability flag in one
-// fetch instead of following a link into JSON.
-//
-// Generated rather than hand-written because the catalog is rebuilt daily: a
-// static copy would be wrong within a day, and a confidently wrong price is
-// worse than no file at all. The prose half is read from llms.txt so there is
-// still only one place to edit it.
-// llms.txt is generated for two reasons, both of them drift the file had
-// already accumulated by hand:
-//
-//  1. Its "Pages" section listed the ten guides as hand-copied lines. Adding or
-//     renaming a guide meant remembering to edit a second file, and TODO says
-//     more guides are coming as soon as Search Console picks the next one. The
-//     lines now come from the `llms` field in guides.json, so a guide carries
-//     its own English one-liner and cannot be listed inconsistently.
-//  2. It claimed "The page carries Google AdSense display advertising" while
-//     ads shipped disabled — the same false statement the privacy policy and
-//     the footer were making, and the same fix: switch on ads-config.json.
-//
-// Hand-editing llms.txt now loses the change on the next build; edit
-// templates/llms.template.txt instead, exactly as with index.html.
 function renderLlmsTxt(guides, adsConfig) {
   const ads = adsConfig || loadAdsConfig();
   const list = guides || loadGuides();
@@ -823,8 +684,6 @@ function renderLlmsTxt(guides, adsConfig) {
   return rendered;
 }
 
-// `intro` is the rendered llms.txt, passed in rather than re-read from disk so
-// the two files cannot disagree within a single build.
 function renderLlmsFull(items, intro) {
   const header = (intro || renderLlmsTxt()).trimEnd();
   const available = items.filter((item) => !item.sold);
@@ -855,24 +714,6 @@ function renderLlmsFull(items, intro) {
   return `${sections.join('\n')}\n`;
 }
 
-// ── Honest <lastmod> ───────────────────────────────────────────────────────
-// The build re-renders every page every night, so "when did the build run" and
-// "when did this page change" are different questions. The sitemap used to
-// answer the first one for all twelve URLs, which is the one thing Google's
-// sitemap docs say makes it discard <lastmod> entirely: a date that is always
-// today carries no information. The git log showed exactly that — 2026-08-08,
-// -10 and -11 each committed index.html + sitemap.xml with no guide touched,
-// yet the sitemap claimed all ten guides had changed that day.
-//
-// So each page is fingerprinted, the fingerprint and the date it last moved are
-// kept in scripts/page-state.json, and <lastmod> reports that date. A guide
-// whose prose and offer list are unchanged keeps its old date; the day a
-// listing sells and drops out of its offer list, that guide's date moves.
-//
-// The catalog stamps its own build time into the masthead ("Aktualizacja: …").
-// That byte changes nightly on its own, so it is stripped before hashing —
-// otherwise the homepage would report today forever and we'd have reproduced
-// the bug for the one URL that matters most.
 const VOLATILE_MARKUP = [
   /(<span class="label label--soft">Aktualizacja: )[^<]*(<\/span>)/g,
 ];
@@ -893,17 +734,11 @@ function loadPageState() {
     const parsed = JSON.parse(fs.readFileSync(PAGE_STATE_FILE, 'utf8'));
     return parsed && typeof parsed === 'object' ? parsed : {};
   } catch (error) {
-    // A corrupt state file must not fail the deploy — the fallback is to stamp
-    // everything today, which is what the first run does anyway.
     console.warn(`Could not read ${PAGE_STATE_FILE}: ${error.message}`);
     return {};
   }
 }
 
-// `pages` is [{ url, html }] in sitemap order. Returns the dates to emit plus
-// the state to persist for the next run. The state is rebuilt from `pages`
-// rather than merged into the old one, so a deleted guide's entry drops out
-// instead of accumulating forever.
 function resolvePageLastmod(pages, previousState, today) {
   const previous = previousState || {};
   const lastmod = new Map();
@@ -912,8 +747,6 @@ function resolvePageLastmod(pages, previousState, today) {
   for (const page of pages) {
     const fingerprint = contentFingerprint(page.html);
     const known = previous[page.url];
-    // No previous entry (first run, new page) means we genuinely don't know an
-    // earlier date, so today is the most honest answer available.
     const unchanged = !!known && known.fingerprint === fingerprint && !!known.lastmod;
     const date = unchanged ? known.lastmod : today;
     state[page.url] = { fingerprint, lastmod: date };
@@ -923,9 +756,6 @@ function resolvePageLastmod(pages, previousState, today) {
   return { lastmod, state };
 }
 
-// `lastmod` maps URL → the date that page's content last changed. A URL missing
-// from the map gets no <lastmod> element at all: sitemaps.org makes it optional
-// and Google reads its absence as "no signal", which beats an invented date.
 function renderSitemap(guides, lastmod = new Map()) {
   const dateElement = (url, indent = '    ') => (
     lastmod.get(url) ? `\n${indent}<lastmod>${escapeXml(lastmod.get(url))}</lastmod>` : ''
@@ -957,11 +787,6 @@ ${guideEntries}
 `;
 }
 
-// ── Per-camera-type guides ─────────────────────────────────────────────────
-// One short buyer's guide per catalog type, written in scripts/guides.json and
-// rendered into poradniki/<slug>.html. Each page lists whichever cameras of its
-// type are live on build day, so the guides double as an entry path into the
-// OLX listings instead of being a dead-end wall of text.
 function loadGuides() {
   if (!fs.existsSync(GUIDES_FILE)) {
     return [];
@@ -976,9 +801,6 @@ function loadGuides() {
   return normalizeGuides(parsed.guides, loadTypeConfig());
 }
 
-// Validation lives here (not in the file read) so it is testable, and it is
-// strict on purpose: a guide pointing at a renamed type would otherwise render
-// a page that silently lists no cameras and loses its link from the catalog.
 function normalizeGuides(guides, typeConfig) {
   const list = Array.isArray(guides) ? guides : [];
   const knownTypes = knownTypeSet(typeConfig);
@@ -986,7 +808,6 @@ function normalizeGuides(guides, typeConfig) {
 
   return list.map((guide) => {
     const slug = String(guide.slug || '').trim();
-    // Also a path guard — the slug becomes a filename.
     if (!/^[a-z0-9-]+$/.test(slug)) {
       throw new Error(`guides.json: "${slug}" is not a valid slug (lowercase letters, digits and dashes only).`);
     }
@@ -1005,9 +826,6 @@ function normalizeGuides(guides, typeConfig) {
       throw new Error(`guides.json: guide "${slug}" needs both a title and a description.`);
     }
 
-    // 'type' guides cover a whole catalog section and are what the homepage
-    // headings link to. 'model' guides sit underneath one of them and select
-    // their listings by keyword instead, so several can share a type.
     const kind = guide.kind === 'model' ? 'model' : 'type';
     const match = Array.isArray(guide.match) ? guide.match.filter(Boolean).map(String) : [];
     if (kind === 'model' && match.length === 0) {
@@ -1019,16 +837,9 @@ function normalizeGuides(guides, typeConfig) {
       type,
       kind,
       match,
-      // Short label used in the cross-link row; a model guide can't use `type`
-      // there because its siblings would all render the same text.
       navLabel: String(guide.navLabel || guide.type || guide.title),
       title: String(guide.title),
       description: String(guide.description),
-      // One-line English summary for the generated llms.txt. Falls back to the
-      // Polish description rather than throwing: a missing blurb is a docs
-      // omission, and it must not be able to block the nightly deploy the way a
-      // broken type reference should. A test in test/build-catalog.test.js
-      // fails on a guide that has no `llms` line, so CI still catches it.
       llms: String(guide.llms || guide.description),
       lead: String(guide.lead || ''),
       offersHeading: String(guide.offersHeading || `${type} w mojej ofercie`),
@@ -1038,9 +849,6 @@ function normalizeGuides(guides, typeConfig) {
   });
 }
 
-// Which catalog listings a guide should show. A type guide takes its whole
-// section; a model guide keyword-matches, so it stays useful after the specific
-// body it was written about is sold and a similar one arrives.
 function selectGuideListings(guide, items, typeConfig) {
   if (guide.kind === 'model') {
     return items.filter((item) => {
@@ -1063,8 +871,6 @@ function knownTypeSet(typeConfig) {
   return types;
 }
 
-// Deliberately tiny: **bold** and *italic* only. The guide copy is prose in a
-// JSON file, and anything richer belongs in the template, not in the data.
 function renderInlineMarkup(text) {
   return escapeHtml(text)
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
@@ -1089,8 +895,6 @@ function renderGuideBody(sections) {
     .join('\n\n');
 }
 
-// A compact list rather than the catalog's photo cards: the guide is a text
-// page, and reusing .cam-card would mean duplicating ~200 lines of grid CSS.
 function renderGuideOffers(items) {
   if (items.length === 0) {
     return '    <p class="offers__empty">Aktualnie nie mam w ofercie aparatu tego typu — zajrzyj do '
@@ -1165,9 +969,6 @@ function renderGuide(guide, guides, items, adsConfig) {
   return rendered;
 }
 
-// Returns [{ guide, html }] rather than just the guide metadata: the sitemap's
-// <lastmod> is derived from each page's rendered content, so the caller needs
-// the markup that was written, not only the description of it.
 function writeGuides(items, adsConfig) {
   const guides = loadGuides();
   if (guides.length === 0) {
@@ -1181,12 +982,6 @@ function writeGuides(items, adsConfig) {
   });
 }
 
-// ── Google AdSense ─────────────────────────────────────────────────────────
-// Ads are opt-in and driven entirely by scripts/ads-config.json. With
-// enabled:false every ad placeholder renders as an empty string, so the page
-// ships byte-for-byte ad-free and loads no third-party script — which is also
-// what keeps the site consent-banner-free while Cloudflare's cookieless
-// analytics is the only measurement in play.
 function loadAdsConfig() {
   if (!fs.existsSync(ADS_CONFIG_FILE)) {
     return disabledAdsConfig();
@@ -1196,8 +991,6 @@ function loadAdsConfig() {
   try {
     parsed = JSON.parse(fs.readFileSync(ADS_CONFIG_FILE, 'utf8'));
   } catch (error) {
-    // A malformed config file means ads simply don't render; it must never take
-    // the daily catalog build down with it.
     console.warn(`Could not read ${ADS_CONFIG_FILE}: ${error.message}`);
     return disabledAdsConfig();
   }
@@ -1209,15 +1002,11 @@ function disabledAdsConfig() {
   return { enabled: false, publisherId: '', slots: {} };
 }
 
-// Split out from the file read so the validation rules are testable on their own.
 function normalizeAdsConfig(parsed) {
   if (!parsed || parsed.enabled !== true) {
     return disabledAdsConfig();
   }
 
-  // Past this point ads are meant to be live, so a malformed id is a hard
-  // error: a typo'd publisher or slot id renders perfectly valid-looking HTML
-  // that serves nothing, and the failure would otherwise be invisible for weeks.
   const publisherId = String(parsed.publisherId || '').trim();
   if (!/^ca-pub-\d{10,20}$/.test(publisherId)) {
     throw new Error(
@@ -1229,8 +1018,6 @@ function normalizeAdsConfig(parsed) {
   for (const [name, rawId] of Object.entries(parsed.slots || {})) {
     const id = String(rawId || '').trim();
     if (!id) {
-      // An empty slot is a deliberate "not created in AdSense yet" — skip it
-      // and let Auto ads cover that spot instead of emitting a dead <ins>.
       continue;
     }
     if (!/^\d{6,20}$/.test(id)) {
@@ -1242,9 +1029,6 @@ function normalizeAdsConfig(parsed) {
   return { enabled: true, publisherId, slots };
 }
 
-// The loader tag. This same script also fetches the Google-certified consent
-// message configured under AdSense → Privacy & messaging, so there is no
-// separate CMP snippet to keep in sync here.
 function renderAdsHead(config) {
   if (!config || !config.enabled) {
     return '';
@@ -1254,9 +1038,6 @@ function renderAdsHead(config) {
   <script async src="${escapeAttribute(src)}" crossorigin="anonymous"></script>`;
 }
 
-// One display unit. Labelled "REKLAMA" because the in-grid placement sits among
-// product cards that look exactly like editorial content — an unlabelled ad
-// there would be genuinely misleading, and Google requires the distinction too.
 function renderAdUnit(config, name, options = {}) {
   if (!config || !config.enabled) {
     return '';
@@ -1282,9 +1063,6 @@ function renderAdUnit(config, name, options = {}) {
   </aside>`;
 }
 
-// The privacy policy is generated rather than hand-written so the publisher id
-// lives in exactly one place (ads-config.json) and the "manage consent" button
-// can only exist on a page that actually loads Google's CMP.
 function renderPrivacyPolicy(adsConfig) {
   const ads = adsConfig || loadAdsConfig();
   const rendered = fs.readFileSync(PRIVACY_TEMPLATE_FILE, 'utf8')
@@ -1300,24 +1078,6 @@ function renderPrivacyPolicy(adsConfig) {
   return rendered;
 }
 
-// ── The policy has to describe the site that actually shipped ───────────────
-// The ad *markup* has been config-gated since AdSense was wired, but the ad
-// *prose* was not: with enabled:false the page loaded no Google script and set
-// no cookie, while the policy stated "Serwis wyświetla reklamy za
-// pośrednictwem Google AdSense", promised a consent message on first visit,
-// and listed consent as a legal basis for processing that wasn't happening.
-// A privacy policy describing processing that doesn't exist is wrong in the
-// over-claiming direction, and it contradicted the site's one real selling
-// point on this front: today it is cookieless and shows no consent banner,
-// which is exactly what a reader checking §3 wants to know.
-//
-// So these four blocks switch on the same ads-config.json flag as the markup.
-// The ads-ON wording is the previously reviewed text, kept verbatim — flipping
-// `enabled` back to true restores the policy word for word. Only the ads-OFF
-// variants are new, and they describe strictly *less* processing.
-//
-// §3 keeps its heading in both variants on purpose: dropping the section when
-// ads are off would renumber §4–§9 and break any external reference to them.
 function renderAdsDataBullet(config) {
   if (!config || !config.enabled) {
     return '';
@@ -1350,7 +1110,6 @@ function renderLegalBasisItems(config) {
 
   const items = [];
   if (config && config.enabled) {
-    // Consent is only a basis once there is something to consent to.
     items.push('    <li><strong>Zgoda</strong> (art. 6 ust. 1 lit. a RODO) — reklamy spersonalizowane i związane z nimi pliki cookie.</li>');
   }
   items.push(`    <li><strong>Prawnie uzasadniony interes</strong> (art. 6 ust. 1 lit. f RODO) — ${legitimateInterest}.</li>`);
@@ -1364,10 +1123,6 @@ function renderCookieBrowserNote(config) {
   return '  <p>Niezależnie od komunikatu zgody możesz w każdej chwili zablokować lub usunąć pliki cookie w ustawieniach przeglądarki. Blokada plików cookie nie ogranicza dostępu do treści tego serwisu — wpłynie jedynie na sposób doboru reklam.</p>';
 }
 
-// Re-opens Google's consent message so a visitor can change their mind. Only
-// meaningful when the AdSense loader (which supplies `googlefc`) is on the
-// page, and the button stays hidden until the API confirms it can be shown —
-// otherwise a user who clicked it would get nothing and assume it was broken.
 function renderConsentRevoke(config) {
   if (!config || !config.enabled) {
     return '';
@@ -1391,22 +1146,14 @@ function renderConsentRevoke(config) {
   </script>`;
 }
 
-// ads.txt tells exchanges who may sell this domain's inventory. Google will not
-// serve on a domain whose ads.txt is missing the matching pub- id, so this is
-// generated from the same config as the tags rather than hand-maintained.
-// Always writes a file (a comment-only one when ads are off) because both
-// deploy workflows `cp ads.txt dist/` unconditionally.
 function renderAdsTxt(config) {
   if (!config || !config.enabled) {
     return '# No ad network is authorized to sell inventory on this domain.\n';
   }
-  // ads.txt wants the bare "pub-…" form, not the "ca-pub-…" tag attribute form.
   const sellerId = config.publisherId.replace(/^ca-/, '');
   return `google.com, ${sellerId}, DIRECT, f08c47fec0942fa0\n`;
 }
 
-// Pull a bare numeric value ("120", "1234.56") out of a formatted price like
-// "120 zł" or "1 234,56 zł", for the JSON-LD price field. Returns '' if none.
 function priceToNumber(formatted) {
   if (!formatted) {
     return '';
@@ -1415,9 +1162,6 @@ function priceToNumber(formatted) {
   return match ? match[0].replace(',', '.') : '';
 }
 
-// ── Price freshness ────────────────────────────────────────────────────────
-// The footer uses the oldest lastChecked among displayed Allegro products.
-// Refreshes are manual; warn about forgotten dates without blocking cameras.
 const PRICE_STALE_DAYS = 30;
 
 function daysBetween(fromIsoDate, toIsoDate) {
@@ -1429,8 +1173,6 @@ function daysBetween(fromIsoDate, toIsoDate) {
   return Math.floor((to - from) / 86400000);
 }
 
-// `marketplaces` is [{ name, products }]. Returns the entries worth complaining
-// about, plus which ones are holding the published date back.
 function summarizePriceFreshness(marketplaces, today, staleDays = PRICE_STALE_DAYS) {
   const entries = [];
   for (const marketplace of marketplaces) {
@@ -1445,8 +1187,6 @@ function summarizePriceFreshness(marketplaces, today, staleDays = PRICE_STALE_DA
     }
   }
 
-  // An entry with no lastChecked never enters the minimum, so its price escapes
-  // the footer's promise entirely. That is worth naming separately.
   const undated = entries.filter((entry) => !entry.lastChecked);
   const dated = entries.filter((entry) => entry.lastChecked);
   const stale = dated
@@ -1455,8 +1195,6 @@ function summarizePriceFreshness(marketplaces, today, staleDays = PRICE_STALE_DA
 
   const published = dated.map((entry) => entry.lastChecked).sort()[0] || '';
   const laggards = dated.filter((entry) => entry.lastChecked === published);
-  // What the footer would say if only the laggards were refreshed — the payoff
-  // for the smallest possible bit of work.
   const nextDate = [...new Set(dated.map((entry) => entry.lastChecked))].sort()[1] || '';
 
   return { entries, stale, undated, published, laggards, nextDate };
@@ -1476,10 +1214,6 @@ function reportPriceFreshness(summary, { annotate = false } = {}) {
       + '— nie wchodzi do daty w stopce, więc może być dowolnie stara.');
   }
 
-  // Enumerating every entry is right when a few have fallen behind and useless
-  // when the whole set has: seventeen near-identical lines per nightly run is
-  // how a warning gets trained out of being read. So the all-stale case — which
-  // is the current one, with the scraper disabled — collapses to one line.
   const dated = summary.entries.filter((entry) => entry.lastChecked);
   if (summary.stale.length > 0 && summary.stale.length === dated.length) {
     const newest = dated.map((entry) => entry.lastChecked).sort().pop();
@@ -1498,8 +1232,6 @@ function reportPriceFreshness(summary, { annotate = false } = {}) {
     }
   }
 
-  // Only interesting when something newer exists: if every entry shares one
-  // date, naming them all as laggards is noise.
   if (summary.nextDate && summary.laggards.length > 0) {
     const names = summary.laggards.map((entry) => `${entry.marketplace}/${entry.key}`).join(', ');
     const action = summary.laggards.length === 1
@@ -1532,7 +1264,6 @@ function loadAllegroProducts() {
   }
   try {
     const products = JSON.parse(fs.readFileSync(ALLEGRO_PRODUCTS_FILE, 'utf8'));
-    // Oldest lastChecked across the Allegro cards is their honest "as of" date.
     const dates = Object.values(products)
       .map((p) => p && p.lastChecked)
       .filter(Boolean)
@@ -1544,9 +1275,6 @@ function loadAllegroProducts() {
   }
 }
 
-// One-sentence context per model (scripts/camera-notes.json). Reuses the same
-// keyword-matching rules as the type classifier, so a `^` prefix anchors to the
-// start of the title exactly as it does there.
 function loadCameraNotes() {
   if (!fs.existsSync(CAMERA_NOTES_FILE)) {
     return [];
@@ -1589,10 +1317,6 @@ function loadTypeConfig() {
   }
 }
 
-// First matching keyword rule wins; otherwise the configured fallback type.
-// A needle prefixed with "^" must match the START of the title rather than
-// appear anywhere — this distinguishes a standalone "Obiektyw ..." (a lens)
-// from a camera listed "... z obiektywem ..." (with a lens).
 function classifyType(title, config) {
   const haystack = String(title).toLowerCase().trimStart();
   for (const rule of config.rules || []) {
@@ -1609,9 +1333,6 @@ function matchesNeedle(haystack, needle) {
   return n.startsWith('^') ? haystack.startsWith(n.slice(1)) : haystack.includes(n);
 }
 
-// Bucket items by type, returning [type, items[]] pairs in the configured
-// order. Non-empty buckets only; any type not named in `order` is appended in
-// first-seen order so a newly added label still shows up.
 function groupByType(items, config) {
   const buckets = new Map();
   for (const item of items) {
@@ -1638,9 +1359,6 @@ function groupByType(items, config) {
   return ordered;
 }
 
-// Render the camera section's inner markup. With a single (or zero) type the
-// grid stays flat — no point in a lone heading. With several types, each gets a
-// labelled sub-section so a long list reads as groups instead of one pile.
 function renderCameraCatalog(items) {
   if (items.length === 0) {
     return '    <div class="camera-grid" aria-label="Katalog aparatów">\n'
@@ -1651,12 +1369,8 @@ function renderCameraCatalog(items) {
 
   const groups = groupByType(items, loadTypeConfig());
 
-  // Loaded once for the whole catalog rather than per card — both are pure
-  // lookups that every card would otherwise re-read from disk.
   const cardOptions = { noteRules: loadCameraNotes(), today: todayInWarsaw() };
 
-  // A single global counter so only the first 4 images across the whole
-  // catalog load eagerly (above-the-fold), regardless of grouping.
   let imageIndex = 0;
   const renderGroupCards = (group) =>
     group.map((item) => renderCard(item, imageIndex++, cardOptions)).join('\n');
@@ -1666,10 +1380,6 @@ function renderCameraCatalog(items) {
       + `${renderGroupCards(groups[0][1])}\n    </div>`;
   }
 
-  // Each type heading links to its buyer's guide when one exists — the guide is
-  // the low-competition search entry point, and this is the only in-catalog
-  // path to it. Model guides are excluded: several share a type, so they'd
-  // fight over the one heading slot. They're reached from the type guide.
   const guidesByType = new Map(
     loadGuides()
       .filter((guide) => guide.kind === 'type')
@@ -1696,8 +1406,6 @@ function renderCameraCatalog(items) {
 }
 
 function renderCard(item, index = 0, options = {}) {
-  // First row (4 cards) loads eagerly for fast above-the-fold paint;
-  // everything below lazy-loads.
   const loadingAttrs = index < 4 ? '' : ' loading="lazy" decoding="async"';
   const noteRules = options.noteRules || [];
   const note = noteForTitle(item.title, noteRules);
@@ -1707,8 +1415,6 @@ function renderCard(item, index = 0, options = {}) {
   const newChip = isNewArrival(item, options.today)
     ? '\n            <span class="cam-card__new">NOWE</span>'
     : '';
-  // On a price drop, prefix the chip with the original (higher) price struck
-  // through, so a markdown reads "390 zł 320 zł" at a glance.
   const oldPriceMark = item.oldPrice && !item.sold
     ? `<s class="cam-card__price-was">${escapeHtml(item.oldPrice)}</s> `
     : '';
@@ -1716,10 +1422,6 @@ function renderCard(item, index = 0, options = {}) {
     ? `\n          <span class="cam-card__price">${oldPriceMark}${escapeHtml(item.price)}</span>`
     : '';
 
-  // The card itself stays a single link to OLX (the conversion path). The zoom
-  // button is a SIBLING of that link inside the shell — not nested in the <a>
-  // (which would be invalid HTML) — so a click on it opens the lightbox without
-  // navigating to OLX and without tripping the outbound-link tracker.
   const zoom = renderZoomButton(item);
 
   const card = item.sold
@@ -1754,8 +1456,6 @@ function renderCard(item, index = 0, options = {}) {
       </div>`;
 }
 
-// A magnifier button overlaid on the card image that opens the lightbox.
-// Skipped for the generated SVG placeholder (nothing useful to enlarge).
 function renderZoomButton(item) {
   if (!item.image || item.image.startsWith('data:')) {
     return '';
@@ -1788,8 +1488,6 @@ function cleanupText(value) {
 }
 
 function decodeHtmlEntities(value) {
-  // &amp; is decoded last so a double-encoded entity (e.g. "&amp;lt;") becomes
-  // "&lt;" rather than collapsing all the way to a raw "<".
   return value
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")

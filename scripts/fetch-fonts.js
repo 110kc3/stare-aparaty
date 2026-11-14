@@ -39,7 +39,6 @@ async function main() {
 
   const css = await (await fetch(CSS_URL, { headers: { 'user-agent': UA } })).text();
 
-  // Google emits `/* <subset> */` immediately before each @font-face block.
   const blocks = [...css.matchAll(/\/\*\s*([\w-]+)\s*\*\/\s*(@font-face\s*\{[^}]*\})/g)];
   if (blocks.length === 0) {
     throw new Error('No @font-face blocks parsed — did the CSS format change?');

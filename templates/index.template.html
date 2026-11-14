@@ -7,13 +7,9 @@
   <meta name="description" content="Wybrane aparaty analogowe, filmy i akcesoria w spokojnym, filmowym klimacie.">
   <link rel="canonical" href="https://stareaparaty.com/">
 
-  <!-- Machine-readable twins of this page, so an agent does not have to scrape
-       the HTML. olx_meta.json is the same catalog the cards render from,
-       rebuilt daily by scripts/build-catalog.js. -->
   <link rel="alternate" type="text/markdown" href="https://stareaparaty.com/llms.txt" title="llms.txt">
   <link rel="alternate" type="application/json" href="https://stareaparaty.com/olx_meta.json" title="Katalog aparatow (JSON)">
 
-  <!-- Social sharing previews -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Stare Aparaty">
   <meta property="og:title" content="Stare Aparaty — Aparaty analogowe i filmowy klimat">
@@ -26,14 +22,11 @@
   <meta name="twitter:description" content="Sprawdzone aparaty analogowe z drugiej ręki, filmy i akcesoria — wszystko dla miłośników fotografii na kliszy.">
   <meta name="twitter:image" content="https://stareaparaty.com/og-image.png">
 
-  <!-- Favicon + PWA manifest -->
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="manifest" href="site.webmanifest">
   <meta name="theme-color" content="#0e0b08">
 
-  <!-- Self-hosted fonts (latin + latin-ext) — no render-blocking third-party
-       request. Regenerate with: node scripts/fetch-fonts.js -->
   <link rel="preload" as="font" type="font/woff2" href="fonts/inter-400-latin.woff2" crossorigin>
   <link rel="stylesheet" href="fonts/fonts.css">
   <script>
@@ -794,12 +787,8 @@
     </p>
   </footer>
 
-</div><!-- /.shell -->
+</div>
 
-<!-- Pixelation filter for the card hover easter egg. feFlood paints one opaque
-     pixel, feTile repeats it into a grid, and the dilate spreads each surviving
-     sample over its whole cell — the classic SVG way to quantise an image that
-     CSS filters can't do on their own. -->
 <svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
   <filter id="pixelate" x="0" y="0">
     <feFlood x="3" y="3" width="1" height="1"/>

@@ -31,3 +31,9 @@ Read [README.md](README.md), [TODO.md](TODO.md), and [poradniki/](poradniki/) be
   node scripts/build-catalog.js
   ```
 - All tests must pass before pushing commits to `main`.
+
+## Code style
+
+- Do not add comments to code. Make code self-explanatory through descriptive
+  names, small focused functions and clear control flow. Put rationale and usage
+  explanations in Markdown documentation.

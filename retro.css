@@ -1,15 +1,10 @@
-/*
- * Press Start 2P has no Polish diacritics, so we use it only for short
- * uppercase decorative labels (badges, tags, serials, kickers). Body text
- * and headings use Inter / Cormorant Garamond loaded in styles.css.
- */
+
 @import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
 
 :root {
     --retro-font: "Press Start 2P", "Courier New", monospace;
 }
 
-/* Apply the pixel font only to diacritic-free decorative labels. */
 .retro .masthead__badge,
 .retro .masthead__signal,
 .retro .masthead__kicker,

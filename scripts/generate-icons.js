@@ -1,18 +1,5 @@
 #!/usr/bin/env node
 
-/**
- * Rasterize favicon.svg into the PNG app icons that SVG can't cover:
- *   - apple-touch-icon.png (180×180) — iOS home-screen icon (iOS ignores SVG)
- *   - icon-192.png / icon-512.png    — Android / PWA manifest icons
- *
- * The favicon is 16×16 pixel art, so we upscale it with nearest-neighbour
- * (image-rendering: pixelated) to keep the retro blocks crisp instead of
- * blurring them. Run this whenever favicon.svg changes:
- *
- *   node scripts/generate-icons.js
- *
- * Needs Playwright + Chromium installed in the environment.
- */
 
 const fs = require('node:fs');
 const path = require('node:path');

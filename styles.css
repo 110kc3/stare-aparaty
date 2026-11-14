@@ -12,7 +12,6 @@
     --shadow: rgba(45, 34, 24, 0.08);
     --shadow-strong: rgba(45, 34, 24, 0.14);
 
-    /* Semantic surface tokens (parameterized so dark mode can override). */
     --body-glow-top: rgba(255, 255, 255, 0.58);
     --body-glow-bottom: rgba(255, 255, 255, 0.2);
     --body-halo: rgba(222, 211, 197, 0.45);

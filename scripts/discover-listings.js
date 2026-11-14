@@ -1,82 +1,31 @@
 #!/usr/bin/env node
 
-/**
- * Auto-discover camera listings from your OLX user page(s) and write them to
- * product-links.txt — replacing the manual "paste the links" step.
- *
- * It fetches each user page (pagination handled automatically), reads the
- * listing data OLX embeds in the page, keeps only the page owner's active
- * offers whose title matches a keyword, and writes the de-duplicated URLs to
- * product-links.txt. scripts/build-catalog.js then turns that into index.html
- * exactly as before.
- *
- * Usage:
- *   node scripts/discover-listings.js            # update product-links.txt
- *   node scripts/discover-listings.js --dry-run  # print results, write nothing
- *   node scripts/discover-listings.js --out tmp.txt   # write somewhere else
- *
- * Notes on how OLX serves the data:
- *   The user page is a client-rendered app, but it still ships the current
- *   page's listings as an escaped JSON blob in the HTML (slashes as /).
- *   We collapse that escaping and pull out "title" / "status" / "url" / owning
- *   "user.id" for each offer. Only offers owned by the page's own user id are
- *   kept, so promoted/foreign ads never leak in. Out-of-range pages on OLX
- *   echo the last page's content, so we stop as soon as a page adds nothing new.
- */
 
 const fs = require('node:fs');
 const path = require('node:path');
 
-// --- Config ----------------------------------------------------------------
 
-// Your OLX user listing page(s). List only the FIRST page of each view — pages
-// 2, 3, ... are fetched automatically until a page adds nothing new.
-// No categoryId is set on purpose: a bare user URL returns offers from EVERY
-// category, so listings posted outside OLX's "Foto" category (e.g. a lens filed
-// under accessories) are no longer missed. The KEYWORDS text filter below is
-// what keeps only cameras/lenses, replacing the old category restriction.
 const USER_PAGES = [
   'https://www.olx.pl/oferty/uzytkownik/273W5/',
   'https://www.olx.pl/oferty/uzytkownik/vNQAM/',
   'https://www.olx.pl/oferty/uzytkownik/2OYKZ/',
 ];
 
-// Keep an offer only if its title contains one of these (case-insensitive).
-// This is the "is it actually a camera/lens" safety net and — now that no OLX
-// category filter is applied — the sole thing deciding what counts. Edit freely.
-// 'obiektyw' matches lens listings (incl. inflections like "obiektywem").
-// Note some cameras are titled by brand/model only (e.g. "Pentax SF7"), so
-// brand names are included on purpose. Set to [] to keep every offer.
 const KEYWORDS = [
   'aparat', 'analog', 'obiektyw',
-  // common analog-camera brands, so model-named listings aren't dropped:
   'pentax', 'canon', 'nikon', 'minolta', 'olympus', 'zenit', 'praktica',
   'zorki', 'fed', 'smena', 'lubitel', 'mamiya', 'chinon', 'petri', 'yashica',
   'exa', 'exakta', 'coronet', 'kodak', 'fujica', 'konica', 'rollei', 'quasar',
 ];
 
-const MAX_PAGES = 25; // safety cap on pagination
+const MAX_PAGES = 25;
 const USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
   '(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
 const LINKS_FILE = path.resolve(__dirname, '..', 'product-links.txt');
 
-// --- Implementation --------------------------------------------------------
 
-// A scrape that returns *nothing* is caught below by an explicit zero-check.
-// The dangerous case is a scrape that returns *some* of the catalog: OLX
-// serving page 1 but blocking page 2 produces a plausible-looking truncated
-// list, and writing it silently deletes the rest of the catalog from the live
-// site. Observed 2026-08-07 — the link file went 19 -> 10 one night and back to
-// 19 the next, so the site shipped a half-empty catalog for a day with nothing
-// in the logs saying so.
-//
-// A real day's shrinkage is one or two sold cameras. A third of the list
-// vanishing at once is a failed scrape until proven otherwise, so we refuse to
-// write and exit non-zero. The workflow reports the discovery failure and
-// rebuilds from the saved complete list, so site changes can still publish.
-// Override with --allow-shrink when you really have removed a lot of listings.
 const SHRINK_MIN_PREVIOUS = 5;
 const SHRINK_MAX_FRACTION = 0.3;
 
@@ -87,8 +36,6 @@ function countLinks(text) {
     .filter(Boolean).length;
 }
 
-// Returns null when the drop is acceptable, or an explanatory string when the
-// list shrank so far that a partial scrape is the likelier explanation.
 function shrinkRefusal(previousCount, keptCount) {
   if (previousCount < SHRINK_MIN_PREVIOUS) return null;
   const dropped = previousCount - keptCount;
@@ -108,8 +55,6 @@ function parseArgs(argv) {
     else if (argv[i] === '--allow-shrink') out.allowShrink = true;
     else if (argv[i] === '--out') {
       const value = argv[i + 1];
-      // Fail fast: `path.resolve(cwd, '')` is the cwd itself, which would only
-      // blow up with EISDIR at the final write — after all the fetching.
       if (!value) throw new Error('--out requires a file path');
       out.outFile = path.resolve(process.cwd(), value);
       i += 1;
@@ -141,10 +86,6 @@ async function fetchHtml(url, { timeoutMs = 10000, retries = 1 } = {}) {
   throw lastError;
 }
 
-// Pull every offer (title, status, url, ownerId) out of one page's embedded
-// JSON. Tries a tight key-order-dependent regex first; if OLX ever reorders
-// those keys (which would otherwise yield zero offers and fail the run), falls
-// back to a looser, order-independent scan.
 function extractOffers(html) {
   const strict = extractOffersStrict(html);
   return strict.length > 0 ? strict : extractOffersLoose(html);
@@ -171,13 +112,6 @@ function extractOffersStrict(html) {
   return offers;
 }
 
-// Order-independent recovery parser: anchor on each offer URL, then attach the
-// title / status / owner id whose position is *nearest* to that URL. Less
-// precise than the strict parser (a field could in theory bleed from a
-// neighbouring offer), but within a single offer object the fields sit a few
-// hundred chars apart, so nearest-wins resolves them reliably — and the
-// downstream owner-frequency filter mops up any stray cross-bleed. "Roughly
-// right" beats "zero offers, red run" when OLX changes its key order.
 function extractOffersLoose(html) {
   const text = unescapeBlob(html);
   const urlRe = /"url":"(https:\/\/www\.olx\.pl\/d\/oferta\/[A-Za-z0-9-]+\.html)"/g;
@@ -259,13 +193,8 @@ async function discoverFromUserPage(firstPageUrl) {
       console.error(`  page ${page}: fetch failed (${err.message})`);
       break;
     }
-    if (offers.length === 0) break; // truly empty -> stop paginating
+    if (offers.length === 0) break;
 
-    // The page owner = whoever owns the most offers on page 1. Out-of-range
-    // pages on OLX don't come back empty: they echo the last page's content
-    // (and sometimes a rotating promoted ad from a DIFFERENT seller). So keep
-    // only the owner's offers and stop as soon as a page adds none we haven't
-    // already seen.
     if (ownerId === null) {
       const freq = {};
       for (const o of offers) freq[o.ownerId] = (freq[o.ownerId] || 0) + 1;
@@ -295,7 +224,7 @@ async function main() {
     const offers = await discoverFromUserPage(userPage);
 
     for (const o of offers) {
-      if (o.status && o.status !== 'active') continue; // skip inactive
+      if (o.status && o.status !== 'active') continue;
       if (seen.has(o.url)) continue;
       seen.add(o.url);
       if (matchesKeyword(o.title)) kept.push(o);
@@ -322,13 +251,12 @@ async function main() {
     for (const o of skipped) console.log(`  - ${o.title}`);
   }
 
-  // Checked before the dry-run bail-out so `--dry-run` reports the refusal too.
   if (!args.allowShrink) {
     let previousCount = 0;
     try {
       previousCount = countLinks(fs.readFileSync(args.outFile, 'utf8'));
     } catch {
-      previousCount = 0; // First run: no file to compare against.
+      previousCount = 0;
     }
     const refusal = shrinkRefusal(previousCount, kept.length);
     if (refusal) {

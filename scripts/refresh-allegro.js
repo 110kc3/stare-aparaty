@@ -8,16 +8,6 @@ const PRODUCTS_PATH = path.join(__dirname, 'allegro-products.json');
 const ALLEGRO_AUTH_URL = 'https://allegro.pl/auth/oauth/token';
 const ALLEGRO_API_BASE = 'https://api.allegro.pl';
 
-/**
- * Extracts product ID (UUID) and/or offer ID from an Allegro URL.
- * Supports:
- * - https://allegro.pl/produkt/<slug>-<uuid>[?offerId=<digits>]
- * - https://business.allegro.pl/oferta/<slug>-<digits>
- * - https://allegro.pl/oferta/<slug>-<digits>
- *
- * @param {string} rawUrl
- * @returns {{ type: 'product'|'offer', productId?: string, offerId?: string } | null}
- */
 function parseAllegroIdentifier(rawUrl) {
   if (!rawUrl || typeof rawUrl !== 'string') return null;
 
@@ -55,13 +45,6 @@ function parseAllegroIdentifier(rawUrl) {
   return null;
 }
 
-/**
- * Formats numeric price into Polish currency format (e.g. "53,50 zł" or "od 53,50 zł").
- *
- * @param {number|string} amount
- * @param {boolean} isStartingFrom
- * @returns {string}
- */
 function formatAllegroPrice(amount, isStartingFrom = false) {
   const num = typeof amount === 'number' ? amount : parseFloat(String(amount).replace(',', '.'));
   if (!Number.isFinite(num) || num < 0) {
@@ -72,14 +55,6 @@ function formatAllegroPrice(amount, isStartingFrom = false) {
   return isStartingFrom ? `od ${formatted} zł` : `${formatted} zł`;
 }
 
-/**
- * Maps an Allegro offer API response to updated price/lastChecked fields.
- *
- * @param {object} offerData
- * @param {object} [existingEntry={}]
- * @param {string} [checkDate]
- * @returns {{ price: string, lastChecked: string, image?: string } | { error: string, available: boolean }}
- */
 function mapOfferResponse(offerData, existingEntry = {}, checkDate = todayInWarsaw()) {
   if (!offerData || typeof offerData !== 'object') {
     return { error: 'Empty or invalid offer response', available: false };
@@ -111,20 +86,11 @@ function mapOfferResponse(offerData, existingEntry = {}, checkDate = todayInWars
   return result;
 }
 
-/**
- * Maps an Allegro product API or offers-listing response to updated price/lastChecked fields.
- *
- * @param {object} productData
- * @param {object} [existingEntry={}]
- * @param {string} [checkDate]
- * @returns {{ price: string, lastChecked: string, image?: string } | { error: string, available: boolean }}
- */
 function mapProductResponse(productData, existingEntry = {}, checkDate = todayInWarsaw()) {
   if (!productData || typeof productData !== 'object') {
     return { error: 'Empty or invalid product response', available: false };
   }
 
-  // Handle /offers/listing response
   if (Array.isArray(productData.items?.regular) || Array.isArray(productData.items?.promoted)) {
     const allItems = [...(productData.items?.promoted || []), ...(productData.items?.regular || [])];
     const firstActive = allItems.find(
@@ -136,7 +102,6 @@ function mapProductResponse(productData, existingEntry = {}, checkDate = todayIn
     }
   }
 
-  // Handle direct product with minPrice or similar
   const rawAmount = productData.minPrice?.amount || productData.price?.amount;
   if (rawAmount) {
     const isStartingFrom = true;
@@ -150,14 +115,6 @@ function mapProductResponse(productData, existingEntry = {}, checkDate = todayIn
   return { error: 'Product response has no valid active offers or price', available: false };
 }
 
-/**
- * Obtains an OAuth access token using Client Credentials grant.
- *
- * @param {string} clientId
- * @param {string} clientSecret
- * @param {typeof fetch} [fetchFn=fetch]
- * @returns {Promise<string>}
- */
 async function fetchAllegroToken(clientId, clientSecret, fetchFn = fetch) {
   if (!clientId || !clientSecret) {
     throw new Error('ALLEGRO_CLIENT_ID and ALLEGRO_CLIENT_SECRET are required');
@@ -185,18 +142,6 @@ async function fetchAllegroToken(clientId, clientSecret, fetchFn = fetch) {
   return data.access_token;
 }
 
-/**
- * Refreshes product entries from the Allegro API.
- *
- * @param {object} [options={}]
- * @param {object} [options.products] Products object (defaults to reading allegro-products.json)
- * @param {string} [options.clientId]
- * @param {string} [options.clientSecret]
- * @param {typeof fetch} [options.fetchFn=fetch]
- * @param {string} [options.token]
- * @param {string} [options.checkDate]
- * @returns {Promise<{ products: object, updatedCount: number, flaggedCount: number, errors: string[] }>}
- */
 async function refreshAllegroProducts(options = {}) {
   const fetchFn = options.fetchFn || fetch;
   const checkDate = options.checkDate || todayInWarsaw();
@@ -228,7 +173,6 @@ async function refreshAllegroProducts(options = {}) {
     }
 
     if (!token) {
-      // Token missing: cannot make live API calls.
       continue;
     }
 
@@ -270,7 +214,6 @@ async function refreshAllegroProducts(options = {}) {
         continue;
       }
 
-      // Update fields
       if (mapped.price && mapped.price !== item.price) {
         item.price = mapped.price;
         item.lastChecked = mapped.lastChecked;

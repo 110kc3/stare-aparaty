@@ -80,7 +80,6 @@ test('mapOfferResponse extracts active price and preserves starting prefix', () 
   assert.equal(res1.lastChecked, '2026-11-01');
   assert.equal(res1.image, 'https://example.com/photo.jpg');
 
-  // Existing had "od " prefix
   const res2 = mapOfferResponse(activeOffer, { price: 'od 53,00 zł' }, '2026-11-01');
   assert.equal(res2.price, 'od 48,90 zł');
 });
@@ -221,7 +220,6 @@ test('refreshAllegroProducts updates prices and flags failures with mock fetch',
   assert.equal(result.products['item-2'].price, 'od 95,00 zł');
   assert.equal(result.products['item-2'].lastChecked, '2026-11-01');
 
-  // The failing item must retain its existing price (no empty/stale overwrite)
   assert.equal(result.products['item-failing'].price, '20,00 zł');
   assert.equal(result.products['item-failing'].lastChecked, '2026-07-06');
 });

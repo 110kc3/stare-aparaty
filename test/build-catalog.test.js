@@ -49,8 +49,6 @@ const {
   reportPriceFreshness,
 } = require('../scripts/build-catalog.js');
 
-// Stands in for a live scripts/ads-config.json without needing the real
-// publisher account — the committed config ships disabled.
 const ADS_ON = {
   enabled: true,
   publisherId: 'ca-pub-1234567890123456',
@@ -87,7 +85,6 @@ test('formatPrice keeps a non-PLN currency as a suffix', () => {
 });
 
 test('decodeHtmlEntities decodes &amp; last (no double-decode)', () => {
-  // "&amp;lt;" must become "&lt;", not a raw "<".
   assert.equal(decodeHtmlEntities('&amp;lt;'), '&lt;');
   assert.equal(decodeHtmlEntities('Tom &amp; Jerry'), 'Tom & Jerry');
   assert.equal(decodeHtmlEntities('&quot;hi&quot; &#39;a&#39;'), '"hi" \'a\'');
@@ -122,8 +119,6 @@ test('renderIndex survives $-replacement sequences in listing titles', () => {
     oldPrice: '',
   }];
   const html = renderIndex(items);
-  // The title must land verbatim (HTML-escaped), not be expanded as a
-  // String.replace pattern — and no placeholder may leak through.
   assert.ok(html.includes("Zenit $&amp; $' $` promocja"));
   assert.doesNotThrow(() => assertRenderedOutput(html, items.length));
 });
@@ -200,12 +195,10 @@ test('classifyType: first matching keyword wins, else fallback', () => {
   assert.equal(classifyType('Yashica 35W dalmierz', TYPE_CONFIG), 'Dalmierzowe');
   assert.equal(classifyType('Obiektyw manualny Osawa', TYPE_CONFIG), 'Obiektywy');
   assert.equal(classifyType('Kolekcja aparatów Canon EOS', TYPE_CONFIG), 'Zestawy');
-  // No keyword → fallback (SLR).
   assert.equal(classifyType('Aparat Zenit-B z Helios-44', TYPE_CONFIG), 'Lustrzanki (SLR)');
 });
 
 test('classifyType: "z obiektywem" is a camera, not a standalone lens', () => {
-  // The ^ anchor means only titles that START with "obiektyw" are lenses.
   assert.equal(
     classifyType('Aparat Praktica Super TL 2 z obiektywem Hanimex 28mm', TYPE_CONFIG),
     'Lustrzanki (SLR)',
@@ -232,7 +225,6 @@ test('groupByType appends types not named in order, last', () => {
   assert.deepEqual(groups.map(([type]) => type), ['Inne', 'Lampy']);
 });
 
-// ── Ads ─────────────────────────────────────────────────────────────────────
 
 test('ads disabled emits no markup anywhere', () => {
   assert.equal(renderAdsHead(ADS_OFF), '');
@@ -251,12 +243,8 @@ test('renderAdUnit renders a labelled unit only for a configured slot', () => {
   assert.match(unit, /class="ad-slot ad-slot--wide"/);
   assert.match(unit, /data-ad-slot="1111111111"/);
   assert.match(unit, /data-ad-client="ca-pub-1234567890123456"/);
-  // Every unit must carry the disclosure label — the in-grid one sits among
-  // product cards, so an unlabelled ad would read as a recommendation.
   assert.match(unit, /REKLAMA/);
 
-  // 'ingrid' has no id in ADS_ON: skipped entirely rather than emitting a dead
-  // <ins>, so Auto ads can still fill the spot.
   assert.equal(renderAdUnit(ADS_ON, 'ingrid'), '');
 });
 
@@ -265,8 +253,6 @@ test('renderAdsTxt converts the ca-pub- tag id to the pub- seller id', () => {
 });
 
 test('normalizeAdsConfig throws on a malformed id rather than silently disabling', () => {
-  // The real failure mode: a typo'd id renders valid-looking HTML that serves
-  // nothing, and nobody would notice for weeks. Fail the build instead.
   assert.throws(
     () => normalizeAdsConfig({ enabled: true, publisherId: 'pub-1234567890123456' }),
     /not a ca-pub-<digits> value/,
@@ -286,7 +272,6 @@ test('normalizeAdsConfig throws on a malformed id rather than silently disabling
 });
 
 test('normalizeAdsConfig treats anything but enabled:true as off, without validating', () => {
-  // A half-filled config sitting in the repo must not break the daily build.
   for (const input of [undefined, {}, { enabled: false, publisherId: 'nonsense' }]) {
     assert.deepEqual(normalizeAdsConfig(input), { enabled: false, publisherId: '', slots: {} });
   }
@@ -302,7 +287,6 @@ test('normalizeAdsConfig drops empty slots and keeps valid ones', () => {
 });
 
 test('the committed ads-config.json ships disabled', () => {
-  // Ads must never go live by accident on a fresh clone or a CI rebuild.
   assert.equal(loadAdsConfig().enabled, false);
 });
 
@@ -339,11 +323,6 @@ test('renderPrivacyPolicy resolves its placeholders and gates the consent button
   assert.match(on, /showRevocationMessage/);
 });
 
-// ── The policy must describe the site that actually shipped ─────────────────
-// The ad markup has always been config-gated; the ad prose was not, so an
-// ads-off build published a policy claiming AdSense served ads, promising a
-// consent message that never appeared, and naming consent as a legal basis for
-// processing that wasn't happening.
 
 test('with ads off the policy claims no ads, no cookies and no consent banner', () => {
   const off = renderPrivacyPolicy(ADS_OFF);
@@ -373,8 +352,6 @@ test('with ads on the policy carries the full Google disclosure again', () => {
 });
 
 test('the policy keeps its section numbering in both ad states', () => {
-  // §3 stays present-but-rewritten rather than disappearing: dropping it would
-  // renumber §4–§9 and break any outside reference to a numbered section.
   for (const [label, config] of [['off', ADS_OFF], ['on', ADS_ON]]) {
     const html = renderPrivacyPolicy(config);
     for (let section = 1; section <= 9; section += 1) {
@@ -397,7 +374,6 @@ test('the footer only mentions Google ads when ads are actually on', () => {
 
   const off = renderIndex(items, ADS_OFF);
   assert.ok(!off.includes('reklamy Google'), 'ads-off footer must not advertise ads that do not load');
-  // The rest of the disclosure (affiliate links, price freshness) must survive.
   assert.match(off, /linki afiliacyjne/);
   assert.match(off, /Ceny orientacyjne/);
 
@@ -413,10 +389,6 @@ test('sitemap lists the catalog, every guide, and the privacy policy', () => {
   }
 });
 
-// ── Price freshness ─────────────────────────────────────────────────────────
-// The footer's "sprawdzone <date>" is the OLDEST lastChecked across both
-// marketplaces, so one forgotten entry sets the promise for every card. That is
-// honest but silent, and it stayed silent for over a month.
 
 const MARKETPLACES = [
   {
@@ -442,14 +414,11 @@ test('summarizePriceFreshness names the entry that sets the published date', () 
   assert.deepEqual(summary.laggards.map((entry) => entry.key), ['LAGGARD']);
   assert.equal(summary.nextDate, '2026-07-20', 'refreshing the laggard would move the date here');
 
-  // Only the 50-day-old entry is past the 30-day threshold.
   assert.deepEqual(summary.stale.map((entry) => entry.key), ['LAGGARD']);
   assert.equal(summary.stale[0].ageDays, 50);
 });
 
 test('summarizePriceFreshness flags an entry with no lastChecked at all', () => {
-  // A dateless entry never enters the minimum, so its price escapes the footer
-  // promise entirely — the one way a stale price can hide completely.
   const summary = summarizePriceFreshness(MARKETPLACES, '2026-08-11');
   assert.deepEqual(summary.undated.map((entry) => entry.key), ['NODATE']);
 });
@@ -459,8 +428,6 @@ test('reportPriceFreshness collapses the all-stale case into one line', () => {
   const original = console.warn;
   console.warn = (message) => warnings.push(message);
   try {
-    // Everything old: the current real state, and the case that would otherwise
-    // print one near-identical line per entry on every nightly run.
     reportPriceFreshness(summarizePriceFreshness([
       {
         name: 'allegro',
@@ -478,7 +445,6 @@ test('reportPriceFreshness collapses the all-stale case into one line', () => {
   const stalenessLines = warnings.filter((line) => /nieodświeżan/.test(line));
   assert.equal(stalenessLines.length, 1, `expected one collapsed line, got:\n${warnings.join('\n')}`);
   assert.match(stalenessLines[0], /Wszystkie 3 cen/);
-  // The actionable line survives regardless.
   assert.ok(warnings.some((line) => /ustawiana przez: allegro\/A/.test(line)));
 });
 
@@ -497,8 +463,6 @@ test('reportPriceFreshness stays quiet when every price is fresh', () => {
 });
 
 test('committed price data: every entry carries a lastChecked date', () => {
-  // Enforced as a test rather than in the build: a dateless entry should be
-  // caught in review, not by breaking the nightly deploy.
   for (const file of ['allegro-products.json']) {
     const products = JSON.parse(
       fs.readFileSync(path.join(__dirname, '..', 'scripts', file), 'utf8'),
@@ -514,7 +478,6 @@ test('committed price data: every entry carries a lastChecked date', () => {
   }
 });
 
-// ── llms.txt is generated, so it cannot drift from guides.json ──────────────
 
 test('llms.txt lists every guide, from the guide definitions themselves', () => {
   const rendered = renderLlmsTxt(loadGuides(), ADS_OFF);
@@ -527,15 +490,10 @@ test('llms.txt lists every guide, from the guide definitions themselves', () => 
       `llms.txt is missing the line for ${guide.slug}`,
     );
   }
-  // No placeholder may survive into a published file.
   assert.ok(!/\{\{[A-Z0-9_]+\}\}/.test(rendered));
 });
 
 test('every guide carries its own English llms.txt blurb', () => {
-  // The point of the `llms` field: adding a guide cannot silently leave the
-  // published index describing nine of ten pages. The fallback in
-  // normalizeGuides keeps a missing blurb from breaking the nightly deploy, so
-  // this test is what actually enforces the field.
   for (const guide of loadGuides()) {
     assert.ok(guide.llms, `${guide.slug} has no llms blurb`);
     assert.notEqual(
@@ -557,11 +515,6 @@ test('llms.txt describes the advertising the site actually runs', () => {
   assert.match(on, /marked "REKLAMA"/);
 });
 
-// ── Honest <lastmod> ────────────────────────────────────────────────────────
-// A sitemap that reports today for every URL on every nightly build is the one
-// case Google's docs say makes them ignore <lastmod> outright. These tests pin
-// the two halves of the fix: the fingerprint must ignore the masthead's own
-// build stamp, and an unchanged page must keep its previous date.
 
 const FINGERPRINT_ITEMS = [{
   id: 1,
@@ -578,7 +531,6 @@ test('contentFingerprint ignores the masthead build stamp but not real content',
   const page = renderIndex(FINGERPRINT_ITEMS, ADS_OFF);
   assert.match(page, /Aktualizacja: /, 'template no longer stamps a build time — update VOLATILE_MARKUP');
 
-  // Same page, later build. Only the stamp differs, so the fingerprint must not.
   const laterBuild = page.replace(
     /(<span class="label label--soft">Aktualizacja: )[^<]*(<\/span>)/,
     '$1' + '31 gru 2027, 23:59' + '$2',
@@ -586,7 +538,6 @@ test('contentFingerprint ignores the masthead build stamp but not real content',
   assert.notEqual(laterBuild, page, 'the stamp substitution did not match the rendered markup');
   assert.equal(contentFingerprint(laterBuild), contentFingerprint(page));
 
-  // A price change is real content, and must move the fingerprint.
   const repriced = renderIndex(
     FINGERPRINT_ITEMS.map((item) => ({ ...item, price: '999 zł' })),
     ADS_OFF,
@@ -617,7 +568,6 @@ test('resolvePageLastmod keeps the old date for unchanged pages and moves change
     '2026-07-14',
     'an untouched guide must not claim it changed tonight',
   );
-  // The state carries the new fingerprints forward for the next run.
   assert.equal(state['https://stareaparaty.com/'].fingerprint, contentFingerprint('<p>catalog v2</p>'));
   assert.equal(Object.keys(state).length, 2, 'state is rebuilt from the page list, not merged');
 });
@@ -625,12 +575,9 @@ test('resolvePageLastmod keeps the old date for unchanged pages and moves change
 test('resolvePageLastmod stamps today when there is nothing to compare against', () => {
   const pages = [{ url: 'https://stareaparaty.com/poradniki/new.html', html: '<p>brand new</p>' }];
 
-  // First ever run: no state file.
   const fresh = resolvePageLastmod(pages, {}, '2026-08-11');
   assert.equal(fresh.lastmod.get('https://stareaparaty.com/poradniki/new.html'), '2026-08-11');
 
-  // A matching fingerprint with no recorded date is unusable — stamp today
-  // rather than emitting an empty <lastmod>.
   const dateless = resolvePageLastmod(
     pages,
     { 'https://stareaparaty.com/poradniki/new.html': { fingerprint: contentFingerprint('<p>brand new</p>') } },
@@ -651,17 +598,13 @@ test('sitemap emits the per-page dates it is given and omits the rest', () => {
 
   assert.match(xml, /<loc>https:\/\/stareaparaty\.com\/<\/loc>\n\s*<lastmod>2026-08-11<\/lastmod>/);
   assert.match(xml, /poradniki\/a\.html<\/loc>\n\s*<lastmod>2026-06-02<\/lastmod>/);
-  // Guide b has no date, so it gets no element rather than an invented one.
   assert.match(xml, /poradniki\/b\.html<\/loc>\n\s*<changefreq>/);
   assert.equal(xml.match(/<lastmod>/g).length, 2);
   assert.ok(!xml.includes('<lastmod></lastmod>'));
 });
 
-// ── Per-camera-type guides ──────────────────────────────────────────────────
 
 test('every guide targets a type that camera-types.json actually defines', () => {
-  // The real guard: renaming a section heading must not silently orphan a
-  // guide (empty offer list on the page, missing link from the catalog).
   const guides = loadGuides();
   assert.ok(guides.length > 0, 'expected the committed guides.json to hold guides');
   const knownTypes = new Set(TYPE_CONFIG.order);
@@ -696,7 +639,6 @@ test('a model guide selects listings by keyword, not by type', () => {
   const html = renderGuide(pentax, guides, items, ADS_OFF);
 
   assert.ok(html.includes('Pentax ME z obiektywem'), 'expected the matching body');
-  // All three are SLRs — a type-based filter would wrongly pull them all in.
   assert.ok(!html.includes('Pentax SF7'), 'a different Pentax model must not be listed');
   assert.ok(!html.includes('Zenit-B'), 'an unrelated SLR must not be listed');
   assert.match(html, /Pentax ME i MV w mojej ofercie/);
@@ -737,10 +679,6 @@ test('yashica-fx model guide selects Yashica FX listings and excludes others', (
 });
 
 test('model guides stay out of the homepage type headings', () => {
-  // Two model guides share the SLR type; letting them into the heading map
-  // would mean they silently overwrite each other and the type guide.
-  // Two types, so the catalog renders grouped sections with headings at all —
-  // with a single type it falls back to a flat grid and there are no headings.
   const items = [{
     id: 1,
     title: 'Pentax ME z obiektywem Takumar',
@@ -782,7 +720,6 @@ test('guide navLabels are unique so the cross-link row is unambiguous', () => {
 
 test('normalizeGuides rejects unsafe or duplicate slugs', () => {
   const base = { type: 'Kompaktowe', title: 'T', description: 'D' };
-  // The slug becomes a filename, so path characters must never get through.
   assert.throws(() => normalizeGuides([{ ...base, slug: '../etc/passwd' }], TYPE_CONFIG), /not a valid slug/);
   assert.throws(() => normalizeGuides([{ ...base, slug: 'Kompakty' }], TYPE_CONFIG), /not a valid slug/);
   assert.throws(
@@ -794,7 +731,6 @@ test('normalizeGuides rejects unsafe or duplicate slugs', () => {
 test('renderInlineMarkup escapes HTML before applying bold/italic', () => {
   assert.equal(renderInlineMarkup('**Uwaga.** a < b'), '<strong>Uwaga.</strong> a &lt; b');
   assert.equal(renderInlineMarkup('*focus free*'), '<em>focus free</em>');
-  // An injected tag must stay inert text, not become markup.
   assert.equal(renderInlineMarkup('<script>x</script>'), '&lt;script&gt;x&lt;/script&gt;');
 });
 
@@ -813,7 +749,6 @@ test('renderGuideOffers links live listings and neutralizes sold ones', () => {
     { title: 'Osawa 80-200', url: 'https://olx.pl/o.html', price: '79 zł', sold: true },
   ]);
   assert.match(html, /href="https:\/\/olx\.pl\/y\.html"[^>]*>.*390 zł/);
-  // A sold camera must not stay a clickable link to a dead OLX page.
   assert.match(html, /offer--sold/);
   assert.ok(!html.includes('https://olx.pl/o.html'), 'sold listing must not be linked');
 });
@@ -835,25 +770,18 @@ test('renderGuide builds a complete page and lists only its own type', () => {
   ];
   const html = renderGuide(guide, guides, items, ADS_OFF);
 
-  // renderGuide runs the placeholder guard itself, so reaching here means it
-  // passed; this just pins the fact that nothing raw leaks into the output.
   assert.ok(!/\{\{[A-Z0-9_]+\}\}/.test(html));
   assert.match(html, /<h1>Aparat dalmierzowy — ostrzenie na plamkę<\/h1>/);
   assert.match(html, /"@type": "Article"/);
   assert.match(html, /rel="canonical" href="https:\/\/stareaparaty\.com\/poradniki\/dalmierzowe\.html"/);
-  // The SLR body must not leak into the rangefinder guide's OFFER LIST.
-  // Scoped to that block on purpose: "Pentax ME" also appears further down the
-  // page as a cross-link label, which is correct and must not fail this test.
   const offers = html.slice(html.indexOf('<div class="offers">'), html.indexOf('Dobierz film'));
   assert.ok(offers.includes('Mamiya Rank'), 'expected the rangefinder listing');
   assert.ok(!offers.includes('Pentax ME'), 'SLR listing must not appear in the rangefinder offers');
-  // Sibling guides are cross-linked, the guide itself is not.
   assert.ok(!html.includes('href="dalmierzowe.html"'), 'guide must not link to itself');
   assert.match(html, /href="lustrzanki-slr\.html"/);
   assert.ok(!html.includes('adsbygoogle'), 'ads-off guide must load no third-party script');
 });
 
-// ── New-arrival badge ───────────────────────────────────────────────────────
 
 test('resolveFirstSeen stamps genuinely new URLs and backfills known ones as not-new', () => {
   const previous = new Map([
@@ -861,12 +789,8 @@ test('resolveFirstSeen stamps genuinely new URLs and backfills known ones as not
     ['https://olx.pl/tracked.html', { url: 'https://olx.pl/tracked.html', firstSeen: '2026-07-30' }],
   ]);
 
-  // Never seen before → stamped today.
   assert.equal(resolveFirstSeen('https://olx.pl/fresh.html', previous, '2026-08-06'), '2026-08-06');
-  // Already tracked → keeps its original date.
   assert.equal(resolveFirstSeen('https://olx.pl/tracked.html', previous, '2026-08-06'), '2026-07-30');
-  // Known from before the field existed → empty, so the first build after
-  // adding the badge doesn't stamp the whole catalog as new at once.
   assert.equal(resolveFirstSeen('https://olx.pl/known.html', previous, '2026-08-06'), '');
 });
 
@@ -891,7 +815,6 @@ test('renderCard shows the NOWE chip only for a recent unsold listing', () => {
   assert.ok(!renderCard({ ...item, sold: true }, 0, { today: '2026-08-06' }).includes('cam-card__new'));
 });
 
-// ── Per-camera notes ────────────────────────────────────────────────────────
 
 test('noteForTitle picks the first matching rule and tolerates no match', () => {
   const rules = [
@@ -899,10 +822,8 @@ test('noteForTitle picks the first matching rule and tolerates no match', () => 
     { match: ['pentax'], note: 'Note Pentax' },
     { match: ['^obiektyw'], note: 'Note lens' },
   ];
-  // More specific rule listed first wins.
   assert.equal(noteForTitle('Pentax ME z obiektywem Takumar', rules), 'Note ME');
   assert.equal(noteForTitle('Pentax SF7', rules), 'Note Pentax');
-  // ^ anchors to the start: a camera "z obiektywem" is not a lens.
   assert.equal(noteForTitle('Obiektyw Osawa 80-200', rules), 'Note lens');
   assert.equal(noteForTitle('Zenit-B', rules), '');
 });
@@ -926,7 +847,6 @@ test('renderCard renders a note when one matches and omits the line otherwise', 
   assert.ok(!renderCard(item, 0, {}).includes('cam-card__note'));
 });
 
-// ── Fetch health reporting ──────────────────────────────────────────────────
 
 test('summarizeFetchHealth separates placeholder cards from cache fallbacks', () => {
   const health = summarizeFetchHealth([
@@ -941,10 +861,8 @@ test('summarizeFetchHealth separates placeholder cards from cache fallbacks', ()
 
 test('reportFetchHealth only fails the build under --strict', () => {
   const health = { placeholders: [{ url: 'd' }], cached: [] };
-  // Default: warn and carry on, so one dead listing can't block the deploy.
   assert.doesNotThrow(() => reportFetchHealth(health, { strict: false }));
   assert.throws(() => reportFetchHealth(health, { strict: true }), /placeholder cards/);
-  // A cache fallback alone is never fatal.
   assert.doesNotThrow(
     () => reportFetchHealth({ placeholders: [], cached: [{ url: 'c' }] }, { strict: true }),
   );
@@ -996,22 +914,18 @@ test('resolveOldPrice: no previous snapshot means no struck price', () => {
 });
 
 test('resolveOldPrice: a first drop surfaces the previous price', () => {
-  // Last build saw 390; now it is 320 -> strike 390.
   assert.equal(resolveOldPrice('320 zł', { price: '390 zł' }), '390 zł');
 });
 
 test('resolveOldPrice: the original (highest) price persists across rebuilds', () => {
-  // Price unchanged at 320 while a drop from 390 is already recorded.
   assert.equal(
     resolveOldPrice('320 zł', { price: '320 zł', oldPrice: '390 zł' }),
     '390 zł',
   );
-  // A further drop to 300 still shows the original 390, not the interim 320.
   assert.equal(
     resolveOldPrice('300 zł', { price: '320 zł', oldPrice: '390 zł' }),
     '390 zł',
   );
-  // A partial rebound (still below the all-time high) keeps the high.
   assert.equal(
     resolveOldPrice('350 zł', { price: '320 zł', oldPrice: '390 zł' }),
     '390 zł',
@@ -1020,7 +934,6 @@ test('resolveOldPrice: the original (highest) price persists across rebuilds', (
 
 test('resolveOldPrice: a new all-time high clears the struck price', () => {
   assert.equal(resolveOldPrice('400 zł', { price: '320 zł', oldPrice: '390 zł' }), '');
-  // Equal to the prior high (no drop) also clears it.
   assert.equal(resolveOldPrice('390 zł', { price: '390 zł' }), '');
 });
 
@@ -1078,17 +991,10 @@ test('camera-types.json: a plural "Aparaty …" multi-camera listing is a Zestaw
     ),
     'Zestawy',
   );
-  // The existing "Kolekcja …" set still groups as a Zestaw.
   assert.equal(classifyType('Kolekcja aparatów Canon EOS', config), 'Zestawy');
-  // A single camera (singular "Aparat") must NOT be pulled into Zestawy.
   assert.equal(classifyType('Aparat Zenit-B z obiektywem Helios-44', config), 'Lustrzanki (SLR)');
 });
 
-// --- Allegro manual price data -------------------------------------------
-// Allegro card prices are data-driven from scripts/allegro-products.json the
-// only source of retail product data. These guard that the
-// data file and the template never drift apart (a mismatch would either leave
-// a {{ALLEGRO_PRICE_*}} placeholder in the page or silently drop a price).
 
 const TEMPLATE_HTML = fs.readFileSync(
   path.join(__dirname, '..', 'templates', 'index.template.html'),
@@ -1115,7 +1021,6 @@ test('template {{ALLEGRO_PRICE_*}} placeholders match the JSON keys exactly', ()
     .map((m) => m[1])
     .sort();
   const jsonKeys = Object.keys(ALLEGRO_PRODUCTS).sort();
-  // Every placeholder has a data entry, every data entry is used once, no dupes.
   assert.deepEqual(placeholderKeys, jsonKeys);
 });
 
