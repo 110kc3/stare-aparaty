@@ -297,7 +297,6 @@ async function buildItem(url, fallbackItem) {
       };
     }
 
-    // preserves whatever sold state we already knew.
     if (response.status === 410) {
       console.warn(`Listing gone (HTTP ${response.status}) — marking sold: ${url}`);
       return {
@@ -585,12 +584,7 @@ function renderIndex(items, adsConfig) {
     .split('{{CAMERA_CARDS}}').join(renderCameraCatalog(items))
     .split('{{SITE_JSONLD}}').join(renderSiteJsonLd(items))
     .split('{{ADSENSE_HEAD}}').join(renderAdsHead(ads))
-    // The footer disclosure is gated for the same reason as the privacy policy
-    // §3: with ads off the page loads no Google script, so claiming otherwise
-    // in the footer told visitors about advertising that wasn't there.
     .split('{{ADS_DISCLOSURE}}').join(ads.enabled ? ' Strona wyświetla też reklamy Google.' : '')
-    // A leaderboard between the catalog and the film sections, a card-shaped
-    // unit that completes the colour-film row, and one above the footer.
     .split('{{AD_SLOT_MIDPAGE}}').join(renderAdUnit(ads, 'midpage', { className: 'ad-slot--wide' }))
     .split('{{AD_SLOT_INGRID}}').join(
       renderAdUnit(ads, 'ingrid', {
@@ -1242,7 +1236,6 @@ function reportPriceFreshness(summary, { annotate = false } = {}) {
   }
 }
 
-// Preserve offerId (used to pin multipacks) inside the tracked destination.
 function buildAllegroAffiliateUrl(rawUrl) {
   const destination = new URL(rawUrl);
   const retail = (destination.hostname === 'allegro.pl' && destination.pathname.startsWith('/produkt/'))

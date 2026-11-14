@@ -1,20 +1,5 @@
 #!/usr/bin/env node
 
-/**
- * Self-host the three Google Fonts so the page makes no render-blocking
- * third-party request. Fetches the Google Fonts CSS (which, with a modern
- * browser UA, serves woff2), keeps only the `latin` and `latin-ext` subsets
- * (latin-ext covers Polish diacritics), downloads each woff2 into `fonts/`,
- * and writes a local `fonts/fonts.css` with rewritten URLs and `font-display:
- * swap` preserved.
- *
- * Re-run whenever the font set changes:
- *   node scripts/fetch-fonts.js
- *
- * Then rebuild (`node scripts/build-catalog.js`) — the template links
- * `fonts/fonts.css` instead of fonts.googleapis.com.
- */
-
 const fs = require('node:fs');
 const path = require('node:path');
 

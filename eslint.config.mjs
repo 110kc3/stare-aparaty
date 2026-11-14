@@ -1,6 +1,3 @@
-// ESLint flat config. Deliberately no package.json / node_modules: CI runs it
-// via `npx --yes eslint@9`, matching the repo's dependency-free build path.
-// Run locally the same way: npx --yes eslint@9 .
 export default [
   {
     files: ['scripts/**/*.js', 'test/**/*.js'],

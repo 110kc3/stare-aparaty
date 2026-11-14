@@ -1,23 +1,31 @@
 # Stare Aparaty
 
-Static catalog and affiliate showcase for vintage analog cameras listed on OLX alongside curated film stocks and photography accessories on Allegro.
+Static catalog and affiliate showcase for my own vintage analog cameras listed on OLX alongside curated film stocks and photography accessories on Allegro. The public copy is in Polish; code and this README are in English.
 
-Live Website: https://110kc3.github.io/stare-aparaty/
+Live Website: https://stareaparaty.com/ (GitHub Pages)
 
 ## Highlights
 
 - **Automated Listing Discovery:** Crawls OLX seller pages, parses Open Graph/JSON-LD metadata, and normalizes listing cards
-- **Allegro Affiliate Integration:** Synchronizes live product pricing and campaign links across 15 curated 35mm & 120 film stocks
-- **Guide Generator:** Programmatically builds 10 detailed buyer guides (`poradniki/`) cross-linked directly to active camera listings
+- **Allegro Affiliate Integration:** Campaign links for 15 curated film stocks and accessories; prices are maintained by hand in `scripts/allegro-products.json` (the weekly API refresh workflow skips without Allegro credentials)
+- **Guide Generator:** Programmatically builds 12 buyer guides (`poradniki/`) cross-linked directly to active camera listings
 - **Zero-Dependency Native Tests:** Comprehensive suite covering metadata extraction, ad-state gating, HTML generation, and sitemap lastmod fidelity
 
 ## Quick Start
 
+No install step: the scripts and tests use only Node's built-in modules (Node 20+).
+
 ```bash
-npm install
-node --test test/*.test.js
+node --test
+npx --yes eslint@9 .
+node scripts/discover-listings.js
 node scripts/build-catalog.js
+python -m http.server 8000 --bind 127.0.0.1
 ```
+
+`discover-listings.js` rewrites `product-links.txt` from my OLX user page (`--dry-run` writes nothing; `--allow-shrink` accepts a drop of more than 30%). `build-catalog.js` fetches each listing and regenerates `index.html`, `olx_meta.json`, `polityka-prywatnosci.html`, `poradniki/*.html`, `sitemap.xml`, `ads.txt`, `llms.txt` and `llms-full.txt`. Those are build output and are never hand-edited: change `templates/` or the JSON in `scripts/` and rebuild. `test/links.test.js` checks the committed HTML, so rebuild after editing a template.
+
+AdSense ships disabled (`enabled: false` in `scripts/ads-config.json`): the build emits no ad markup and loads no third-party script. Flipping the flag changes the published privacy policy, so `PRIVACY_UPDATED` in `scripts/build-catalog.js` must be bumped at the same time; see `ADSENSE.md`.
 
 ## Documentation
 

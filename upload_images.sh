@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Array of image filenames
 images=(
     "kodak-portra-400.jpg"
     "fujifilm-superia-x-tra-400.jpg"
@@ -8,10 +7,8 @@ images=(
     "kodak-tri-x-400.jpg"
 )
 
-# S3 bucket name
 bucket="stareaparaty.com"
 
-# Loop through the images and upload them to S3
 for image in "${images[@]}"
 do
     if [ -f "$image" ]; then
