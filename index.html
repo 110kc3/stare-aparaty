@@ -39,7 +39,6 @@
     })();
   </script>
   <style>
-    /* ── Tokens ─────────────────────────────────────────────────── */
     :root {
       --bg:        #0e0b08;
       --bg-2:      #141009;
@@ -198,9 +197,6 @@
       padding: 3px;
     }
 
-    /* Grouped catalog: a vertical stack of labelled type sections, each its
-       own .camera-grid. Falls back to a single flat grid when there is only
-       one type. */
     .camera-catalog { display: flex; flex-direction: column; gap: 26px; }
     .cam-group__head {
       display: flex; align-items: baseline; gap: 12px; margin: 0 0 10px;
@@ -220,9 +216,6 @@
     }
 
     .cam-card-shell {
-      /* The flex item: 4 per row; the 3 gaps of 3px are subtracted so widths
-         stay exact. flex-wrap + justify-content:center keeps a short last row
-         centered. Positioned so the zoom button can overlay the image. */
       flex: 0 0 calc((100% - 9px) / 4);
       position: relative;
     }
@@ -235,8 +228,6 @@
     }
     .cam-card:hover { outline: 2px solid var(--gold); z-index: 2; position: relative; }
 
-    /* Zoom button: overlays the image top-right, opens the lightbox. Hidden
-       until hover/focus on pointer devices; always visible on touch. */
     .cam-card__zoom {
       position: absolute; top: 6px; right: 6px; z-index: 4;
       width: 30px; height: 30px;
@@ -251,7 +242,6 @@
     .cam-card__zoom:hover { background: rgba(14, 11, 8, 0.92); }
     @media (hover: none) { .cam-card__zoom { opacity: 1; } }
 
-    /* Lightbox overlay for enlarging a camera photo without leaving the page. */
     .lightbox {
       position: fixed; inset: 0; z-index: 100;
       display: none; align-items: center; justify-content: center;
@@ -280,11 +270,6 @@
       transition: opacity 200ms, transform 220ms, filter 200ms;
       opacity: 0.88;
     }
-    /* Easter egg: the photo drops to chunky pixels on hover, behind the OLX
-       pill. Pure CSS can't pixelate a full-resolution image, so this leans on
-       the inline #pixelate SVG filter near the end of the document. Applied on
-       hover only — filtering all 20 images at rest would be needlessly
-       expensive. Delete this rule and the inline svg filter to remove it. */
     .cam-card:hover .cam-card__img {
       opacity: 0.45; transform: scale(1.04); filter: url(#pixelate);
     }
@@ -321,8 +306,6 @@
       transition: color 200ms;
     }
     .cam-card:hover .cam-card__detail { color: #444; }
-    /* One-sentence model note (scripts/camera-notes.json). Clamped to two lines
-       so a long note can't stretch one card taller than its row. */
     .cam-card__note {
       font-size: 10px;
       line-height: 1.45;
@@ -336,7 +319,6 @@
       transition: color 200ms;
     }
     .cam-card:hover .cam-card__note { color: #555; }
-    /* NOWE chip — opposite corner from the price so the two never collide. */
     .cam-card__new {
       position: absolute;
       top: 8px; right: 8px;
@@ -363,7 +345,6 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.25);
       white-space: nowrap;
     }
-    /* Original price shown struck through when a listing has been marked down. */
     .cam-card__price-was {
       font-size: 10px;
       font-weight: 600;
@@ -374,7 +355,6 @@
       margin-right: 1px;
     }
 
-    /* Sold-out state — listing was removed from OLX (HTTP 410/404). */
     .cam-card--sold { cursor: default; outline: 2px solid transparent; pointer-events: none; }
     .cam-card--sold:hover { outline: 2px solid transparent; }
     .cam-card--sold .cam-card__img {
@@ -475,11 +455,6 @@
     .footer a:hover { color: var(--gold); text-decoration: underline; }
     .footer__legal { display: flex; gap: 14px; flex-wrap: wrap; }
 
-    /* ── Ad slots ───────────────────────────────────────────────────
-       Always labelled: the in-grid unit sits between product cards that look
-       exactly like editorial content, so an unmarked ad there would read as a
-       recommendation. min-height reserves the space before AdSense measures,
-       which keeps the unit from shoving the page down as it fills. */
     .ad-slot {
       display: flex; flex-direction: column; gap: 8px;
       border: 1px dashed var(--line);
@@ -497,15 +472,10 @@
     .ad-slot__ins { width: 100%; }
     .ad-slot--wide { margin-top: 32px; }
     .ad-slot--wide .ad-slot__ins { min-height: 100px; }
-    /* Sits inside .product-grid as one more cell, matching a card's proportions. */
     .ad-slot--card { margin: 0; }
     .ad-slot--card .ad-slot__ins { min-height: 260px; }
-    /* When Google has no ad to show it marks the <ins> unfilled — collapse the
-       whole frame rather than leaving an empty labelled box on the page. */
     .ad-slot:has(> .ad-slot__ins[data-ad-status="unfilled"]) { display: none; }
 
-    /* Keyboard focus — the hover outline never shows for keyboard users, so
-       give every interactive element a visible focus ring of its own. */
     a:focus-visible,
     button:focus-visible,
     .cam-card:focus-visible,
@@ -527,8 +497,6 @@
       .masthead__topline { flex-direction: column; align-items: flex-start; }
     }
 
-    /* Respect users who ask for less motion — drop hover transforms,
-       near-instant transitions, and smooth scrolling. */
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
       *, *::before, *::after {
@@ -536,7 +504,6 @@
         animation-duration: 0.01ms !important;
       }
       .product-card:hover { transform: none; }
-      /* The pixelate snap is a motion effect too — drop it here as well. */
       .cam-card:hover .cam-card__img { transform: none; filter: none; }
     }
   </style>
@@ -573,7 +540,7 @@
         <h2>Aparaty w ofercie</h2>
         <p>Kliknij kartę, aby przejść do ogłoszenia na OLX</p>
       </div>
-      <span class="label label--soft">Aktualizacja: 14 lis 2026, 13:21</span>
+      <span class="label label--soft">Aktualizacja: 14 lis 2026, 15:08</span>
     </div>
 
     <div class="camera-catalog" aria-label="Katalog aparatów">
@@ -1312,8 +1279,6 @@
   </script>
 
 <script>
-  // Camera-photo lightbox. The zoom buttons are siblings of the OLX link, so
-  // opening a photo never navigates away or fires an outbound-click event.
   (function () {
     var box = document.getElementById('lightbox');
     var img = document.getElementById('lightbox-img');
@@ -1344,7 +1309,6 @@
         open(trigger.getAttribute('data-full'), trigger.getAttribute('aria-label'));
         return;
       }
-      // A click on the backdrop or the close button (but not the image) closes.
       if (!box.hidden && event.target !== img) close();
     });
 
@@ -1372,7 +1336,7 @@
       var current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
       var next = current === 'dark' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', next);
-      try { localStorage.setItem('theme', next); } catch (err) { /* ignore */ }
+      try { localStorage.setItem('theme', next); } catch (err) {}
       syncLabel();
     });
   })();
