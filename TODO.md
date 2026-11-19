@@ -2,6 +2,12 @@
 
 Ideas to improve Stare Aparaty. Ordered roughly by impact-per-effort within each section. None of these are committed to — treat this as a backlog to cherry-pick from.
 
+## Current work — 2026-11-19
+
+- [x] **Make the Allegro price refresh fail visibly.** The 2026-11-16 scheduled run ([43894747199](https://github.com/110kc3/stare-aparaty/actions/runs/43894747199)) reported success while logging that `ALLEGRO_CLIENT_ID`/`ALLEGRO_CLIENT_SECRET` were missing, so eight prices kept their 2026-07-06 check date. `refresh-allegro.yml` now runs `refresh-allegro.js --strict`; tests cover the strict exit code and the workflow flag. Expected: the workflow stays red until the owner adds both repository secrets.
+- [x] **Move workflows off the deprecated Node 20 runtime.** All workflows now use Node 24 with `actions/checkout@v7`, `actions/setup-node@v7`, `actions/configure-pages@v6`, `actions/upload-pages-artifact@v5` and `actions/deploy-pages@v5`. Because `upload-pages-artifact` v4+ excludes dotfiles, both deploy workflows set `include-hidden-files: true` to keep publishing `.well-known/`.
+- **Owner action:** register an Allegro API application and add `ALLEGRO_CLIENT_ID` and `ALLEGRO_CLIENT_SECRET` as repository secrets, then dispatch "Refresh Allegro prices".
+
 ## Current work — 2026-10-13
 
 - [x] **Switch all film/accessory cards to Allegro.** Owner requested the full switch, superseding the earlier cheaper-marketplace rule. All 15 cards use the existing campaign; APX 100 and HP5 retain 135/36 format, Portra retains five rolls, Gold retains three. Owner chose the Kodak 6×6 smartphone scanner (120/220) to replace the unavailable 35 mm model; its current product page also reports unavailable, so the card clearly says so and shows no stale price. URLs, prices and images now come from `scripts/allegro-products.json`. Amazon data, scraper, disabled workflow, artifact copies, public data endpoint references and disclosures have been removed. The eight unaffected Allegro prices retain their original check dates; refreshing them is not implied by this migration.

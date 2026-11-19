@@ -7,13 +7,13 @@ Live Website: https://stareaparaty.com/ (GitHub Pages)
 ## Highlights
 
 - **Automated Listing Discovery:** Crawls OLX seller pages, parses Open Graph/JSON-LD metadata, and normalizes listing cards
-- **Allegro Affiliate Integration:** Campaign links for 15 curated film stocks and accessories; prices are maintained by hand in `scripts/allegro-products.json` (the weekly API refresh workflow skips without Allegro credentials)
+- **Allegro Affiliate Integration:** Campaign links for 15 curated film stocks and accessories; prices are maintained by hand in `scripts/allegro-products.json` (the weekly API refresh workflow runs with `--strict`, so it fails visibly until the `ALLEGRO_CLIENT_ID` and `ALLEGRO_CLIENT_SECRET` repository secrets are set)
 - **Guide Generator:** Programmatically builds 12 buyer guides (`poradniki/`) cross-linked directly to active camera listings
 - **Zero-Dependency Native Tests:** Comprehensive suite covering metadata extraction, ad-state gating, HTML generation, and sitemap lastmod fidelity
 
 ## Quick Start
 
-No install step: the scripts and tests use only Node's built-in modules (Node 20+).
+No install step: the scripts and tests use only Node's built-in modules (Node 24+, matching CI).
 
 ```bash
 node --test

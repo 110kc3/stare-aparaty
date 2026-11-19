@@ -19,15 +19,15 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: 24
 
       - name: Refresh Allegro prices
-        run: node scripts/refresh-allegro.js
+        run: node scripts/refresh-allegro.js --strict
         env:
           ALLEGRO_CLIENT_ID: ${{ secrets.ALLEGRO_CLIENT_ID }}
           ALLEGRO_CLIENT_SECRET: ${{ secrets.ALLEGRO_CLIENT_SECRET }}

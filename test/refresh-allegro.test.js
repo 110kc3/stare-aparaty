@@ -223,3 +223,20 @@ test('refreshAllegroProducts updates prices and flags failures with mock fetch',
   assert.equal(result.products['item-failing'].price, '20,00 zł');
   assert.equal(result.products['item-failing'].lastChecked, '2026-07-06');
 });
+
+test('strict mode fails when Allegro credentials are missing', () => {
+  const { spawnSync } = require('node:child_process');
+  const env = { ...process.env };
+  delete env.ALLEGRO_CLIENT_ID;
+  delete env.ALLEGRO_CLIENT_SECRET;
+  const scriptPath = path.join(__dirname, '..', 'scripts', 'refresh-allegro.js');
+  const result = spawnSync(process.execPath, [scriptPath, '--strict'], { env, encoding: 'utf8' });
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /::error::ALLEGRO_CLIENT_ID or ALLEGRO_CLIENT_SECRET is missing/);
+});
+
+test('scheduled Allegro refresh workflow runs in strict mode', () => {
+  const workflowPath = path.join(__dirname, '..', '.github', 'workflows', 'refresh-allegro.yml');
+  const workflow = fs.readFileSync(workflowPath, 'utf8');
+  assert.match(workflow, /node scripts\/refresh-allegro\.js --strict/);
+});
